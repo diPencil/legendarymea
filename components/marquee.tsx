@@ -3,8 +3,8 @@
 import { useLocale } from './i18n'
 
 const items = {
-  en: ['TRAVEL MANAGEMENT', 'HOSPITALITY', 'CORPORATE TRAVEL', 'GLOBAL PARTNERSHIPS', 'DESTINATION SERVICES'],
-  ar: ['إدارة السفر', 'الضيافة', 'سفر الشركات', 'شراكات عالمية', 'خدمات الوجهات'],
+  en: ['HOTELS', 'FLIGHTS', 'TRANSFERS', 'GROUPS', 'CORPORATE TRAVEL', 'TOURS', 'HOSPITALITY'],
+  ar: ['الفنادق', 'الطيران', 'التنقلات', 'سفر المجموعات', 'سفر الشركات', 'التجارب والجولات', 'الضيافة'],
 }
 
 export function BrandMarquee() {
