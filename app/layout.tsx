@@ -10,25 +10,13 @@ import '@fontsource/montserrat/800.css'
 import './globals.css'
 import { LocaleProvider } from '@/components/i18n'
 export const metadata: Metadata = {
-  title: 'Legendary Management MEA | Destination Experiences',
-  description: 'Legendary Management MEA creates extraordinary destination, corporate, and luxury travel experiences across the Middle East and Africa.',
+  title: 'Legendary Management MEA | B2B Travel Operations',
+  description: 'Travel arrangements, commercial partnerships and B2B travel technology for agencies, companies and hospitality partners across the Middle East and Africa.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 }
 

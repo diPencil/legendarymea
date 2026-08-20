@@ -1,200 +1,21 @@
-"use client";
-import {
-  ArrowButton,
-  ContactBlock,
-  PageShell,
-  SectionTitle,
-  images,
-} from "@/components/site";
-import { useLocale } from "@/components/i18n";
-import { Reveal } from "@/components/motion";
-import { ArrowUpRight } from "lucide-react";
+'use client'
+import Link from 'next/link'
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, Building2, CalendarCheck2, Cpu, Handshake, Hotel, MapPinned, Network, PlaneTakeoff, UsersRound } from 'lucide-react'
+import { PageShell, images } from '@/components/site'
+import { useLocale } from '@/components/i18n'
+import { experienceCopy } from '@/components/experience-content'
 
-const groups = {
-  en: [
-    [
-      "Travel agencies",
-      "Build a broader response for every client brief.",
-      "/partners/travel-agencies",
-    ],
-    [
-      "Tour operators",
-      "Coordinate programs with more confidence.",
-      "/partners/tour-operators",
-    ],
-    [
-      "Corporate travel",
-      "Support teams, meetings and executive movement.",
-      "/partners/corporate-travel",
-    ],
-    [
-      "Hospitality partners",
-      "Connect regional insight to commercial opportunity.",
-      "/partners/hospitality-partners",
-    ],
-  ],
-  ar: [
-    [
-      "وكالات السفر",
-      "ابنِ استجابة أوسع لكل طلب من عملائك.",
-      "/partners/travel-agencies",
-    ],
-    ["منظمو الرحلات", "نسّق البرامج بثقة أكبر.", "/partners/tour-operators"],
-    [
-      "سفر الشركات",
-      "ادعم الفرق والاجتماعات وتنقلات التنفيذيين.",
-      "/partners/corporate-travel",
-    ],
-    [
-      "شركاء الضيافة",
-      "اربط المعرفة الإقليمية بالفرص التجارية.",
-      "/partners/hospitality-partners",
-    ],
-  ],
-} as const;
+const partnerIcons=[PlaneTakeoff,MapPinned,Building2,BriefcaseBusiness,Hotel,Network]
+const matrixIcons=[CalendarCheck2,UsersRound,Handshake,Cpu]
 
-export default function PartnersPage() {
-  const { locale } = useLocale();
-  const items = groups[locale];
-  
-  return (
-    <PageShell>
-      <Reveal>
-        <section className="inner-hero section-shell">
-          <div>
-            <div className="section-kicker">01 / {locale === 'ar' ? 'من نخدم' : 'Who we serve'}</div>
-            <h1>
-              {locale === 'ar' ? (
-                <>مصمم حول <em>أعمالك.</em></>
-              ) : (
-                <>Built around <em>your business.</em></>
-              )}
-            </h1>
-            <p>
-              {locale === 'ar' 
-                ? 'تدعم ليجنداري الأشخاص والمؤسسات الذين يجعلون السفر ممكناً. ابحث عن نموذج الشراكة الذي يناسب عملك.' 
-                : 'Legendary supports the people and organizations who make travel happen. Find the partnership model that fits your work.'}
-            </p>
-          </div>
-          <div className="inner-image">
-            <img src={images.team} alt="Travel and hospitality team" />
-          </div>
-        </section>
-      </Reveal>
-
-      <Reveal>
-        <section className="story section-shell">
-          <div className="story-image">
-            <img src={images.meeting} alt="Business meetings" />
-          </div>
-          <div>
-            <div className="section-kicker">02 / {locale === 'ar' ? 'من نعمل معهم' : 'Who we work with'}</div>
-            <h2>
-              {locale === 'ar' ? 'شراكات مبنية على الثقة' : 'Partnerships built on trust.'}
-            </h2>
-            <p>
-              {locale === 'ar' 
-                ? 'نحن نتعاون مع وكالات السفر الفاخرة، والشركات متعددة الجنسيات، ومقدمي خدمات الضيافة لضمان تنفيذ كل رحلة عبر الشرق الأوسط وأفريقيا بدقة عالية ومستوى عالمي.'
-                : 'We collaborate with luxury travel agencies, multinational corporations, and leading hospitality providers to ensure every journey across the Middle East and Africa is executed with absolute precision.'}
-            </p>
-            <div className="mini-pills">
-              {locale === 'ar' ? (
-                <><span>وكالات السفر</span><span>الشركات</span><span>الضيافة</span></>
-              ) : (
-                <><span>Travel Agencies</span><span>Corporations</span><span>Hospitality</span></>
-              )}
-            </div>
-          </div>
-        </section>
-      </Reveal>
-
-      <section className="audience section-shell">
-        <SectionTitle kicker={`03 / ${locale === 'ar' ? 'أنواع الشراكة' : 'Partner Types'}`}>
-          {locale === 'ar' ? <>اختر نقطة <em>انطلاقك.</em></> : <>Choose your <em>starting point.</em></>}
-        </SectionTitle>
-        <div className="values-grid">
-          {items.map(([title, desc, href]) => (
-            <Reveal key={title}>
-              <article>
-                <span className="section-kicker">{locale === 'ar' ? 'نوع الشريك' : 'Partner type'}</span>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-                <ArrowButton label={locale === 'ar' ? 'اكتشف المزيد' : 'Explore'} href={href} />
-              </article>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section className="why section-shell">
-        <div>
-          <div className="section-kicker">04 / {locale === 'ar' ? 'لماذا ليجنداري' : 'Why work with us'}</div>
-          <h2>{locale === 'ar' ? 'القيمة التي نضيفها' : 'The value we bring.'}</h2>
-          <p>
-            {locale === 'ar' 
-              ? 'نحن لا نقدم خدمات السفر فحسب، بل نمنحك ميزة تنافسية من خلال خبرتنا العميقة في المنطقة وشبكتنا الواسعة.'
-              : 'We do not just fulfill travel—we give your business a competitive edge through deep regional expertise and an extensive network.'}
-          </p>
-        </div>
-        <div className="why-grid">
-          {[
-            locale === 'ar' ? ['01', 'التسعير المباشر', 'نقدم لك أفضل الأسعار التجارية المباشرة لضمان هوامش ربح أعلى لعملك.'] : ['01', 'Direct Commercial Pricing', 'We provide access to the best direct commercial rates, protecting your margins.'],
-            locale === 'ar' ? ['02', 'دعم مخصص 24/7', 'مدراء حسابات مخصصون متواجدون على مدار الساعة لخدمتك وعملائك.'] : ['02', 'Dedicated 24/7 Support', 'Account managers available around the clock for you and your VIP clients.'],
-            locale === 'ar' ? ['03', 'تقنية متطورة', 'وصول سلس إلى بوابات الحجز المتطورة لدينا وتقارير البيانات.'] : ['03', 'Advanced Technology', 'Seamless access to our proprietary booking portals and reporting data.']
-          ].map(([num, title, desc]) => (
-            <Reveal key={title}>
-              <article>
-                <span>{num}</span>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-              </article>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section className="process section-shell">
-        <div className="section-kicker">05 / {locale === 'ar' ? 'كيف نعمل' : 'How it works'}</div>
-        <h2>{locale === 'ar' ? 'شراكة بسيطة وفعالة' : 'A streamlined partnership process.'}</h2>
-        <div className="process-grid">
-          {[
-            locale === 'ar' ? ['01', 'التسجيل', 'قدم طلبك وأكمل عملية التحقق التجارية الخاصة بنا.'] : ['01', 'Application', 'Submit your company profile and complete our commercial verification.'],
-            locale === 'ar' ? ['02', 'التكامل', 'الوصول إلى منصاتنا وتدريب فريقك على أنظمتنا.'] : ['02', 'Integration', 'Gain portal access and receive comprehensive team onboarding.'],
-            locale === 'ar' ? ['03', 'الحجز', 'ابدأ بتنفيذ الحجوزات وإدارة مسارات عملائك بثقة.'] : ['03', 'Booking', 'Start fulfilling reservations and managing itineraries with confidence.']
-          ].map(([num, title, desc]) => (
-            <Reveal key={title}>
-              <article>
-                <span>{num}</span>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-              </article>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <Reveal>
-        <section className="dark-panel section-shell">
-          <div className="panel-heading">
-            <div>
-              <div className="section-kicker">06 / {locale === 'ar' ? 'الدعم المخصص' : 'Dedicated Support'}</div>
-              <h2>{locale === 'ar' ? 'دائماً هنا للمساعدة' : 'Always here to help.'}</h2>
-            </div>
-            <p>
-              {locale === 'ar' 
-                ? 'فريق الدعم المتخصص للشركاء متواجد لمساعدتك في أي استفسارات أو حجوزات معقدة.' 
-                : 'Our dedicated B2B partner support team is on standby to assist with complex itineraries and urgent requests.'}
-            </p>
-          </div>
-          <div className="panel-actions">
-            <a className="button button-gold" href="/contact">
-              {locale === 'ar' ? 'تواصل مع الدعم' : 'Contact Support'} <ArrowUpRight size={17} />
-            </a>
-          </div>
-        </section>
-      </Reveal>
-
-      <ContactBlock />
-    </PageShell>
-  );
-}
+export default function PartnersPage(){const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].partners;const Arrow=ar?ArrowLeft:ArrowRight;return <PageShell>
+ <section className="partners-hero" dir={ar?'rtl':'ltr'}><div className="partners-hero-image-layer"><img src={images.meeting} alt=""/><div className="partners-hero-overlay"/></div><div className="internal-hero-layout section-shell"><div className="internal-hero-title-col"><div className="section-kicker light">{c.heroKicker}</div><h1>{c.heroTitle}</h1></div><div className="internal-hero-desc-col"><p>{c.heroBody}</p></div></div></section>
+ <section className="xp-partner-map section-shell" dir={ar?'rtl':'ltr'}><div className="xp-partner-map-intro"><div className="section-kicker">{ar?'٠١ / العلاقات':'01 / RELATIONSHIPS'}</div><h2>{c.whoTitle}</h2><span aria-hidden="true">06</span></div><div className="xp-partner-map-grid">{c.who.map((x,i)=>{const Icon=partnerIcons[i];return <article key={x}><div><b>{ar?['٠١','٠٢','٠٣','٠٤','٠٥','٠٦'][i]:`0${i+1}`}</b><Icon aria-hidden="true"/></div><h3>{x}</h3><i aria-hidden="true"/></article>})}</div></section>
+ <section className="xp-partnership-network section-shell" dir={ar?'rtl':'ltr'}><div className="xp-partnership-network-head"><div><div className="section-kicker">{ar?'شبكة الشراكات':'PARTNERSHIP NETWORK'}</div><h2>{c.networkTitle}</h2></div><p>{c.networkBody}</p></div><div className="xp-partnership-logos">{[['mafairjets.jpg','MA Fairjets'],['tarteeb.jpg','Tarteeb Private'],['taxidia.jpg','Taxidia']].map(([src,name],i)=><article key={name}><div className="xp-partnership-logo"><img src={`/partnership/${src}`} alt={name}/></div><div><span>{ar?['٠١','٠٢','٠٣'][i]:`0${i+1}`}</span><h3>{name}</h3><p>{c.networkTypes[i]}</p></div></article>)}</div></section>
+ <div className="editorial-band editorial-band-navy"><section className="xp-models section-shell" dir={ar?'rtl':'ltr'}><img className="xp-models-art" src="/real%20requests.png" alt="" aria-hidden="true"/><div className="xp-section-heading"><div className="section-kicker light">02 / MODELS</div><h2>{c.modelsTitle}</h2></div><div>{c.models.map(([t,b],i)=><article key={t}><span>0{i+1}</span><h3>{t}</h3><p>{b}</p></article>)}</div></section></div>
+ <section className="xp-matrix section-shell" dir={ar?'rtl':'ltr'}><div className="xp-matrix-heading"><div className="section-kicker">{ar?'٠٣ / نطاق الشراكة':'03 / SCOPE'}</div><h2>{c.matrixTitle}</h2></div><div className="xp-matrix-grid">{c.matrixRows.map((r,i)=>{const Icon=matrixIcons[i];return <article key={r[0]}><header><span>{ar?['٠١','٠٢','٠٣','٠٤'][i]:`0${i+1}`}</span><Icon aria-hidden="true"/></header><h3>{r[0]}</h3><div className="xp-matrix-route"><b>{r[1]}</b><i aria-hidden="true"><em/><em/><em/></i><b>{r[2]}</b></div></article>})}</div></section>
+ <section className="xp-onboarding section-shell" dir={ar?'rtl':'ltr'}><div className="xp-onboarding-heading"><div className="section-kicker">{ar?'٠٤ / البداية':'04 / START'}</div><h2>{c.startTitle}</h2></div><ol>{c.start.map((x,i)=><li key={x}><span>{ar?['٠١','٠٢','٠٣','٠٤','٠٥'][i]:`0${i+1}`}</span><strong><b>{x}</b><small>{c.startDescriptions[i]}</small></strong><i aria-hidden="true"/></li>)}</ol></section>
+ <section className="xp-scenarios section-shell" dir={ar?'rtl':'ltr'}><div className="xp-scenarios-hero"><div className="xp-section-heading"><div className="section-kicker light">{ar?'٠٥ / حالات العمل':'05 / SCENARIOS'}</div><h2>{c.scenariosTitle}</h2></div><div className="xp-scenarios-visual"><img src="/taxidia02.png" alt={ar?'واجهة إدارة طلب السفر في تاكسيديا':'Taxidia trip request interface'}/><span>{ar?'طلب واضح':'CLEAR REQUEST'}</span></div></div><div className="xp-scenarios-grid">{c.scenarios.map(([t,b],i)=><article key={t}><span>{ar?['٠١','٠٢','٠٣','٠٤'][i]:`0${i+1}`}</span><h3>{t}</h3><p>{b}</p><i aria-hidden="true"/></article>)}</div></section>
+ <div className="editorial-band editorial-band-navy"><section className="xp-bridge section-shell" dir={ar?'rtl':'ltr'}><div><div className="section-kicker light">06 / TECHNOLOGY</div><h2>{c.platformTitle}</h2><p>{c.platformBody}</p></div><Link href="/platform" className="button button-gold">{c.platformCta}<Arrow size={17}/></Link></section></div>
+ <section className="xp-partner-cta section-shell" dir={ar?'rtl':'ltr'}><h2>{c.finalTitle}</h2><Link href="/contact" className="button button-navy">{c.finalCta}<Arrow size={17}/></Link></section>
+</PageShell>}

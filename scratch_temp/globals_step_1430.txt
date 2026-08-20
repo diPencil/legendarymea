@@ -1,0 +1,27 @@
+Created At: 2026-08-10T06:37:29+03:00
+Completed At: 2026-08-10T06:37:29+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -777,7 +777,7 @@
+   .audience-interactive-strip:hover .audience-item:hover,
+   .audience-interactive-strip:focus-within .audience-item:focus-visible {
+     opacity: 1;
+-    background-color: rgba(8, 29, 96, 0.02);
++    background-color: #fff;
+   }
+ }
+ 
+@@ -900,6 +900,10 @@
+     background: var(--paper);
+     padding: 30px;
+   }
++  .audience-item:active,
++  .audience-item:focus-visible {
++    background-color: #fff;
++  }
+   [dir="rtl"] .audience-interactive-strip {
+     margin-left: -24px;
+     margin-right: -24px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

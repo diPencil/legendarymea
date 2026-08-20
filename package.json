@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "build:static": "STATIC_EXPORT=true NEXT_PUBLIC_STATIC_EXPORT=true next build --webpack"
+    "build:static": "STATIC_EXPORT=true NEXT_PUBLIC_STATIC_EXPORT=true next build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

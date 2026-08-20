@@ -1,0 +1,178 @@
+Created At: 2026-08-10T23:33:08+03:00
+Completed At: 2026-08-10T23:33:39+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1178,24 +1178,115 @@
+   gap: 12px;
+   margin-bottom: 30px;
+ }
+-.regional {
+-  display: grid;
+-  grid-template-columns: 1fr 1fr;
+-  gap: 8vw;
+-  align-items: center;
+-  padding: 130px 0;
+-}
+-.regional-image {
+-  height: 500px;
+-  overflow: hidden;
+-  border-radius: 24px;
+-}
+-.regional-image img {
+-  width: 100%;
+-  height: 100%;
+-  object-fit: cover;
+-}
+-.regional h2,
++/* REGIONAL PERSPECTIVE - SCROLLFLYIN */
++.regional-scroll-section {
++  height: 160vh;
++  position: relative;
++}
++.regional-sticky-scene {
++  position: sticky;
++  top: var(--header-height, 0px);
++  height: 100vh;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  overflow: hidden;
++  padding: 0 5vw;
++}
++.regional-text-content {
++  position: relative;
++  text-align: center;
++  max-width: 800px;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++}
++.regional-text-content .section-kicker {
++  margin-bottom: 24px;
++}
++.regional-heading {
++  font-size: clamp(32px, 4vw, 56px);
++  line-height: 1.1;
++  letter-spacing: -0.05em;
++  margin-bottom: 32px;
++  max-width: 800px;
++}
++.regional-heading-navy {
++  color: var(--navy);
++}
++.regional-heading-gold {
++  color: var(--gold);
++  font-style: italic;
++  font-weight: 400;
++}
++.regional-desc-cta {
++  max-width: 560px;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  gap: 32px;
++}
++.regional-desc-cta p {
++  color: var(--muted);
++  font-size: 16px;
++  line-height: 1.6;
++  margin: 0;
++}
++.regional-fly-asset {
++  position: absolute;
++  top: 50%;
++  left: 50%;
++  margin-left: -35vw;
++  margin-top: -20vh;
++  width: 70vw;
++  height: 40vh;
++  border-radius: 40px;
++  overflow: hidden;
++  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
++  pointer-events: none;
++}
++.regional-fly-asset img {
++  width: 100%;
++  height: 100%;
++  object-fit: cover;
++}
++
++@media (max-width: 768px) {
++  .regional-scroll-section {
++    height: 130vh;
++  }
++  .regional-fly-asset {
++    width: 85vw;
++    height: 30vh;
++    margin-left: -42.5vw;
++    margin-top: -15vh;
++  }
++  .regional-desc-cta p {
++    font-size: 15px;
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .regional-scroll-section {
++    height: auto;
++    padding: 100px 0;
++  }
++  .regional-sticky-scene {
++    position: relative;
++    height: auto;
++    overflow: visible;
++  }
++  .regional-fly-asset {
++    position: relative;
++    top: auto;
++    left: auto;
++    margin: 40px auto 0;
++    width: 100%;
++    max-width: 800px;
++    height: auto;
++    aspect-ratio: 16/9;
++  }
++}
+ .why h2,
+ .process h2 {
+   font-size: clamp(28px, 2.4vw, 40px);
+@@ -1202,5 +1202,5 @@
+ }
+-.regional p,
++.why p,
+ .why > div > p {
+   max-width: 390px;
+   color: var(--muted);
+@@ -1372,9 +1372,7 @@
+   border-inline-start: 0;
+   padding-inline-start: 0;
+ }
+-.regional {
+-  padding-top: 90px;
+-}
++
+ .faq-roller-section {
+   padding-bottom: 120px;
+ }
+@@ -2420,7 +2420,7 @@
+     border-radius: 140px 140px 18px 18px;
+   }
+   .story,
+-  .regional,
++  .regional-scroll-section,
+   .why {
+     grid-template-columns: 1fr;
+     padding: 80px 0;
+@@ -2427,6 +2427,6 @@
+   }
+   .story-image,
+-  .regional-image {
++  .regional-fly-asset {
+     height: 300px;
+   }
+   .why-grid {
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+We did our best to apply changes despite some inaccuracies. Double check if the edit applied is what you intended.

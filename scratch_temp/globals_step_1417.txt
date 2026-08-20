@@ -1,0 +1,172 @@
+Created At: 2026-08-10T06:33:57+03:00
+Completed At: 2026-08-10T06:33:58+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -715,11 +715,11 @@
+   color: var(--muted);
+ }
+ .audience-banner {
+-  padding: 80px 0 100px;
++  padding: 60px 0 80px;
+   border-top: 1px solid var(--line);
+ }
+ .audience-heading-block {
+-  margin-bottom: 50px;
++  margin-bottom: 40px;
+ }
+ .audience-heading-block h2 {
+   font-size: clamp(34px, 3.5vw, 42px);
+@@ -742,7 +742,8 @@
+ 
+ @media (min-width: 1024px) {
+   .audience-interactive-strip {
+-    flex-direction: row;
++    display: grid;
++    grid-template-columns: repeat(4, 1fr);
+     border-radius: 0;
+     border-left: none;
+     border-right: none;
+@@ -749,3 +749,4 @@
++    border-top: 1px solid var(--navy);
+   }
+ }
+ 
+@@ -754,15 +754,14 @@
+   border-bottom: 1px solid var(--line);
+   cursor: pointer;
+   outline: none;
+-  transition: flex 0.6s cubic-bezier(0.25, 1, 0.5, 1), background 0.4s ease, opacity 0.4s ease;
+-}
+-
+-@media (min-width: 1024px) {
+-  .audience-item {
+-    flex: 1;
++  transition: opacity 0.25s ease, background-color 0.25s ease;
++}
++
++@media (min-width: 1024px) {
++  .audience-item {
+     border-bottom: none;
+     border-inline-end: 1px solid var(--line);
+-    padding: 40px 30px;
++    padding: 35px 25px;
+   }
+   .audience-item:last-child {
+     border-inline-end: none;
+@@ -769,12 +769,10 @@
+   .audience-interactive-strip:hover .audience-item {
+-    flex: 0.8;
+-    opacity: 0.5;
++    opacity: 0.4;
+   }
+   .audience-interactive-strip:hover .audience-item:hover,
+   .audience-interactive-strip:focus-within .audience-item:focus-visible {
+-    flex: 2;
+-    opacity: 1;
+-    background: #fff;
++    opacity: 1;
++    background-color: rgba(8, 29, 96, 0.02);
+   }
+ }
+ 
+@@ -781,6 +781,6 @@
+   display: flex;
+   flex-direction: column;
+-  justify-content: center;
++  justify-content: space-between;
+   height: 100%;
+   position: relative;
+ }
+@@ -788,7 +788,7 @@
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
++  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+ }
+ 
+ @media (min-width: 1024px) {
+@@ -795,4 +795,4 @@
+-    transform: translateY(20px);
++    transform: translateY(35px);
+   }
+   .audience-item:hover .audience-item-header,
+   .audience-item:focus-visible .audience-item-header {
+@@ -800,14 +800,14 @@
+ }
+ 
+ .audience-index {
+-  font-size: 14px;
+-  font-weight: 500;
+-  color: var(--muted);
+-  transition: color 0.4s ease;
++  font-size: 13px;
++  font-weight: 500;
++  color: var(--muted);
++  transition: color 0.25s ease;
+ }
+ 
+ .audience-item h3 {
+-  font-size: clamp(20px, 1.8vw, 28px);
++  font-size: clamp(20px, 1.8vw, 26px);
+   font-weight: 600;
+   margin: 0;
+   color: var(--navy);
+@@ -817,11 +817,9 @@
+   display: flex;
+   justify-content: space-between;
+   align-items: flex-end;
+-  margin-top: 20px;
+-  gap: 20px;
+-  opacity: 1;
+-  max-height: 150px;
+-  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
++  gap: 15px;
++  opacity: 1;
++  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+ }
+ 
+ @media (min-width: 1024px) {
+@@ -828,7 +828,6 @@
+     opacity: 0;
+-    max-height: 0;
++    margin-top: 30px;
+     transform: translateY(10px);
+-    margin-top: 0;
+   }
+   .audience-item:hover .audience-reveal,
+   .audience-item:focus-visible .audience-reveal {
+@@ -835,6 +835,4 @@
+-    max-height: 150px;
+-    transform: translateY(0);
+-    margin-top: 20px;
++    transform: translateY(0);
+   }
+ }
+ 
+@@ -847,7 +847,7 @@
+ 
+ .audience-arrow {
+   color: var(--muted);
+-  transition: color 0.4s ease, transform 0.4s ease;
++  transition: color 0.25s ease, transform 0.25s ease;
+ }
+ 
+ .audience-item:hover .audience-index,
+@@ -861,11 +861,11 @@
+ @media (min-width: 1024px) {
+   .audience-item:hover .audience-arrow,
+   .audience-item:focus-visible .audience-arrow {
+-    transform: translateX(4px) translateY(-4px);
++    transform: translateX(4px);
+   }
+   [dir="rtl"] .audience-item:hover .audience-arrow,
+   [dir="rtl"] .audience-item:focus-visible .audience-arrow {
+-    transform: translateX(-4px) translateY(-4px);
++    transform: translateX(-4px);
+   }
+ }
+ 
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

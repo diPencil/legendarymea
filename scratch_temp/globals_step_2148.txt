@@ -1,0 +1,43 @@
+Created At: 2026-08-10T19:50:13+03:00
+Completed At: 2026-08-10T19:50:13+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -527,6 +527,35 @@
+   color: var(--navy);
+ }
+ 
++@media (prefers-reduced-motion: reduce) {
++  .masonry-image,
++  .masonry-title,
++  .masonry-desc,
++  .masonry-cta {
++    transition: none !important;
++  }
++  
++  .masonry-desc {
++    transform: none;
++  }
++  
++  .masonry-service-card:hover .masonry-image {
++    transform: none;
++  }
++  
++  .masonry-service-card:hover .masonry-title {
++    transform: none;
++  }
++  
++  .masonry-service-card:hover .masonry-desc {
++    transform: none;
++  }
++  
++  .masonry-service-card:hover .masonry-cta {
++    transform: none;
++  }
++}
++
+ /* Heights based on types */
+ .masonry-tile-large { min-height: 460px; }
+ .masonry-tile-landscape { min-height: 300px; }
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

@@ -1,0 +1,29 @@
+Created At: 2026-08-11T00:55:20+03:00
+Completed At: 2026-08-11T00:55:20+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -2886,15 +2886,12 @@
+   .why-grid {
+     grid-template-columns: 1fr;
+   }
+-  .process {
+-    padding: 80px 0;
+-  }
+-  .process-grid {
+-    grid-template-columns: 1fr 1fr;
+-  }
+-  .process-grid article:nth-child(3) {
+-    border-inline-start: 0;
+-    padding-inline-start: 0;
++  .process-premium {
++    padding: 80px 0;
++  }
++  .process-premium-cards {
++    grid-template-columns: 1fr;
++    gap: 20px;
+   }
+   .faq-roller-section {
+     padding-bottom: 80px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

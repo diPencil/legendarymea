@@ -1,0 +1,16 @@
+Created At: 2026-08-11T17:48:40+03:00
+Completed At: 2026-08-11T17:48:40+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/components/i18n.tsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -242,6 +242,8 @@
+     finalPrimary: 'ابدأ طلبك',
+     finalSecondary: 'كن شريكاً',
+     footer: 'خدمات السفر لوكالات السفر والشركات وشركاء الضيافة.',
++    copyright: '© 2026 ليجنداري مانجمنت الشرق الأوسط وأفريقيا',
++    poweredBy: 'تطوير بواسطة',
+     about: { kicker: 'عن Legendary Management MEA', title: 'نبني كل شيء حول', accent: 'الشراكة.', body: 'نساعد المتخصصين في السفر والشركات على التنقل في الشرق الأوسط من خلال حلول عملية وفهم إقليمي ونقطة تواصل إنسانية.', who: 'من نحن', story: 'شريك إقليمي لعمليات سفر أفضل.', storyBody: 'تجمع Legendary Management MEA بين معرفة الوجهات وفكر الضيافة والتنسيق السريع لمساعدة الشركات التي تحتاج إلى سفر منظم وفعال. نركز على التفاصيل التي تجعل الطلب أسهل والرحلة أفضل.', mission: 'مهمتنا', missionBody: 'أن نجعل شراكات السفر والضيافة أكثر ترابطاً وقدرة وإنسانية.', vision: 'رؤيتنا', visionBody: 'شرق أوسط تستطيع فيه كل شركة سفر الوصول إلى حلول موثوقة ومدروسة للرحلات التي تصممها.' },
+     page: { services: 'حلول السفر للشركات', servicesTitle: 'شريك واحد', servicesAccent: 'للرحلة.', careers: 'الوظائف', careersTitle: 'أحضر معك', careersAccent: 'فضولك.', contact: 'ابدأ محادثة', contactTitle: 'لنتحدث عن', contactAccent: 'خطوتك القادمة.' },
+     form: { name: 'الاسم الكامل', company: 'اسم الشركة', type: 'نوع النشاط', country: 'الدولة', email: 'البريد الإلكتروني', phone: 'الهاتف', service: 'الخدمة المطلوبة', message: 'أخبرنا عن طلبك', submit: 'إرسال الاستفسار', required: 'يرجى إكمال الحقول المطلوبة.' },
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

@@ -1,0 +1,307 @@
+Created At: 2026-08-11T01:19:08+03:00
+Completed At: 2026-08-11T01:19:08+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1104,10 +1104,9 @@
+   display: flex;
+   flex-direction: column;
+   width: 100%;
+-  border: 1px solid var(--line);
+-  border-radius: 24px;
+-  background: var(--paper);
+-  overflow: hidden;
++  border-radius: 24px;
++  background: transparent;
++  gap: 20px;
+ }
+ 
+ @media (min-width: 1024px) {
+@@ -1114,10 +1114,6 @@
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+-    border-radius: 0;
+-    border-left: none;
+-    border-right: none;
+-    background: transparent;
+-    border-top: 1px solid var(--navy);
++    gap: 24px;
+   }
+ }
+ 
+@@ -1124,29 +1124,48 @@
+   position: relative;
+-  padding: 30px;
+-  border-bottom: 1px solid var(--line);
+-  cursor: pointer;
+-  outline: none;
+-  transition: opacity 0.25s ease, background-color 0.25s ease;
+-  overflow: hidden;
+-}
+-
+-@media (min-width: 1024px) {
+-  .audience-item {
+-    border-bottom: none;
+-    border-inline-end: 1px solid var(--line);
+-    padding: 35px 25px;
+-  }
+-  .audience-item:last-child {
+-    border-inline-end: none;
+-  }
+-  .audience-interactive-strip:hover .audience-item {
+-    opacity: 0.4;
+-  }
+-  .audience-interactive-strip:hover .audience-item:hover,
+-  .audience-interactive-strip:focus-within .audience-item:focus-visible {
+-    opacity: 1;
+-    background-color: #fff;
+-  }
++  padding: 35px 25px;
++  border-radius: 20px;
++  border: 1px solid rgba(8, 29, 96, 0.08);
++  background: #ffffff;
++  cursor: pointer;
++  outline: none;
++  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
++  overflow: hidden;
++  box-shadow: 0 4px 12px rgba(8, 29, 96, 0.03);
++  display: block;
++  text-decoration: none;
++}
++
++@media (max-width: 1023px) {
++  .audience-interactive-strip {
++    flex-direction: row;
++    overflow-x: auto;
++    scroll-snap-type: x mandatory;
++    scroll-padding: 24px;
++    padding-bottom: 24px;
++    margin-left: -24px;
++    margin-right: -24px;
++    padding-left: 24px;
++    padding-right: 24px;
++    gap: 16px;
++  }
++  .audience-item {
++    flex: 0 0 82%;
++    scroll-snap-align: center;
++  }
++  [dir="rtl"] .audience-interactive-strip {
++    margin-left: -24px;
++    margin-right: -24px;
++    padding-left: 24px;
++    padding-right: 24px;
++  }
++}
++
++.audience-item:hover,
++.audience-item:focus-visible {
++  background-color: var(--navy);
++  border-color: var(--navy);
++  transform: translateY(-6px);
++  box-shadow: 0 12px 24px rgba(8, 29, 96, 0.12);
+ }
+ 
+ .audience-item-inner {
+@@ -1155,6 +1155,7 @@
+   height: 100%;
+   position: relative;
+   z-index: 1;
++  min-height: 240px;
+ }
+ 
+ .audience-item-header {
+@@ -1161,16 +1161,6 @@
+   flex-direction: column;
+-  gap: 12px;
+-  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+-}
+-
+-@media (min-width: 1024px) {
+-  .audience-item-header {
+-    transform: translateY(35px);
+-  }
+-  .audience-item:hover .audience-item-header,
+-  .audience-item:focus-visible .audience-item-header {
+-    transform: translateY(0);
+-  }
++  gap: 16px;
++  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+ }
+ 
+ .audience-index {
+@@ -1177,14 +1177,15 @@
+   font-weight: 500;
+-  color: var(--muted);
+-  transition: color 0.25s ease;
++  color: rgba(160, 127, 49, 0.6);
++  transition: color 0.35s ease;
+ }
+ 
+ .audience-item h3 {
+-  font-size: clamp(20px, 1.8vw, 26px);
+-  font-weight: 600;
+-  margin: 0;
+-  color: var(--navy);
+-  line-height: 1.2;
++  font-size: clamp(20px, 1.8vw, 24px);
++  font-weight: 600;
++  margin: 0;
++  color: var(--navy);
++  line-height: 1.25;
++  transition: color 0.35s ease;
+ }
+ 
+ .audience-reveal {
+@@ -1191,21 +1191,8 @@
+   justify-content: space-between;
+   align-items: flex-end;
+   gap: 15px;
+-  opacity: 1;
+-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+-}
+-
+-@media (min-width: 1024px) {
+-  .audience-reveal {
+-    opacity: 0;
+-    margin-top: 30px;
+-    transform: translateY(10px);
+-  }
+-  .audience-item:hover .audience-reveal,
+-  .audience-item:focus-visible .audience-reveal {
+-    opacity: 1;
+-    transform: translateY(0);
+-  }
++  margin-top: 24px;
++  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+ }
+ 
+ .audience-reveal p {
+@@ -1213,6 +1213,7 @@
+   color: var(--muted);
+   max-width: 85%;
+   line-height: 1.5;
++  transition: color 0.35s ease;
+ }
+ 
+ .audience-arrow {
+@@ -1219,6 +1219,7 @@
+-  transition: color 0.25s ease, transform 0.25s ease;
+-}
+-
++  transition: color 0.35s ease, transform 0.35s ease;
++}
++
++/* Hover States for interior elements */
+ .audience-item:hover .audience-index,
+ .audience-item:focus-visible .audience-index {
+   color: var(--gold);
+@@ -1225,19 +1225,25 @@
+ 
++.audience-item:hover h3,
++.audience-item:focus-visible h3 {
++  color: #ffffff;
++}
++
++.audience-item:hover .audience-reveal p,
++.audience-item:focus-visible .audience-reveal p {
++  color: rgba(255, 255, 255, 0.85);
++}
++
+ .audience-item:hover .audience-arrow,
+ .audience-item:focus-visible .audience-arrow {
+   color: var(--gold);
+-}
+-@media (min-width: 1024px) {
+-  .audience-item:hover .audience-arrow,
+-  .audience-item:focus-visible .audience-arrow {
+-    transform: translateX(4px);
+-  }
+-  [dir="rtl"] .audience-item:hover .audience-arrow,
+-  [dir="rtl"] .audience-item:focus-visible .audience-arrow {
+-    transform: translateX(-4px);
+-  }
+-}
+-
++  transform: translateX(4px);
++}
++[dir="rtl"] .audience-item:hover .audience-arrow,
++[dir="rtl"] .audience-item:focus-visible .audience-arrow {
++  transform: translateX(-4px);
++}
++
++/* Watermark Icon */
+ .audience-card-icon {
+   position: absolute;
+   bottom: -20px;
+@@ -1244,9 +1244,9 @@
+   width: 160px;
+   height: 160px;
+   color: var(--navy);
+-  opacity: 0.04;
+-  pointer-events: none;
+-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
++  opacity: 0.03;
++  pointer-events: none;
++  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, color 0.4s ease;
+   z-index: 0;
+ }
+ [dir="rtl"] .audience-card-icon {
+@@ -1253,5 +1253,6 @@
+   left: -20px;
+ }
++
+ .audience-item:hover .audience-card-icon,
+ .audience-item:focus-visible .audience-card-icon {
+   transform: scale(1.05) translateX(-8px) translateY(-8px);
+@@ -1258,3 +1258,4 @@
++  color: #ffffff;
+ }
+ [dir="rtl"] .audience-item:hover .audience-card-icon,
+ [dir="rtl"] .audience-item:focus-visible .audience-card-icon {
+@@ -1261,43 +1261,5 @@
+ }
+ 
+-/* Mobile Scrollable Strip */
+-@media (max-width: 1023px) {
+-  .audience-interactive-strip {
+-    flex-direction: row;
+-    overflow-x: auto;
+-    scroll-snap-type: x mandatory;
+-    scroll-padding: 20px;
+-    padding-bottom: 20px;
+-    border: none;
+-    border-radius: 0;
+-    background: transparent;
+-    margin-left: -24px;
+-    margin-right: -24px;
+-    padding-left: 24px;
+-    padding-right: 24px;
+-    gap: 15px;
+-  }
+-  .audience-item {
+-    flex: 0 0 85%;
+-    scroll-snap-align: center;
+-    border: 1px solid var(--line);
+-    border-radius: 20px;
+-    background: var(--paper);
+-    padding: 30px;
+-    overflow: hidden;
+-  }
+-  .audience-item:active,
+-  .audience-item:focus-visible {
+-    background-color: #fff;
+-  }
+-  [dir="rtl"] .audience-interactive-strip {
+-    margin-left: -24px;
+-    margin-right: -24px;
+-    padding-left: 24px;
+-    padding-right: 24px;
+-  }
+-}
+-
+ /* Partner Banner / Announcement Strip */
+ .partner-banner {
+   padding: 0 0 60px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

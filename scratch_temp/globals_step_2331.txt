@@ -1,0 +1,71 @@
+Created At: 2026-08-10T21:04:09+03:00
+Completed At: 2026-08-10T21:04:17+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1172,15 +1172,19 @@
+   color: var(--muted);
+   font-size: 12px;
+ }
+-.story,
+-.regional {
+-  display: grid;
+-  grid-template-columns: 1fr 1fr;
+-  gap: 9vw;
+-  align-items: center;
+-  padding: 130px 0;
+-}
+-.story-image,
++.accommodation-selector {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++  margin-bottom: 30px;
++}
++.regional {
++  display: grid;
++  grid-template-columns: 1fr 1fr;
++  gap: 8vw;
++  align-items: center;
++  padding: 130px 0;
++}
+ .regional-image {
+   height: 500px;
+   overflow: hidden;
+@@ -1187,5 +1187,4 @@
+ }
+-.story-image img,
+ .regional-image img {
+   width: 100%;
+   height: 100%;
+@@ -1192,5 +1192,4 @@
+ }
+-.story h2,
+ .regional h2,
+ .why h2,
+ .process h2 {
+@@ -1197,6 +1197,5 @@
+   margin: 20px 0;
+ }
+-.story p,
+ .regional p,
+ .why > div > p {
+   max-width: 390px;
+@@ -1203,12 +1203,7 @@
+   line-height: 1.65;
+   font-size: 14px;
+ }
+-.mini-pills {
+-  display: flex;
+-  flex-wrap: wrap;
+-  gap: 8px;
+-  margin: 30px 0;
+-}
++
+ .why {
+   display: grid;
+   grid-template-columns: 0.8fr 1.2fr;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+We did our best to apply changes despite some inaccuracies. Double check if the edit applied is what you intended.

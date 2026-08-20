@@ -1,0 +1,29 @@
+Created At: 2026-08-10T23:42:13+03:00
+Completed At: 2026-08-10T23:42:13+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1180,7 +1180,7 @@
+ }
+ /* REGIONAL PERSPECTIVE - SCROLLFLYIN */
+ .regional-scroll-section {
+-  height: 160vh;
++  height: 140vh;
+   position: relative;
+ }
+ .regional-sticky-scene {
+@@ -1187,10 +1187,11 @@
+   top: var(--header-height, 0px);
+   height: 100vh;
+   display: flex;
+-  align-items: center;
++  align-items: flex-start;
+   justify-content: center;
+   overflow: hidden;
+   padding: 0 5vw;
++  padding-top: clamp(80px, 18vh, 160px);
+ }
+ .regional-text-content {
+   position: relative;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

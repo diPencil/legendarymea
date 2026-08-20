@@ -29,7 +29,7 @@ export function KineticGrid() {
 
   const MAX_WARP = 15;
   const INFLUENCE_RADIUS = 250;
-
+  
   const state = useRef({
     width: 0,
     height: 0,
@@ -76,7 +76,7 @@ export function KineticGrid() {
     const render = (forceSingleFrame = false) => {
       const s = state.current;
       if (!s.isRunning && !forceSingleFrame) return;
-
+      
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -86,7 +86,7 @@ export function KineticGrid() {
       ctx.globalCompositeOperation = "source-over";
       ctx.shadowBlur = 0;
       ctx.shadowColor = "transparent";
-
+      
       const glowY = s.height * 0.4;
       const glow = ctx.createRadialGradient(s.width / 2, glowY, 0, s.width / 2, glowY, 600);
       glow.addColorStop(0, "rgba(255, 255, 255, 0.7)");
@@ -110,7 +110,7 @@ export function KineticGrid() {
 
       for (let i = 0; i < s.points.length; i++) {
         const p = s.points[i];
-
+        
         p.x += (p.originX - p.x) * 0.1;
         p.y += (p.originY - p.y) * 0.1;
 
@@ -130,10 +130,10 @@ export function KineticGrid() {
       ctx.lineWidth = 1;
       for (let i = 0; i < s.points.length; i++) {
         const p = s.points[i];
-
+        
         const hasRight = (i + 1) % cols !== 0;
         const hasBottom = i + cols < s.points.length;
-
+        
         let intensity = 0;
         if (!isReduced) {
           const dx = s.mouseX - p.x;
@@ -142,7 +142,7 @@ export function KineticGrid() {
           if (dist < INFLUENCE_RADIUS) {
             intensity = (INFLUENCE_RADIUS - dist) / INFLUENCE_RADIUS;
           }
-
+          
           const distToBeam = Math.abs(p.y - beamY);
           if (distToBeam < 200) {
             intensity = Math.max(intensity, ((200 - distToBeam) / 200) * 0.45);
@@ -185,7 +185,7 @@ export function KineticGrid() {
       for (let i = 0; i < s.points.length; i++) {
         const p = s.points[i];
         let intensity = 0;
-
+        
         if (!isReduced) {
           const dx = s.mouseX - p.x;
           const dy = s.mouseY - p.y;
@@ -193,16 +193,16 @@ export function KineticGrid() {
           if (dist < INFLUENCE_RADIUS) {
             intensity = (INFLUENCE_RADIUS - dist) / INFLUENCE_RADIUS;
           }
-
+          
           const distToBeam = Math.abs(p.y - beamY);
           if (distToBeam < 200) {
             intensity = Math.max(intensity, ((200 - distToBeam) / 200) * 0.5);
           }
         }
-
+        
         ctx.beginPath();
         ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-
+        
         if (intensity > 0.1) {
           ctx.fillStyle = `rgba(160, 127, 49, ${0.2 + intensity * 0.8})`;
           ctx.shadowColor = ACTIVE_COLOR;
@@ -211,10 +211,10 @@ export function KineticGrid() {
           ctx.fillStyle = BASE_NODE_COLOR;
           ctx.shadowBlur = 0;
         }
-
+        
         ctx.fill();
       }
-
+      
       if (!forceSingleFrame && s.isRunning) {
         animationFrameId = requestAnimationFrame(() => render());
       }
@@ -224,7 +224,7 @@ export function KineticGrid() {
       const s = state.current;
       const isDocumentVisible = document.visibilityState === "visible";
       const shouldRun = s.isVisible && isDocumentVisible && !s.prefersReducedMotion;
-
+      
       if (shouldRun && !s.isRunning) {
         s.isRunning = true;
         render();
@@ -232,7 +232,7 @@ export function KineticGrid() {
         s.isRunning = false;
         cancelAnimationFrame(animationFrameId);
       }
-
+      
       if (!shouldRun) {
         render(true);
       }
@@ -249,29 +249,29 @@ export function KineticGrid() {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
         const { width, height } = entry.contentRect;
-
+        
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
+        
         canvas.width = width * dpr;
         canvas.height = height * dpr;
-
+        
         canvas.style.width = `${width}px`;
         canvas.style.height = `${height}px`;
-
+        
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
+        
         state.current.width = width;
         state.current.height = height;
-
+        
         clearTimeout(resizeTimeoutId);
         resizeTimeoutId = setTimeout(() => {
           const rect = container.getBoundingClientRect();
           state.current.containerLeft = rect.left + window.scrollX;
           state.current.containerTop = rect.top + window.scrollY;
         }, 100);
-
+        
         initGrid();
-
+        
         if (!state.current.isRunning) render(true);
       }
     });
@@ -289,14 +289,14 @@ export function KineticGrid() {
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     const parent = container.parentElement;
-
+    
     const handlePointerMove = (e: PointerEvent) => {
       const s = state.current;
       if (s.prefersReducedMotion) return;
-
+      
       s.targetMouseX = e.pageX - s.containerLeft;
       s.targetMouseY = e.pageY - s.containerTop;
-
+      
       if (!s.isHovering) {
         s.mouseX = s.targetMouseX;
         s.mouseY = s.targetMouseY;
@@ -328,7 +328,7 @@ export function KineticGrid() {
   }, []);
 
   return (
-    <div
+    <div 
       ref={containerRef}
       className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
     >

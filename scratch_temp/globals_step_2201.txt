@@ -1,0 +1,16 @@
+Created At: 2026-08-10T20:02:28+03:00
+Completed At: 2026-08-10T20:02:28+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -611,7 +611,7 @@
+ 
+ @media (max-width: 768px) {
+   .travel-services-section {
+-    padding-top: 72px;
++    padding-top: 40px;
+   }
+   .masonry-panel-heading {
+     flex-direction: column;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

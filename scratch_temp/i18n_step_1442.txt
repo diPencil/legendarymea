@@ -1,0 +1,35 @@
+Created At: 2026-08-10T06:41:00+03:00
+Completed At: 2026-08-10T06:41:01+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/components/i18n.tsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -35,6 +35,13 @@
+       ['Hotels & Suppliers', 'Travel and hospitality cooperation with business partners and suppliers.'],
+       ['Group & Event Organisers', 'Travel arrangements for groups, events and organised programs.']
+     ],
++    announcement: {
++      kicker: 'B2B Travel Support',
++      title: 'Need a reliable partner for travel and destination services?',
++      body: 'Talk to Legendary Management MEA about accommodation, transport, group travel and corporate requirements.',
++      primary: 'Become a Partner',
++      secondary: 'View Our Services'
++    },
+     servicesTitle: 'Travel services',
+     servicesBody: 'Choose the service you need or combine several services within the same travel request.',
+     services: [['Hotels & Accommodation', 'Accommodation for individual, group and corporate travel.'], ['Flights', 'Flight reservations and itinerary coordination for individual, group and business travel.'], ['Transfers', 'Airport transfers and ground transport between hotels, venues and other locations.'], ['Car Rental', 'Vehicle rental options for individual and business travel.'], ['Tours & Experiences', 'Tours, activities and destination experiences for individual and group itineraries.'], ['Groups', 'Travel arrangements for groups, including accommodation, transport and related services.'], ['Corporate Travel', 'Travel arrangements for companies, employees and business travellers.'], ['Hospitality', 'Travel and operational services for hotels and hospitality businesses.']],
+@@ -58,6 +58,13 @@
+       ['الفنادق والموردون', 'التعاون في مجال السفر والضيافة مع شركاء الأعمال والموردين.'],
+       ['منظمو المجموعات والفعاليات', 'ترتيبات السفر للمجموعات والفعاليات والبرامج المنظمة.']
+     ],
++    announcement: {
++      kicker: 'دعم السفر للأعمال',
++      title: 'هل تبحث عن شريك موثوق لخدمات السفر وإدارة الوجهات؟',
++      body: 'تواصل مع Legendary Management MEA بخصوص الإقامة والنقل وخدمات المجموعات ومتطلبات سفر الشركات.',
++      primary: 'كن شريكًا معنا',
++      secondary: 'استكشف خدماتنا'
++    },
+     servicesTitle: 'خدمات السفر', servicesBody: 'يمكن طلب كل خدمة بشكل مستقل أو تنسيق أكثر من خدمة ضمن طلب سفر واحد.',
+     services: [['الإقامة والفنادق', 'خيارات إقامة للأفراد والمجموعات وسفر الشركات.'], ['الطيران', 'حجوزات طيران وتنسيق مسارات السفر للأفراد والمجموعات والأعمال.'], ['التنقلات', 'نقل من وإلى المطار وتنقلات برية بين الفنادق والمواقع الأخرى.'], ['تأجير السيارات', 'خيارات تأجير مركبات لسفر الأفراد والأعمال.'], ['التجارب والجولات', 'جولات وأنشطة وتجارب وجهات للأفراد والمجموعات.'], ['سفر المجموعات', 'ترتيبات سفر للمجموعات تشمل الإقامة والنقل والخدمات المرافقة.'], ['سفر الشركات', 'ترتيبات سفر للشركات والموظفين ورجال الأعمال.'], ['خدمات الضيافة', 'خدمات سفر ودعم تشغيلي للفنادق ومؤسسات الضيافة.']],
+     whyTitle: 'العمل مع ليجندري', whyBody: 'الخدمة الجيدة للشركات ليست وعداً على صفحة، بل وضوح وسرعة واهتمام يشعر بها فريقك في كل طلب.', why: [['تواصل واضح', 'تحديثات مباشرة وسريعة لطلباتك.'], ['تنسيق متكامل للطلبات', 'إدارة عدة خدمات سفر عبر نقطة تواصل واحدة.'], ['مرونة في نطاق الخدمات', 'من الحجوزات المفردة إلى مسارات السفر المعقدة.'], ['تركيز على قطاع الأعمال', 'خدمات مصممة خصيصاً لوكالات السفر والشركات.']],
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

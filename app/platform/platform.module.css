@@ -63,8 +63,8 @@
 @keyframes workflowStageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes workflowProgressIn{to{transform:scaleX(1)}}
 @media(max-width:1000px) and (min-width:761px){.collageUi{right:7%;width:33%;height:auto;padding:18px}.workflowStage{padding-bottom:13px;margin-bottom:12px}}
-@media(max-width:760px){.heroCollage{height:360px;margin-top:22px}.collageUi{display:none}.collageMain{top:18px;height:220px}.collageTopLeft{top:0;height:120px}.collageTopRight{top:0;height:125px}.collageBottomLeft{bottom:0;height:150px}.collageFarRight{bottom:12px;height:155px}.workflowStage{padding-bottom:9px;margin-bottom:9px}.workflowStage p{margin-top:4px}.workflowProgress{height:4px;margin-top:6px}}
-@media(max-width:520px){.heroCollage{height:320px;margin-top:16px}.collageUi{height:auto}.collageMain{top:18px;height:220px}.collageTopLeft{height:120px}.collageTopRight{height:125px}.collageBottomLeft{height:150px}.collageFarRight{height:155px}.workflowStageHead strong{font-size:9px}.workflowStage p{font-size:8px}}
+@media(max-width:760px){.heroCollage{height:710px}.collageUi{display:block;left:50%;right:auto;bottom:12px;width:min(88%,390px);height:auto;padding:16px 18px;transform:translateX(-50%)}[dir=rtl] .collageUi{transform:translateX(-50%)}.workflowStage{padding-bottom:9px;margin-bottom:9px}.workflowStage p{margin-top:4px}.workflowProgress{height:4px;margin-top:6px}}
+@media(max-width:520px){.heroCollage{height:650px}.collageUi{height:auto}.workflowStageHead strong{font-size:9px}.workflowStage p{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.workflowStage,.workflowProgress i{opacity:1;animation:none;transform:none}.workflowStage{transition:none}}
 
 .problem{display:block;padding:clamp(78px,8vw,120px) clamp(34px,5vw,78px);background:var(--paper)}
@@ -537,7 +537,7 @@
 @media(max-width:390px){
   .heroCopy h1{font-size:2.35rem}
   [dir=rtl] .heroCopy h1{font-size:2.25rem}
-  .heroCollage{height:300px}
+  .heroCollage{height:600px}
   .collageUi{width:94%}
   .problemMap article{grid-template-columns:26px 62px 1fr;gap:7px}
   .capabilityGrid article{grid-template-columns:70px 1fr}

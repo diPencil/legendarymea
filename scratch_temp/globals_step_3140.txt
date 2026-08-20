@@ -1,0 +1,235 @@
+Created At: 2026-08-11T00:30:55+03:00
+Completed At: 2026-08-11T00:30:55+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -755,8 +755,17 @@
+   letter-spacing: -0.04em;
+   margin-bottom: 24px;
+ }
++.contact-kicker {
++  color: rgba(160, 127, 49, 0.8) !important;
++}
++.text-ivory {
++  color: var(--cream);
++}
++.text-gold {
++  color: var(--gold);
++}
+ .contact-premium-desc {
+-  color: #a7aaa2;
++  color: rgba(255, 255, 255, 0.72);
+   font-size: 16px;
+   line-height: 1.6;
+   margin-bottom: 40px;
+@@ -763,16 +763,50 @@
+ }
+-.contact-steps {
+-  display: flex;
+-  flex-direction: column;
+-  gap: 16px;
+-  margin-bottom: 48px;
+-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+-  padding-top: 32px;
+-}
+-.contact-step {
+-  display: flex;
+-  align-items: center;
+-  gap: 16px;
++.contact-timeline {
++  display: flex;
++  flex-direction: column;
++  margin-bottom: 48px;
++}
++.timeline-step {
++  display: flex;
++  align-items: stretch;
++}
++.timeline-marker {
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  margin-inline-end: 20px;
++  width: 12px;
++}
++.timeline-dot {
++  width: 6px;
++  height: 6px;
++  border-radius: 50%;
++  background: var(--cream);
++  margin-top: 6px;
++  flex-shrink: 0;
++}
++.timeline-dot.active {
++  background: var(--gold);
++  box-shadow: 0 0 10px 2px rgba(160, 127, 49, 0.3);
++}
++.timeline-line {
++  width: 1px;
++  flex-grow: 1;
++  background: rgba(255, 255, 255, 0.14);
++  margin-top: 6px;
++  min-height: 24px;
++}
++.timeline-step:last-child .timeline-line {
++  display: none;
++}
++.timeline-content {
++  display: flex;
++  align-items: flex-start;
++  gap: 12px;
++  padding-bottom: 32px;
++}
++.timeline-step:last-child .timeline-content {
++  padding-bottom: 0;
+ }
+ .step-num {
+   font-size: 13px;
+@@ -779,8 +779,10 @@
+   font-weight: 500;
++  line-height: 1.4;
+ }
+ .step-text {
+   font-size: 15px;
+-  color: var(--cream);
++  color: rgba(255, 255, 255, 0.85);
++  line-height: 1.4;
+ }
+ .contact-direct {
+   margin-top: auto;
+@@ -804,12 +804,19 @@
+   color: rgba(255, 255, 255, 0.5);
+ }
+ 
++.service-index {
++  font-size: 11px;
++  text-transform: uppercase;
++  letter-spacing: 0.1em;
++  color: rgba(255, 255, 255, 0.42);
++  margin-bottom: 24px;
++}
+ .contact-form-wrapper {
+-  background: rgba(255, 255, 255, 0.03);
+-  border: 1px solid rgba(255, 255, 255, 0.08);
++  background: rgba(255, 255, 255, 0.045);
++  border: 1px solid rgba(255, 255, 255, 0.12);
+   border-radius: 20px;
+   padding: 40px;
+-  height: 100%;
++  height: calc(100% - 40px);
+ }
+ .contact-premium-form {
+   display: flex;
+@@ -827,9 +827,13 @@
+ }
+ .label-text {
+   font-size: 12px;
+-  color: rgba(255, 255, 255, 0.6);
+-  text-transform: uppercase;
+-  letter-spacing: 0.05em;
++  color: rgba(255, 255, 255, 0.66);
++  text-transform: uppercase;
++  letter-spacing: 0.05em;
++  transition: color 200ms ease;
++}
++.contact-premium-form label:focus-within .label-text {
++  color: var(--cream);
+ }
+ .premium-input, .premium-select {
+   background: transparent;
+@@ -836,13 +836,13 @@
+-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
++  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+   padding: 10px 0;
+-  color: var(--cream);
+-  font-size: 15px;
+-  outline: none;
+-  transition: border-color 0.2s ease;
++  color: #F4F0E8;
++  font-size: 15px;
++  outline: none;
++  transition: border-color 200ms ease;
+   font-family: inherit;
+ }
+ .premium-input::placeholder {
+-  color: rgba(255, 255, 255, 0.2);
++  color: rgba(255, 255, 255, 0.40);
+ }
+ .premium-input:focus, .premium-select:focus {
+   border-color: var(--gold);
+@@ -849,6 +849,5 @@
+-textarea.premium-input {
+-  resize: vertical;
+-  min-height: 80px;
++.premium-select-wrapper {
++  position: relative;
+ }
+ .premium-select {
+   cursor: pointer;
+@@ -855,3 +855,4 @@
++  width: 100%;
+ }
+ .premium-select option {
+   background: var(--navy);
+@@ -858,4 +858,32 @@
+ }
++.premium-select-chevron {
++  position: absolute;
++  top: 50%;
++  right: 10px;
++  transform: translateY(-50%);
++  width: 10px;
++  height: 10px;
++  pointer-events: none;
++  border-right: 1px solid rgba(255, 255, 255, 0.85);
++  border-bottom: 1px solid rgba(255, 255, 255, 0.85);
++  transform: translateY(-70%) rotate(45deg);
++  transition: border-color 200ms ease;
++}
++[dir="rtl"] .premium-select-chevron {
++  right: auto;
++  left: 10px;
++}
++.premium-select:focus + .premium-select-chevron {
++  border-color: var(--gold);
++}
++
++.message-label {
++  margin-top: 10px;
++}
++textarea.premium-input {
++  resize: vertical;
++  min-height: 80px;
++}
+ .form-submit-row {
+   margin-top: 16px;
+   display: flex;
+@@ -863,6 +863,26 @@
+ .premium-submit-btn {
+   padding: 14px 32px;
+   font-size: 14px;
++  background: #A07F31;
++  color: #081D60;
++  border-radius: 8px;
++  transition: background-color 0.2s ease;
++  display: flex;
++  align-items: center;
++  gap: 8px;
++}
++.premium-submit-btn svg {
++  transition: transform 0.2s ease;
++  color: #081D60;
++}
++.premium-submit-btn:hover {
++  background: #AF8E40;
++}
++.premium-submit-btn:hover svg {
++  transform: translateX(3px);
++}
++[dir="rtl"] .premium-submit-btn:hover svg {
++  transform: translateX(-3px);
+ }
+ .footer {
+   padding: 38px 0 45px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

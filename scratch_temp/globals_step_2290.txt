@@ -1,0 +1,24 @@
+Created At: 2026-08-10T20:40:40+03:00
+Completed At: 2026-08-10T20:40:40+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -419,13 +419,11 @@
+   flex: 0 0 35%;
+ }
+ .masonry-panel-heading h2 {
+-  font-size: clamp(34px, 3.5vw, 42px);
+-  font-weight: 500;
+-  line-height: 1.1;
+-  letter-spacing: -0.05em;
+-  color: var(--navy);
+   margin: 10px 0 0;
+ }
++.masonry-panel-heading-left.audience-heading-block {
++  margin-bottom: 0;
++}
+ .masonry-panel-heading p {
+   color: #a7aaa2;
+   font-size: 16px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

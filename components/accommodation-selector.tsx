@@ -41,7 +41,7 @@ export function AccommodationSelector() {
               {c.accommodation.supportDesc}
             </p>
           </div>
-
+          
           <div className="acc-timeline">
             {c.accommodation.timeline.map((step, i) => {
               return (

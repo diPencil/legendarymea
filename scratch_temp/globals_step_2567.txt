@@ -1,0 +1,298 @@
+Created At: 2026-08-10T22:35:24+03:00
+Completed At: 2026-08-10T22:35:24+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1720,148 +1720,151 @@
+   background: var(--gold);
+   transition: width 0.6s ease;
+ }
+-.sticky-solutions {
+-  display: grid;
+-  grid-template-columns: 44% 50%;
+-  justify-content: space-between;
+-  gap: 6%;
+-  padding: 130px 0;
+-}
+-.sticky-solutions .section-kicker {
+-  color: var(--paper); /* muted white/ivory */
+-  margin-bottom: 32px;
+-  position: relative;
+-  z-index: 2;
+-}
+-.sticky-visual-column {
+-  position: relative;
+-  height: 100%;
+-}
+-.sticky-visual {
+-  position: relative;
+-  height: 520px;
+-  border-radius: 26px;
+-  padding: 32px;
+-}
+-.sticky-visual-bg {
+-  position: absolute;
+-  inset: 0;
+-  background: var(--navy);
+-  border-radius: 26px;
+-  z-index: 0;
+-}
+-.sticky-photo {
+-  position: absolute;
+-  inset: 96px 32px 32px 32px;
+-  overflow: hidden;
+-  border-radius: 20px;
+-  z-index: 1;
+-}
+-.sticky-photo img {
+-  object-fit: cover;
+-  transition:
+-    opacity 0.5s,
+-    transform 0.8s;
+-}
+-.sticky-caption {
+-  position: absolute;
+-  bottom: 44px;
+-  inset-inline-start: 44px;
+-  inset-inline-end: 44px;
++.editorial-difference {
++  padding: 130px 0;
++}
++.editorial-kicker {
++  margin-bottom: 40px;
++}
++.editorial-rows {
++  display: flex;
++  flex-direction: column;
++}
++.editorial-row {
++  border-bottom: 1px solid var(--line);
++}
++.editorial-row:first-child {
++  border-top: 1px solid var(--line);
++}
++.editorial-row-header {
++  width: 100%;
++  display: grid;
++  grid-template-columns: 9% 36% 45% 10%;
++  align-items: center;
++  text-align: start;
++  padding: 32px 0;
++  background: transparent;
++  border: none;
++  cursor: pointer;
++  transition: all 0.35s ease;
++}
++.editorial-num {
++  font-family: monospace;
++  font-size: 13px;
++  color: var(--gold);
++  opacity: 0.6;
++  transition: opacity 0.3s;
++}
++.editorial-title {
++  font-size: clamp(24px, 2vw, 30px);
++  margin: 0;
++  color: var(--navy);
++  font-weight: 500;
++  transition: opacity 0.3s;
++}
++.editorial-desc {
++  font-size: 14px;
++  color: var(--muted);
++  margin: 0;
++  transition: opacity 0.3s;
++  max-width: 90%;
++}
++.editorial-action {
++  display: flex;
++  justify-content: flex-end;
++}
++.editorial-arrow {
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  width: 44px;
++  height: 44px;
++  border-radius: 50%;
++  border: 1px solid var(--line);
++  color: var(--muted);
++  transition: all 0.3s ease;
++}
++
++/* Hover on inactive row */
++.editorial-row:not(.is-active):hover .editorial-row-header {
++  background: rgba(0, 0, 0, 0.015);
++}
++.editorial-row:not(.is-active):hover .editorial-num {
++  opacity: 1;
++}
++.editorial-row:not(.is-active):hover .editorial-title {
++  opacity: 1;
++}
++.editorial-row:not(.is-active):hover .editorial-arrow {
++  border-color: var(--gold);
++  color: var(--gold);
++}
++
++/* Active Row */
++.editorial-row.is-active {
++  background: var(--navy);
++  border-radius: 22px;
++  margin: 16px 0;
++  overflow: hidden;
++  border-bottom: none;
++}
++.editorial-row.is-active + .editorial-row {
++  border-top: none;
++}
++.editorial-row.is-active .editorial-row-header {
++  padding: 32px 36px 0 36px;
++}
++.editorial-row.is-active .editorial-num {
++  color: var(--gold);
++  opacity: 1;
++}
++.editorial-row.is-active .editorial-title {
++  color: var(--paper);
++}
++.editorial-row.is-active .editorial-desc {
++  color: rgba(255, 255, 255, 0.72);
++}
++.editorial-row.is-active .editorial-arrow {
++  border-color: var(--gold);
++  color: var(--gold);
++}
++[dir="rtl"] .editorial-arrow {
++  transform: scaleX(-1);
++}
++
++/* Expanded Content */
++.editorial-content-wrapper {
++  overflow: hidden;
++}
++.editorial-content {
++  padding: 24px 36px 32px 36px;
++}
++.editorial-image-wrapper {
++  position: relative;
++  width: 100%;
++  aspect-ratio: 2.4 / 1;
++  max-height: 340px;
++  border-radius: 18px;
++  overflow: hidden;
++}
++.editorial-image {
++  object-fit: cover;
++}
++.editorial-caption {
++  position: absolute;
++  bottom: 20px;
++  inset-inline-start: 20px;
+   background: rgba(255, 255, 255, 0.95);
+   color: var(--navy);
+-  border-radius: 14px;
+-  padding: 14px 16px;
+-  display: flex;
+-  justify-content: space-between;
+-  font-size: 11px;
+-  z-index: 2;
+-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+-}
+-.sticky-caption span {
+-  color: var(--gold);
+-}
+-.sticky-list {
+-  padding-top: 30px;
+-  position: relative;
+-}
+-.sticky-list::before {
+-  content: "";
+-  position: absolute;
+-  top: 30px;
+-  bottom: 30px;
+-  left: -20px;
+-  width: 1px;
+-  background: var(--gold);
+-  opacity: 0.15;
+-}
+-[dir="rtl"] .sticky-list::before {
+-  left: auto;
+-  right: -20px;
+-}
+-.sticky-list article {
+-  min-height: 160px;
+-  display: grid;
+-  grid-template-columns: 45px 1fr;
++  padding: 10px 14px;
++  border-radius: 12px;
++  font-size: 11px;
++  display: flex;
+   gap: 16px;
+-  padding: 24px 0;
+-  border-top: 1px solid var(--line);
+-  opacity: 1; 
+-  transition: transform 0.35s, background-color 0.35s;
+-  cursor: pointer;
+-  background: transparent;
+-  text-align: start;
+-}
+-.sticky-list article:hover {
+-  /* opacity handled per element */
+-}
+-.sticky-list article.is-active {
+-  transform: translateX(8px);
+-}
+-[dir="rtl"] .sticky-list article.is-active {
+-  transform: translateX(-8px);
+-}
+-.sticky-list article > span {
+-  color: var(--muted);
+-  font-size: 13px;
+-  opacity: 0.6;
+-  transition: color 0.35s, opacity 0.35s;
+-}
+-.sticky-list article:hover > span,
+-.sticky-list article.is-active > span {
+-  color: var(--gold);
+-  opacity: 1;
+-}
+-.sticky-list h3 {
+-  font-size: clamp(22px, 1.8vw, 28px);
+-  margin: 0 0 10px;
+-  letter-spacing: -0.04em;
+-  color: var(--navy);
+-  opacity: 0.45;
+-  transition: opacity 0.35s, color 0.35s;
+-}
+-.sticky-list article:hover h3 {
+-  opacity: 0.7;
+-}
+-.sticky-list article.is-active h3 {
+-  opacity: 1;
+-  color: var(--navy);
+-}
+-.sticky-list p {
+-  max-width: 320px;
+-  color: var(--muted);
+-  font-size: 13.5px;
+-  line-height: 1.55;
+-  margin: 0;
+-  transition: color 0.35s, opacity 0.35s;
+-  opacity: 0.6;
+-}
+-.sticky-list article:hover p {
+-  opacity: 0.8;
+-}
+-.sticky-list article.is-active p {
+-  color: var(--muted);
+-  opacity: 1;
++  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
++}
++.editorial-caption span {
++  color: var(--gold);
+ }
+ .scroll-top {
+   position: fixed;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

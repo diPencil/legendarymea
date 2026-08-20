@@ -1,154 +1,24 @@
-"use client";
-import { ArrowUpRight, Play } from "lucide-react";
-import {
-  AudienceStrip,
-  ArrowButton,
-  ContactBlock,
-  FAQ,
-  Header,
-  ServicePanel,
-  TestimonialPanel,
-  Footer,
-  images,
-  PageShell,
-} from "@/components/site";
-import { useContent } from "@/components/i18n";
-import { ServiceSlider } from "@/components/service-slider";
-import { StickySolutions } from "@/components/sticky-solutions";
-import { Reveal } from "@/components/motion";
-import { BrandMarquee } from "@/components/marquee";
+'use client'
+import Link from 'next/link'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { AudienceStrip, FAQ, PageShell, RegionalPerspective } from '@/components/site'
+import { useContent, useLocale } from '@/components/i18n'
+import { Hero3 } from '@/components/ui/hero-3'
+import { HomepageServices } from '@/components/homepage-services'
+import { HomepageRequestJourney } from '@/components/homepage-request-journey'
+import { HomepageCoordination } from '@/components/homepage-coordination'
+import { experienceCopy } from '@/components/experience-content'
 
-export default function Home() {
-  const c = useContent();
-  return (
-    <PageShell>
-      <section className="hero section-shell">
-        <div className="hero-copy">
-          <Reveal delay={0}>
-            <p className="eyebrow">{c.hero.kicker}</p>
-          </Reveal>
-          <Reveal delay={100}>
-            <h1>
-              {c.hero.title}
-              <br />
-              <em>{c.hero.accent}</em>
-            </h1>
-          </Reveal>
-          <Reveal delay={200}>
-            <p className="hero-intro">{c.hero.body}</p>
-          </Reveal>
-          <Reveal delay={300}>
-            <div className="hero-actions">
-              <a className="button button-dark" href="/contact">
-                {c.hero.primary} <ArrowUpRight size={17} />
-              </a>
-              <a className="play-link" href="#solutions">
-                <span>
-                  <Play size={13} fill="currentColor" />
-                </span>
-                {c.hero.secondary}
-              </a>
-            </div>
-          </Reveal>
-        </div>
-        <div className="hero-visual">
-          <Reveal delay={400} className="image-frame">
-            <img
-              src={images.hero}
-              alt="Travel and hospitality professionals collaborating"
-            />
-          </Reveal>
-          <Reveal delay={550} className="hero-note">
-            <span>
-              MEA
-              <br />
-              <b>B2B partner</b>
-            </span>
-          </Reveal>
-          <Reveal delay={700} className="hero-stamp">
-            TRAVEL
-            <br />
-            <b>MEA</b>
-          </Reveal>
-        </div>
-      </section>
-      <AudienceStrip />
-      <BrandMarquee />
-      <section id="solutions">
-        <ServicePanel />
-      </section>
-      <Reveal>
-        <ServiceSlider />
-      </Reveal>
-      <Reveal className="reveal-story">
-        <section className="story section-shell">
-          <div className="story-image">
-            <img src={images.travel} alt="Premium destination experience" />
-          </div>
-          <div>
-            <div className="section-kicker">03 / More choice</div>
-            <h2>{c.hotelTitle}</h2>
-            <p>{c.hotelBody}</p>
-            <div className="mini-pills">
-              {[
-                "City hotels",
-                "Luxury resorts",
-                "Apartments",
-                "Group accommodation",
-              ].map((x) => (
-                <span key={x}>{x}</span>
-              ))}
-            </div>
-            <ArrowButton label={c.hotelCta} />
-          </div>
-        </section>
-      </Reveal>
-      <section className="why section-shell">
-        <div>
-          <div className="section-kicker">04 / Why Legendary</div>
-          <h2>{c.whyTitle}</h2>
-          <p>{c.whyBody}</p>
-        </div>
-        <div className="why-grid">
-          {c.why.map(([title, desc], i) => (
-            <article key={title}>
-              <span>0{i + 1}</span>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-      <Reveal>
-        <StickySolutions />
-      </Reveal>
-      <section className="process section-shell">
-        <div className="section-kicker">05 / How it works</div>
-        <h2>{c.processTitle}</h2>
-        <div className="process-grid">
-          {c.process.map(([title, desc], i) => (
-            <article key={title}>
-              <span>0{i + 1}</span>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-      <section className="regional section-shell">
-        <div>
-          <div className="section-kicker">06 / Regional perspective</div>
-          <h2>{c.regionalTitle}</h2>
-          <p>{c.regionalBody}</p>
-          <ArrowButton label={c.supportCta} />
-        </div>
-        <div className="regional-image">
-          <img src={images.city} alt="Middle Eastern city destination" />
-        </div>
-      </section>
-      <TestimonialPanel />
-      <FAQ />
-      <ContactBlock />
-    </PageShell>
-  );
-}
+export default function Home(){const common=useContent();const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].home;const Arrow=ar?ArrowLeft:ArrowRight;return <PageShell>
+ <Hero3 kicker={common.hero.kicker} title={common.hero.title} accent={common.hero.accent} body={common.hero.body} primaryCta={{label:common.hero.primary,href:'/solutions'}} secondaryCta={{label:common.hero.secondary,href:'/contact'}} images={[{src:'/hotel.png',alt:''},{src:'/meeting.png',alt:''},{src:'/travel.png',alt:''}]}/>
+ <AudienceStrip/>
+ <HomepageServices/>
+ <HomepageCoordination/>
+ <HomepageRequestJourney/>
+ <section className="xp-home-scenarios xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-home-scenarios-inner section-shell"><img className="xp-home-scenarios-art" src="/real%20requests.png" alt="" aria-hidden="true"/><div className="xp-section-heading"><div className="section-kicker light">05 / REAL REQUESTS</div><h2>{c.scenariosTitle}</h2><p>{c.scenariosBody}</p></div><div className="xp-home-scenario-grid">{c.scenarios.map(([t,b],i)=><article key={t}><span>0{i+1}</span><h3>{t}</h3><p>{b}</p></article>)}</div></div></section>
+ <section className="xp-home-why section-shell" dir={ar?'rtl':'ltr'}><div><div className="section-kicker">06 / {ar?'طريقة العمل':'WHY LEGENDARY'}</div><h2>{ar?'التنسيق أهم من كثرة الخيارات.':'Coordination matters more than a long option list.'}</h2><p>{common.whyBody}</p><img src="/why-legendary.jpg" alt=""/></div><ol>{common.why.map(([t,b],i)=><li key={t}><span>0{i+1}</span><div><h3>{t}</h3><p>{b}</p></div></li>)}</ol></section>
+ <section className="xp-platform-preview xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-platform-preview-inner section-shell"><div><div className="section-kicker light">07 / PLATFORM</div><h2>{c.platformTitle}</h2><p>{c.platformBody}</p></div><Link href="/platform" className="button button-gold">{c.platformCta}<Arrow size={17}/></Link></div></section>
+ <RegionalPerspective/>
+ <FAQ/>
+ <section className="xp-home-final-request xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-home-final-request-inner section-shell"><div><div className="section-kicker light">10 / REQUEST</div><h2>{c.finalTitle}</h2><p>{c.finalBody}</p></div><Link href="/contact" className="button button-gold">{c.finalCta}<Arrow size={17}/></Link></div></section>
+ </PageShell>}

@@ -1,0 +1,71 @@
+Created At: 2026-08-10T21:27:51+03:00
+Completed At: 2026-08-10T21:27:51+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -2189,6 +2189,23 @@
+   padding: 130px 0;
+ }
+ 
++.accommodation-header {
++  display: flex;
++  justify-content: space-between;
++  align-items: flex-end;
++  gap: 40px;
++}
++.accommodation-header-left {
++  flex: 0 0 60%;
++}
++.accommodation-header-left.audience-heading-block {
++  margin-bottom: 0;
++}
++.accommodation-header-right {
++  flex: 0 0 35%;
++  padding-bottom: 8px;
++}
++
+ .accommodation-intro {
+   color: var(--muted);
+   font-size: 16px;
+@@ -2195,5 +2195,4 @@
+-  max-width: 500px;
+-  margin-top: 20px;
++  margin: 0;
+ }
+ 
+ .accommodation-layout {
+@@ -2200,4 +2200,4 @@
+-  grid-template-columns: 26% 45% 1fr;
++  grid-template-columns: 25% 36% 1fr;
+   gap: 48px;
+   margin-top: 64px;
+ }
+@@ -2485,7 +2485,7 @@
+ /* RESPONSIVE */
+ @media (max-width: 1200px) {
+   .accommodation-layout {
+-    grid-template-columns: 24% 42% 1fr;
++    grid-template-columns: 24% 38% 1fr;
+     gap: 32px;
+   }
+ }
+@@ -2492,4 +2492,17 @@
+ @media (max-width: 1024px) {
++  .accommodation-header {
++    flex-direction: column;
++    align-items: flex-start;
++    gap: 24px;
++  }
++  .accommodation-header-left,
++  .accommodation-header-right {
++    flex: none;
++    width: 100%;
++  }
++  .accommodation-header-right {
++    padding-bottom: 0;
++  }
+   .accommodation-layout {
+     display: flex;
+     flex-direction: column;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

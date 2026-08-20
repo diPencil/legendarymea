@@ -181,9 +181,9 @@ export function Hero3({
   const { locale } = useLocale();
   const isRtl = locale === "ar";
   const prefersReducedMotion = useReducedMotion();
-
+  
   const MARQUEE_SPEED_PX_PER_SECOND = 35;
-
+  
   const cards = heroMarqueeCards[locale];
 
   const [distance, setDistance] = useState(0);
@@ -201,7 +201,7 @@ export function Hero3({
     const observer = new ResizeObserver(() => {
       const cWidth = container.clientWidth;
       const gWidth = groupA.clientWidth;
-
+      
       const singleRepWidth = gWidth / repetitions;
       if (singleRepWidth > 0) {
         const neededReps = Math.max(1, Math.ceil((cWidth + singleRepWidth) / singleRepWidth));
@@ -237,10 +237,10 @@ export function Hero3({
           className="flex flex-col items-center"
         >
           {kicker && <p className="eyebrow mb-[18px]">{kicker}</p>}
-          <h1
+          <h1 
             className="max-w-[900px] text-balance font-bold text-navy"
-            style={{
-              fontSize: 'clamp(40px, 4.5vw, 68px)',
+            style={{ 
+              fontSize: 'clamp(40px, 4.5vw, 68px)', 
               lineHeight: '1.05',
               letterSpacing: isRtl ? 'normal' : '-0.04em'
             }}
@@ -248,13 +248,13 @@ export function Hero3({
             {title}
             {accent && <><br /><em className="text-gold not-italic">{accent}</em></>}
           </h1>
-          <p
+          <p 
             className="text-muted mt-[24px] max-w-[600px] text-balance"
             style={{ fontSize: 'clamp(15px, 1.5vw, 18px)', lineHeight: '1.6' }}
           >
             {body}
           </p>
-
+          
           <div className="mt-[35px] lg:mt-[45px] flex flex-col sm:flex-row items-center gap-6 justify-center">
             <a className="button button-dark" href={primaryCta.href}>
               {primaryCta.label} <ArrowUpRight size={17} />
@@ -270,14 +270,14 @@ export function Hero3({
       </div>
 
       <div className="relative mt-[50px] lg:mt-[60px] w-full flex-1 min-h-[220px] lg:min-h-[300px] flex items-center overflow-hidden">
-        <div
+        <div 
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
             maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
             WebkitMaskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
           }}
         />
-
+        
         <div className="w-full flex" dir="ltr" ref={containerRef}>
           <motion.div
             className="flex gap-4 md:gap-6 px-4 w-max flex-nowrap"
@@ -304,7 +304,7 @@ export function Hero3({
                       key={`a-${repIndex}-${card.id}`}
                       className="flex-shrink-0"
                       aria-hidden={repIndex !== 0}
-                      style={{
+                      style={{ 
                          transform: `rotate(${rotation}deg)`,
                          marginTop: isOdd ? "16px" : "0px"
                       }}
@@ -327,7 +327,7 @@ export function Hero3({
                     <div
                       key={`b-${repIndex}-${card.id}`}
                       className="flex-shrink-0"
-                      style={{
+                      style={{ 
                          transform: `rotate(${rotation}deg)`,
                          marginTop: isOdd ? "16px" : "0px"
                       }}

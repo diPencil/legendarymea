@@ -1,0 +1,61 @@
+Created At: 2026-08-10T23:58:30+03:00
+Completed At: 2026-08-10T23:58:30+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1203,6 +1203,17 @@
+   pointer-events: none;
+   z-index: 1;
+ }
++.grid-glow {
++  position: absolute;
++  top: 30%;
++  left: 50%;
++  transform: translate(-50%, -50%);
++  width: 600px;
++  height: 600px;
++  background: radial-gradient(circle, rgba(8, 29, 96, 0.08) 0%, transparent 70%);
++  filter: blur(40px);
++  z-index: -1;
++}
+ .grid-beam-mask {
+   position: absolute;
+   inset: 0;
+@@ -1214,8 +1214,8 @@
+   background-position: center top;
+   background-size: clamp(48px, 5vw, 72px) clamp(48px, 5vw, 72px);
+   background-image: 
+-    linear-gradient(to right, rgba(8, 29, 96, 0.075) 1px, transparent 1px),
+-    linear-gradient(to bottom, rgba(8, 29, 96, 0.075) 1px, transparent 1px);
++    linear-gradient(to right, rgba(8, 29, 96, 0.12) 1px, transparent 1px),
++    linear-gradient(to bottom, rgba(8, 29, 96, 0.12) 1px, transparent 1px);
+ }
+ .grid-beam {
+   position: absolute;
+@@ -1222,10 +1222,22 @@
+   left: 50%;
+   width: 2px;
+   height: 40vh;
+-  background: linear-gradient(to bottom, transparent, rgba(160, 127, 49, 0.45) 50%, transparent);
+-  box-shadow: 0 0 16px 2px rgba(160, 127, 49, 0.12);
++  background: linear-gradient(to bottom, transparent, rgba(160, 127, 49, 0.7) 95%, rgba(160, 127, 49, 1));
++  box-shadow: 0 0 8px 1px rgba(160, 127, 49, 0.18);
+   animation: gridBeamMove 14s linear infinite;
+ }
++.grid-beam::after {
++  content: "";
++  position: absolute;
++  bottom: 0;
++  left: 50%;
++  transform: translateX(-50%);
++  width: 6px;
++  height: 6px;
++  background-color: rgba(160, 127, 49, 1);
++  border-radius: 50%;
++  box-shadow: 0 0 14px 4px rgba(160, 127, 49, 0.4);
++}
+ @keyframes gridBeamMove {
+   0% { transform: translateY(-60vh); opacity: 0; }
+   10% { opacity: 1; }
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

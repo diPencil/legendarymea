@@ -1,0 +1,91 @@
+Created At: 2026-08-10T22:17:30+03:00
+Completed At: 2026-08-10T22:17:30+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1720,6 +1720,10 @@
+   background: var(--gold);
+   transition: width 0.6s ease;
+ }
++.sticky-solutions-wrapper {
++  background-color: #081D60;
++  width: 100%;
++}
+ .sticky-solutions {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+@@ -1726,5 +1726,8 @@
+   padding: 130px 0;
+ }
++.sticky-solutions .section-kicker {
++  color: var(--paper); /* soft white/ivory */
++}
+ .sticky-visual-column {
+   position: relative;
+   height: 100%;
+@@ -1769,10 +1769,9 @@
+   grid-template-columns: 55px 1fr;
+   gap: 20px;
+   padding: 30px 0;
+-  border-top: 1px solid var(--line);
+-  opacity: 0.4;
+-  transition:
+-    opacity 0.35s,
++  border-top: 1px solid rgba(255, 255, 255, 0.1);
++  opacity: 1; /* override original opacity behavior to manage child opacity directly */
++  transition:
+     transform 0.35s,
+     background-color 0.35s;
+   cursor: pointer;
+@@ -1779,10 +1779,9 @@
+   text-align: start;
+ }
+ .sticky-list article:hover {
+-  opacity: 0.7;
++  /* handled on children */
+ }
+ .sticky-list article.is-active {
+-  opacity: 1;
+   transform: translateX(8px);
+ }
+ [dir="rtl"] .sticky-list article.is-active {
+@@ -1789,6 +1789,6 @@
+ }
+ .sticky-list article > span {
+-  color: var(--line);
++  color: rgba(255, 255, 255, 0.4);
+   font-size: 12px;
+   transition: color 0.35s;
+ }
+@@ -1799,13 +1799,25 @@
+   font-size: clamp(24px, 2vw, 32px);
+   margin: 0 0 12px;
+   letter-spacing: -0.05em;
++  color: rgba(255, 255, 255, 0.48);
++  transition: color 0.35s;
++}
++.sticky-list article:hover h3 {
++  color: rgba(255, 255, 255, 0.6);
++}
++.sticky-list article.is-active h3 {
++  color: var(--paper); /* warm ivory / white */
+ }
+ .sticky-list p {
+   max-width: 320px;
+-  color: var(--muted);
+-  font-size: 13px;
+-  line-height: 1.6;
+-  margin: 0;
++  color: rgba(255, 255, 255, 0.34);
++  font-size: 13px;
++  line-height: 1.6;
++  margin: 0;
++  transition: color 0.35s;
++}
++.sticky-list article.is-active p {
++  color: rgba(255, 255, 255, 0.72);
+ }
+ .scroll-top {
+   position: fixed;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
