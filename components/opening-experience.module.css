@@ -1,0 +1,361 @@
+.intro {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 100dvh;
+  overflow: hidden;
+  flex-direction: column;
+  color: #fff;
+  background: var(--navy-deep);
+  opacity: 1;
+  transition:
+    opacity 0.6s ease,
+    visibility 0.6s ease;
+}
+.leaving {
+  visibility: hidden;
+  opacity: 0;
+}
+.intro:before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 72% 42%,
+      rgba(160, 127, 49, 0.16),
+      transparent 34%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 48%,
+      rgba(255, 255, 255, 0.025) 48.1%,
+      transparent 48.25%
+    );
+}
+.texture {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: clamp(42px, 5vw, 76px) clamp(42px, 5vw, 76px);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 18%,
+    black 78%,
+    transparent
+  );
+}
+.texture:after {
+  position: absolute;
+  width: min(58vw, 900px);
+  aspect-ratio: 1;
+  inset-inline-end: -18vw;
+  top: 8vh;
+  content: "";
+  border: 1px solid rgba(160, 127, 49, 0.38);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 9vw rgba(160, 127, 49, 0.035),
+    0 0 0 18vw rgba(160, 127, 49, 0.025);
+}
+.texture i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.75;
+  animation: drift 7s ease-in-out infinite;
+}
+.texture i:nth-child(1) {
+  left: 14%;
+  top: 24%;
+}
+.texture i:nth-child(2) {
+  left: 42%;
+  top: 73%;
+  animation-delay: -2s;
+}
+.texture i:nth-child(3) {
+  left: 76%;
+  top: 31%;
+  animation-delay: -4s;
+}
+.texture i:nth-child(4) {
+  left: 88%;
+  top: 68%;
+  animation-delay: -1s;
+}
+.texture i:nth-child(5) {
+  left: 62%;
+  top: 16%;
+  animation-delay: -5s;
+}
+.header,
+.footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: clamp(24px, 5vw, 80px);
+}
+.header {
+  min-height: clamp(88px, 12vh, 126px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.header img {
+  width: clamp(156px, 14vw, 218px);
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+.header span {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+}
+.stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  place-items: center;
+  padding: clamp(32px, 5vw, 76px);
+}
+.scene {
+  position: absolute;
+  width: min(1040px, calc(100% - clamp(48px, 10vw, 160px)));
+  visibility: hidden;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0.65s;
+}
+.visible {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+.eyebrow {
+  display: block;
+  margin-bottom: clamp(18px, 3vh, 32px);
+  color: var(--gold);
+  font-size: clamp(10px, 1vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+.scene h1 {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-en), sans-serif;
+  font-size: clamp(44px, 5.8vw, 92px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+.scene h1 em {
+  color: #d9bd76;
+  font-style: normal;
+}
+.scene p {
+  max-width: 700px;
+  margin: clamp(24px, 4vh, 42px) auto 0;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: clamp(15px, 1.35vw, 21px);
+  line-height: 1.65;
+  text-wrap: balance;
+}
+.footer {
+  min-height: clamp(90px, 13vh, 132px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.progress {
+  display: grid;
+  width: min(360px, 48vw);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.progress > span {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+}
+.progress i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.progress .complete i {
+  transform: scaleX(1);
+}
+.progress .current i {
+  animation: progress linear forwards;
+}
+.footer button {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  color: rgba(255, 255, 255, 0.68);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.34);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.footer button:hover,
+.footer button:focus-visible {
+  color: #fff;
+  border-color: var(--gold);
+  outline: none;
+}
+.footer button span {
+  color: var(--gold);
+  font-size: 16px;
+}
+[dir="rtl"] .scene h1 {
+  font-family: var(--font-ar), Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+}
+[dir="rtl"] .scene p {
+  line-height: 1.9;
+}
+[dir="rtl"] .progress i {
+  transform-origin: right;
+}
+@keyframes progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes drift {
+  50% {
+    opacity: 0.3;
+    transform: translateY(-14px);
+  }
+}
+@media (max-width: 760px) {
+  .header {
+    min-height: 86px;
+    padding-inline: 22px;
+  }
+  .header img {
+    width: 150px;
+  }
+  .header span {
+    display: none;
+  }
+  .stage {
+    align-items: center;
+    padding: 26px 22px 18px;
+  }
+  .scene {
+    width: calc(100% - 44px);
+    text-align: start;
+  }
+  .eyebrow {
+    margin-bottom: 20px;
+    font-size: 9px;
+    line-height: 1.6;
+  }
+  .scene h1 {
+    font-size: clamp(39px, 12vw, 58px);
+    line-height: 1.04;
+    text-wrap: pretty;
+  }
+  .scene p {
+    margin-top: 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+  .footer {
+    min-height: 96px;
+    padding-inline: 22px;
+  }
+  .progress {
+    width: min(190px, 52vw);
+    gap: 7px;
+  }
+  .footer button {
+    min-height: 48px;
+    font-size: 11px;
+  }
+  .texture:after {
+    width: 110vw;
+    inset-inline-end: -70vw;
+    top: 15vh;
+  }
+}
+@media (max-width: 390px) {
+  .scene h1 {
+    font-size: clamp(36px, 11.5vw, 46px);
+  }
+  .scene p {
+    font-size: 14px;
+  }
+  .progress {
+    width: 150px;
+  }
+  .footer button span {
+    display: none;
+  }
+}
+@media (max-height: 650px) {
+  .header {
+    min-height: 70px;
+  }
+  .footer {
+    min-height: 76px;
+  }
+  .eyebrow {
+    margin-bottom: 13px;
+  }
+  .scene p {
+    margin-top: 17px;
+  }
+  .scene h1 {
+    font-size: clamp(34px, 7vw, 68px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro,
+  .scene {
+    transition-duration: 0.08s;
+  }
+  .texture i,
+  .progress i {
+    animation: none !important;
+  }
+  .progress .current i {
+    transform: scaleX(1);
+  }
+}

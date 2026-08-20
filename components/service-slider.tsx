@@ -30,40 +30,17 @@ export function ServiceSlider() {
   const [lastInteraction, setLastInteraction] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  
   const titles = c.services.slice(0, 6);
+  
   useEffect(() => {
     const timer = window.setInterval(
       () => setActive((value) => (value + 1) % titles.length),
-      6500,
+      6500
     );
-  
-  const minSwipeDistance = 50;
-  const onTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
-    setTouchEnd(null);
-    setTouchStart('touches' in e ? e.targetTouches[0].clientX : (e as React.MouseEvent).clientX);
-  };
-  const onTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
-    setTouchEnd('touches' in e ? e.targetTouches[0].clientX : (e as React.MouseEvent).clientX);
-  };
-  const onTouchEnd = () => {
-    if (touchStart === null || touchEnd === null) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    if (isLeftSwipe || isRightSwipe) {
-      if (locale === 'ar') {
-        if (isLeftSwipe) previous();
-        if (isRightSwipe) next();
-      } else {
-        if (isLeftSwipe) next();
-        if (isRightSwipe) previous();
-      }
-    }
-  };
-
-  return (
-) => window.clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, [titles.length, lastInteraction]);
+  
   const [title, description] = titles[active];
   const next = () => { setActive((active + 1) % titles.length); setLastInteraction(Date.now()); };
   const previous = () => { setActive((active - 1 + titles.length) % titles.length); setLastInteraction(Date.now()); };
@@ -93,7 +70,6 @@ export function ServiceSlider() {
   };
 
   return (
-
     <section
       className="service-slider section-shell"
       aria-label={

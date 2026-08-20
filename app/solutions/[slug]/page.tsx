@@ -1,17 +1,30 @@
 'use client'
-import { notFound, useParams } from 'next/navigation'
-import { ArrowButton, ContactBlock, FAQ, PageShell, images } from '@/components/site'
-import { useContent } from '@/components/i18n'
-import { Reveal } from '@/components/motion'
 
-const data: Record<string, { en: [string,string,string]; ar: [string,string,string] }> = {
-  'hotels-accommodation': { en: ['Hotels & accommodation','Stay options, shaped around the journey.','From city hotels and resorts to group accommodation, we help partners find the right fit for purpose, location and budget.'], ar: ['الفنادق والإقامة','خيارات إقامة مصممة حول الرحلة.','من فنادق المدن والمنتجعات إلى إقامة المجموعات، نساعد شركاءنا في إيجاد الخيار المناسب للموقع والغرض والميزانية.'] },
-  flights: { en: ['Flights','Air travel with the details connected.','Support for individual, group and corporate itineraries where routing, timing and flexibility matter.'], ar: ['الرحلات الجوية','سفر جوي بتفاصيل مترابطة.','دعم للمسارات الفردية والجماعية ورحلات الشركات عندما تكون الوجهة والتوقيت والمرونة مهمة.'] },
-  transfers: { en: ['Transfers','Arrivals that feel effortless.','Coordinate airport, hotel and event movements with a regional team that understands the destination.'], ar: ['التنقلات','وصول وانطلاق بلا تعقيد.','نسّق تنقلات المطارات والفنادق والفعاليات مع فريق إقليمي يفهم الوجهة.'] },
-  'car-rental': { en: ['Car rental','Mobility that keeps the itinerary moving.','Flexible vehicle options for business travelers, leisure programs and groups across the region.'], ar: ['تأجير السيارات','تنقل يحافظ على سير الرحلة.','خيارات مركبات مرنة للمسافرين من رجال الأعمال والبرامج السياحية والمجموعات في المنطقة.'] },
-  'tours-experiences': { en: ['Tours & experiences','Make the destination meaningful.','Build thoughtful programs around local culture, landmarks, food and the moments guests remember.'], ar: ['الجولات والتجارب','امنح الوجهة معنى.','صمّم برامج مدروسة حول الثقافة المحلية والمعالم والطعام واللحظات التي يتذكرها الضيوف.'] },
-  'groups-special-requests': { en: ['Groups & special requests','Complex details, carefully coordinated.','We help you bring together accommodation, movements, experiences and the important details of group travel.'], ar: ['المجموعات والطلبات الخاصة','تفاصيل معقدة بتنسيق دقيق.','نساعدك على جمع الإقامة والتنقلات والتجارب والتفاصيل المهمة في سفر المجموعات.'] },
-  'corporate-travel': { en: ['Corporate travel','Business travel with a human point of contact.','Create clear, responsive travel support for teams, meetings, incentives and executive movement.'], ar: ['سفر الشركات','سفر أعمال مع نقطة تواصل إنسانية.','أنشئ دعماً واضحاً وسريعاً للفرق والاجتماعات والحوافز وتنقلات التنفيذيين.'] },
-  'hospitality-solutions': { en: ['Hospitality solutions','Regional insight for hospitality partners.','Connect hotel and hospitality teams to commercial opportunity, operational context and dependable support.'], ar: ['حلول الضيافة','فهم إقليمي لشركاء الضيافة.','نربط فرق الفنادق والضيافة بالفرص التجارية والسياق التشغيلي والدعم الموثوق.'] },
+import { notFound, useParams } from 'next/navigation'
+import { useLocale } from '@/components/i18n'
+import { solutionDetailCopy, solutionSlugs } from '@/components/experience-content'
+import { ServiceDetailTemplate } from '@/components/service-detail-template'
+
+export default function SolutionDetail() {
+  const { slug } = useParams<{ slug: string }>()
+  if (!solutionSlugs.includes(slug as never)) return notFound()
+  const { locale } = useLocale()
+  const ar = locale === 'ar'
+
+  // @ts-ignore
+  const c = solutionDetailCopy[slug][locale]
+  // @ts-ignore
+  const related = solutionDetailCopy[c.related][locale]
+  // @ts-ignore
+  const factIcons = solutionDetailCopy[slug].factIcons
+
+  return (
+    <ServiceDetailTemplate
+      slug={slug}
+      ar={ar}
+      c={c as any}
+      related={related as any}
+      factIcons={factIcons}
+    />
+  )
 }
-export default function SolutionDetail() { const { slug } = useParams<{ slug: string }>(); const c = useContent(); const item = data[slug]; if (!item) return notFound(); const [title, accent, body] = item[document.documentElement.lang === 'ar' ? 'ar' : 'en']; return <PageShell><Reveal><section className="inner-hero section-shell"><div><div className="section-kicker">{c.page.services}</div><h1>{title}<br /><em>{accent}</em></h1><p>{body}</p><ArrowButton label={c.finalPrimary} /></div><div className="inner-image"><img src={slug === 'hotels-accommodation' ? images.travel : images.meeting} alt={title} /></div></section></Reveal><section className="intro section-shell"><div className="section-kicker">01 / Overview</div><div><h2>Built for <em>better requests.</em></h2><p>{body} Our team stays close to the commercial context so your client receives an answer that feels considered, not generic.</p></div></section><section className="why section-shell"><div><div className="section-kicker">02 / Why it matters</div><h2>Clarity creates <em>confidence.</em></h2></div><div className="why-grid"><article><span>01</span><h3>Relevant options</h3><p>Recommendations shaped around the brief, not a list of disconnected products.</p></article><article><span>02</span><h3>Regional support</h3><p>A responsive point of contact who understands the realities of the destination.</p></article><article><span>03</span><h3>Connected details</h3><p>Keep accommodation, movement, timing and special requests aligned.</p></article><article><span>04</span><h3>Business-ready</h3><p>Clear communication your team can pass confidently to the traveler.</p></article></div></section><section className="process section-shell"><div className="section-kicker">03 / How it works</div><h2>From a clear brief to a <em>clear next step.</em></h2><div className="process-grid"><article><span>01</span><h3>Share the brief</h3><p>Tell us what the traveler, group or business needs.</p></article><article><span>02</span><h3>We shape options</h3><p>Our team checks the details and builds a practical response.</p></article><article><span>03</span><h3>Confirm together</h3><p>Move forward with a plan your team understands.</p></article><article><span>04</span><h3>Stay supported</h3><p>We remain close when details change or questions arise.</p></article></div></section><FAQ /><ContactBlock /></PageShell> }

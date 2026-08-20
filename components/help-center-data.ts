@@ -1,0 +1,165 @@
+export type HelpLocale = 'en' | 'ar'
+
+export type LocalText = { en: string; ar: string }
+
+export type HelpSection = {
+  id: string
+  title: LocalText
+  body: LocalText
+  points?: { en: string[]; ar: string[] }
+}
+
+export type HelpArticle = {
+  slug: string
+  category: string
+  title: LocalText
+  summary: LocalText
+  keywords: LocalText
+  popular?: boolean
+  sections: HelpSection[]
+  related: string[]
+}
+
+export const helpCategories = [
+  { id: 'getting-started', number: '01', title: { en: 'Getting Started', ar: 'البداية' } },
+  { id: 'accommodation', number: '02', title: { en: 'Hotels & Accommodation', ar: 'الفنادق والسكن' } },
+  { id: 'travel', number: '03', title: { en: 'Flights & Ground Travel', ar: 'الطيران والتنقلات' } },
+  { id: 'groups', number: '04', title: { en: 'Groups & Corporate Travel', ar: 'المجموعات وسفر الشركات' } },
+  { id: 'partnerships', number: '05', title: { en: 'Partnerships', ar: 'الشراكات' } },
+  { id: 'platform', number: '06', title: { en: 'Platform', ar: 'المنصة' } },
+  { id: 'access', number: '07', title: { en: 'Account & Access', ar: 'الحساب والدخول' } },
+] as const
+
+export const helpArticles: HelpArticle[] = [
+  {
+    slug: 'what-legendary-can-arrange', category: 'getting-started', popular: true,
+    title: { en: 'What Legendary can arrange', ar: 'وش تقدر ليجندري ترتّب لك؟' },
+    summary: { en: 'A practical overview of the travel services you can request.', ar: 'نظرة عملية على خدمات السفر اللي تقدر تطلبها.' },
+    keywords: { en: 'services hotels flights transfers cars tours groups corporate hospitality', ar: 'خدمات فنادق طيران تنقلات سيارات جولات مجموعات شركات ضيافة' },
+    sections: [
+      { id: 'services', title: { en: 'Services available', ar: 'الخدمات المتاحة' }, body: { en: 'Legendary arranges hotels, flights, airport transfers, car rental, tours, group travel, corporate travel and hospitality services.', ar: 'نرتّب الفنادق والطيران والاستقبال من المطار وتأجير السيارات والجولات وسفر المجموعات والشركات وخدمات الضيافة.' } },
+      { id: 'combine', title: { en: 'One service or several', ar: 'خدمة واحدة أو أكثر' }, body: { en: 'You can send one service request or combine several services in the same itinerary.', ar: 'تقدر ترسل طلب لخدمة واحدة، أو تجمع أكثر من خدمة في نفس برنامج الرحلة.' } },
+    ], related: ['how-to-send-a-travel-request', 'how-a-travel-request-moves'],
+  },
+  {
+    slug: 'how-to-send-a-travel-request', category: 'getting-started', popular: true,
+    title: { en: 'How to send a useful travel request', ar: 'كيف ترسل طلب سفر واضح؟' },
+    summary: { en: 'The core details that help us review your request accurately.', ar: 'التفاصيل الأساسية اللي تساعدنا نراجع طلبك بدقة.' },
+    keywords: { en: 'send request destination dates travelers details contact', ar: 'إرسال طلب وجهة تواريخ مسافرين تفاصيل تواصل' },
+    sections: [
+      { id: 'include', title: { en: 'Start with the essentials', ar: 'ابدأ بالمعلومات الأساسية' }, body: { en: 'Send the destination, travel dates, number of travelers and the services you need.', ar: 'أرسل الوجهة، مواعيد السفر، عدد المسافرين، والخدمات المطلوبة.' }, points: { en: ['Destination and dates', 'Traveler or room count', 'Services involved', 'Any timing or budget preferences'], ar: ['الوجهة والتواريخ', 'عدد المسافرين أو الغرف', 'الخدمات المطلوبة', 'أي تفضيلات للوقت أو الميزانية'] } },
+      { id: 'missing', title: { en: 'If some details are not ready', ar: 'إذا بعض التفاصيل مو جاهزة' }, body: { en: 'Send what you know and mark anything that is still provisional. We can identify the next details needed.', ar: 'أرسل المتوفر عندك ووضّح الأشياء المبدئية، ونراجع معك وش باقي نحتاج.' } },
+    ], related: ['what-legendary-can-arrange', 'how-a-travel-request-moves'],
+  },
+  {
+    slug: 'how-a-travel-request-moves', category: 'getting-started', popular: true,
+    title: { en: 'How a travel request moves', ar: 'كيف يمشي طلب السفر؟' },
+    summary: { en: 'What happens from the first brief through confirmation.', ar: 'وش يصير من أول تفاصيل الطلب إلى التأكيد.' },
+    keywords: { en: 'process review options confirmation itinerary changes', ar: 'خطوات مراجعة خيارات تأكيد برنامج تعديلات' },
+    sections: [
+      { id: 'review', title: { en: 'Review and clarify', ar: 'المراجعة واستكمال التفاصيل' }, body: { en: 'We review timing, rooming, routing and any open requirements before coordinating options.', ar: 'نراجع المواعيد والغرف وخط السير وأي تفاصيل ناقصة قبل تنسيق الخيارات.' } },
+      { id: 'confirm', title: { en: 'Coordinate and confirm', ar: 'التنسيق والتأكيد' }, body: { en: 'Approved options move into confirmation and documentation. Updates stay connected to the same itinerary.', ar: 'بعد اعتماد الخيارات نكمل التأكيد والمستندات، وأي تحديث يبقى مرتبط بنفس برنامج الرحلة.' } },
+    ], related: ['how-to-send-a-travel-request', 'coordinating-several-services'],
+  },
+  {
+    slug: 'coordinating-several-services', category: 'getting-started', popular: true,
+    title: { en: 'Coordinating several services in one request', ar: 'تنسيق أكثر من خدمة في طلب واحد' },
+    summary: { en: 'Keep hotels, flights and ground movements connected.', ar: 'خلّ السكن والطيران والتنقلات مرتبطة ببعض.' },
+    keywords: { en: 'combine services itinerary hotel flight transfer timing', ar: 'جمع خدمات برنامج فندق طيران استقبال مواعيد' },
+    sections: [{ id: 'one-itinerary', title: { en: 'Use one itinerary', ar: 'اجمعها في برنامج واحد' }, body: { en: 'Include every service involved in the same request so arrival, check-in and movement times can be reviewed together.', ar: 'إذا الطلب يشمل أكثر من خدمة، اجمع التفاصيل في نفس الطلب عشان نراجع الوصول والسكن والتنقلات مع بعض.' } }], related: ['how-a-travel-request-moves', 'coordinating-arrival-times'],
+  },
+  {
+    slug: 'hotel-request-details', category: 'accommodation', popular: true,
+    title: { en: 'Information needed for a hotel request', ar: 'وش نحتاج لطلب الفندق؟' },
+    summary: { en: 'Dates, rooms, occupancy and property preferences.', ar: 'التواريخ والغرف والتسكين وتفضيلات الفندق.' },
+    keywords: { en: 'hotel destination check in checkout rooms budget location', ar: 'فندق وجهة دخول خروج غرف ميزانية موقع' },
+    sections: [{ id: 'checklist', title: { en: 'Hotel request checklist', ar: 'قائمة تفاصيل السكن' }, body: { en: 'For a hotel request, send the destination, check-in and check-out dates, number of rooms and preferred room types.', ar: 'لطلب الفندق، أرسل الوجهة وتاريخ الدخول والخروج وعدد الغرف ونوع الغرف المطلوبة.' }, points: { en: ['City or preferred area', 'Dates and nights', 'Room count and occupancy', 'Budget or hotel category', 'Meal-plan requirements'], ar: ['المدينة أو المنطقة المفضلة', 'التواريخ وعدد الليالي', 'عدد الغرف والتسكين', 'الميزانية أو فئة الفندق', 'متطلبات الوجبات'] } }], related: ['rooming-and-occupancy', 'group-request-details'],
+  },
+  {
+    slug: 'rooming-and-occupancy', category: 'accommodation',
+    title: { en: 'Room types, occupancy and rooming details', ar: 'أنواع الغرف والتسكين وقائمة الأسماء' },
+    summary: { en: 'How to specify rooms for individual and group stays.', ar: 'كيف توضّح توزيع الغرف للأفراد والمجموعات.' },
+    keywords: { en: 'single double twin triple rooming list meals occupancy', ar: 'مفرد مزدوج توأم ثلاثي تسكين قائمة غرف وجبات' },
+    sections: [{ id: 'rooms', title: { en: 'Describe the room setup', ar: 'وضّح توزيع الغرف' }, body: { en: 'List each required room type and how many guests will stay in it. For groups, include the rooming list when available.', ar: 'حدّد نوع كل غرفة وعدد الضيوف فيها. وإذا عندك مجموعة، أرسل قائمة التسكين لما تكون جاهزة.' } }], related: ['hotel-request-details', 'group-request-details'],
+  },
+  {
+    slug: 'flight-and-passenger-details', category: 'travel',
+    title: { en: 'Flight request and passenger details', ar: 'تفاصيل طلب الطيران والمسافرين' },
+    summary: { en: 'Routing, dates, names and timing preferences for air requests.', ar: 'خط السير والتواريخ والأسماء والمواعيد المفضلة.' },
+    keywords: { en: 'flight origin destination route passenger names class schedule', ar: 'طيران مغادرة وصول مسار أسماء مسافرين درجة موعد' },
+    sections: [{ id: 'flight-details', title: { en: 'Information to include', ar: 'المعلومات المطلوبة' }, body: { en: 'Send departure and arrival points, travel dates, passenger names, preferred class and any timing restrictions.', ar: 'أرسل مدن المغادرة والوصول، التواريخ، أسماء المسافرين، الدرجة المفضلة، وأي قيود على المواعيد.' } }], related: ['coordinating-arrival-times', 'ground-travel-details'],
+  },
+  {
+    slug: 'ground-travel-details', category: 'travel',
+    title: { en: 'Transfers and car rental requests', ar: 'طلبات التنقلات وتأجير السيارات' },
+    summary: { en: 'Pickup, drop-off, timing and vehicle information.', ar: 'الاستلام والتسليم والمواعيد وتفاصيل المركبة.' },
+    keywords: { en: 'transfer pickup dropoff airport vehicle car rental driver', ar: 'تنقل استقبال توصيل مطار مركبة سيارة سائق' },
+    sections: [{ id: 'movement', title: { en: 'Movement details', ar: 'تفاصيل التنقل' }, body: { en: 'Include pickup and drop-off locations, date and time, traveler count, luggage needs and preferred vehicle category.', ar: 'حدّد موقع الاستلام والتوصيل، التاريخ والوقت، عدد المسافرين، الأمتعة، وفئة المركبة المناسبة.' } }], related: ['flight-and-passenger-details', 'coordinating-arrival-times'],
+  },
+  {
+    slug: 'coordinating-arrival-times', category: 'travel', popular: true,
+    title: { en: 'Coordinating different arrival times', ar: 'تنسيق مواعيد الوصول المختلفة' },
+    summary: { en: 'Connect flight arrivals with pickups, rooms and the day program.', ar: 'اربط وصول الرحلات بالاستقبال والغرف وبرنامج اليوم.' },
+    keywords: { en: 'arrival departure airport pickup hotel checkin group timing', ar: 'وصول مغادرة مطار استقبال فندق دخول مجموعة توقيت' },
+    sections: [{ id: 'schedule', title: { en: 'Share the full arrival schedule', ar: 'أرسل جدول الوصول كامل' }, body: { en: 'For travelers arriving separately, list each flight and passenger group. This helps match vehicles and hotel readiness to the right time.', ar: 'إذا المسافرون يوصلون بأوقات مختلفة، أرسل كل رحلة وعدد المسافرين فيها عشان نرتّب المركبات وتجهيز الغرف حسب الوقت.' } }], related: ['ground-travel-details', 'group-request-details'],
+  },
+  {
+    slug: 'group-request-details', category: 'groups', popular: true,
+    title: { en: 'What to include in a group request', ar: 'وش ترسل مع طلب المجموعة؟' },
+    summary: { en: 'The information needed to coordinate rooms, arrivals and movements.', ar: 'المعلومات المطلوبة لتنسيق الغرف والوصول والتنقلات.' },
+    keywords: { en: 'group passenger list rooming arrivals transport program', ar: 'مجموعة قائمة مسافرين تسكين وصول نقل برنامج' },
+    sections: [{ id: 'group-checklist', title: { en: 'Group request checklist', ar: 'قائمة طلب المجموعة' }, body: { en: 'Send the group size, travel dates, arrival and departure schedule, rooming requirements and an outline of planned movements.', ar: 'أرسل عدد المسافرين، التواريخ، مواعيد الوصول والمغادرة، توزيع الغرف، وخطة التنقلات المتوفرة.' } }, { id: 'updates', title: { en: 'Lists can be updated', ar: 'تقدر تحدّث القوائم' }, body: { en: 'If the final passenger or rooming list is not ready, send the current version and mark it as provisional.', ar: 'إذا القائمة النهائية مو جاهزة، أرسل النسخة الحالية ووضّح إنها مبدئية.' } }], related: ['rooming-and-occupancy', 'coordinating-arrival-times'],
+  },
+  {
+    slug: 'corporate-travel-requirements', category: 'groups',
+    title: { en: 'Corporate travel requirements', ar: 'متطلبات سفر الشركات' },
+    summary: { en: 'Prepare requests around traveler schedules and company requirements.', ar: 'رتّب الطلب حسب جداول المسافرين ومتطلبات الشركة.' },
+    keywords: { en: 'corporate executive employee policy repeated business travel', ar: 'شركات تنفيذي موظف سياسة رحلات متكررة أعمال' },
+    sections: [{ id: 'requirements', title: { en: 'Add the business context', ar: 'أضف سياق رحلة العمل' }, body: { en: 'Include traveler schedules, preferred hotel category, routing, timing and any company requirements relevant to the booking.', ar: 'أرسل جداول المسافرين، فئة الفندق، خط السير، المواعيد، وأي متطلبات خاصة بالشركة.' } }], related: ['how-to-send-a-travel-request', 'flight-and-passenger-details'],
+  },
+  {
+    slug: 'starting-a-partnership', category: 'partnerships', popular: true,
+    title: { en: 'How to start a partnership discussion', ar: 'كيف تبدأ نقاش الشراكة؟' },
+    summary: { en: 'The business information that helps us understand the relationship.', ar: 'المعلومات التجارية اللي تساعدنا نفهم شكل العلاقة.' },
+    keywords: { en: 'partner agency hotel supplier relationship commercial model', ar: 'شراكة وكالة فندق مورد علاقة تجارية نموذج' },
+    sections: [{ id: 'business', title: { en: 'Introduce the business', ar: 'عرّفنا على نشاطكم' }, body: { en: 'Share your business type, markets, services and the cooperation you want to discuss. Travel agencies, tour operators, corporate travel businesses and hospitality providers can contact Legendary.', ar: 'أرسل نوع النشاط، الأسواق اللي تعملون فيها، الخدمات، وشكل التعاون اللي تبغون تناقشونه. نتعامل مع وكالات السفر ومنظمي الرحلات وشركات السفر وقطاع الضيافة.' } }], related: ['partnership-models', 'what-is-taxidia'],
+  },
+  {
+    slug: 'partnership-models', category: 'partnerships',
+    title: { en: 'How the partnership can work', ar: 'كيف ممكن تمشي الشراكة؟' },
+    summary: { en: 'Operational, commercial and technology-supported relationships.', ar: 'علاقات تشغيلية وتجارية وقد تدعمها التقنية.' },
+    keywords: { en: 'operational commercial representation distribution technology partnership', ar: 'تشغيل تجاري تمثيل توزيع تقنية شراكة' },
+    sections: [{ id: 'models', title: { en: 'Define the working relationship', ar: 'نحدد شكل العلاقة' }, body: { en: 'A relationship may focus on travel fulfillment, hotel representation, supplier cooperation or a technology-supported workflow. The exact model depends on the businesses involved.', ar: 'ممكن تركز العلاقة على تنفيذ طلبات السفر، تمثيل الفنادق، التعاون مع الموردين، أو تنظيم العمل بالتقنية. النموذج يعتمد على طبيعة الأطراف.' } }], related: ['starting-a-partnership', 'legendary-and-taxidia'],
+  },
+  {
+    slug: 'what-is-taxidia', category: 'platform', popular: true,
+    title: { en: 'What is Taxidia?', ar: 'وش هي Taxidia؟' },
+    summary: { en: 'The B2B platform used to organize bookings and travel operations.', ar: 'منصة أعمال لتنظيم الحجوزات وتشغيل السفر.' },
+    keywords: { en: 'Taxidia platform bookings customers suppliers pricing reporting', ar: 'Taxidia منصة حجوزات عملاء موردين تسعير تقارير' },
+    sections: [{ id: 'platform', title: { en: 'An operating layer for B2B travel', ar: 'طبقة تشغيل لأعمال السفر' }, body: { en: 'Taxidia brings bookings, customers, suppliers, pricing and reporting into one working environment for B2B travel businesses.', ar: 'Taxidia تجمع الحجوزات والعملاء والموردين والتسعير والتقارير في بيئة عمل واحدة لقطاع السفر.' } }], related: ['platform-roles-and-modules', 'legendary-and-taxidia'],
+  },
+  {
+    slug: 'platform-roles-and-modules', category: 'platform',
+    title: { en: 'Platform modules and user roles', ar: 'وحدات المنصة وأدوار المستخدمين' },
+    summary: { en: 'The current module groups and the people working in the system.', ar: 'مجموعات الوحدات والأشخاص اللي يستخدمون النظام.' },
+    keywords: { en: 'admin manager agent operations modules users suppliers reporting', ar: 'مدير وكيل عمليات مستخدمين موردين تقارير وحدات' },
+    sections: [{ id: 'roles', title: { en: 'User roles', ar: 'أدوار المستخدمين' }, body: { en: 'The current roles are Admin, Manager, Agent and Operations. Each supports a different part of the working environment.', ar: 'الأدوار الحالية هي Admin وManager وAgent وOperations، وكل دور يخدم جزء مختلف من بيئة العمل.' } }, { id: 'modules', title: { en: 'Core module groups', ar: 'مجموعات الوحدات الأساسية' }, body: { en: 'The platform groups work around bookings, commercial information, users, suppliers and reporting.', ar: 'المنصة تنظّم العمل حول الحجوزات والمعلومات التجارية والمستخدمين والموردين والتقارير.' } }], related: ['what-is-taxidia', 'legendary-and-taxidia'],
+  },
+  {
+    slug: 'legendary-and-taxidia', category: 'platform',
+    title: { en: 'Legendary and Taxidia: the difference', ar: 'وش الفرق بين ليجندري وTaxidia؟' },
+    summary: { en: 'How the travel business and technology platform fit together.', ar: 'كيف يرتبط نشاط السفر بالمنصة التقنية.' },
+    keywords: { en: 'Legendary Taxidia difference company platform technology operations', ar: 'ليجندري Taxidia فرق شركة منصة تقنية تشغيل' },
+    sections: [{ id: 'difference', title: { en: 'Company and platform', ar: 'الشركة والمنصة' }, body: { en: 'Legendary manages the travel and commercial context. Taxidia provides the technology layer used to organize bookings and operations.', ar: 'ليجندري تدير سياق السفر والعلاقة التجارية، وTaxidia توفر الطبقة التقنية لتنظيم الحجوزات والتشغيل.' } }], related: ['what-is-taxidia', 'starting-a-partnership'],
+  },
+  {
+    slug: 'current-account-access', category: 'access',
+    title: { en: 'Current account access', ar: 'الدخول للحساب حاليًا' },
+    summary: { en: 'What the account control supports on the current website.', ar: 'وش يدعم زر الحساب في الموقع حاليًا.' },
+    keywords: { en: 'account login access authentication sign in availability', ar: 'حساب دخول تسجيل مصادقة متاح' },
+    sections: [{ id: 'availability', title: { en: 'Sign-in is not available yet', ar: 'تسجيل الدخول مو متاح حاليًا' }, body: { en: 'The website does not currently provide an authentication or account route. The account control is prepared for future access and does not represent a signed-in user.', ar: 'الموقع حاليًا ما فيه نظام تسجيل دخول أو مسار للحساب. زر الحساب جاهز للاستخدام مستقبلًا، وما يعني إن فيه مستخدم مسجّل.' } }], related: ['starting-a-partnership', 'what-is-taxidia'],
+  },
+]
+
+export const getHelpCategory = (id: string) => helpCategories.find(category => category.id === id)
+export const getHelpArticle = (slug: string) => helpArticles.find(article => article.slug === slug)

@@ -1677,3 +1677,10 @@ html[lang="ar"] h3 {
     padding: 7px 9px;
   }
 }
+html.legendary-intro-pending::before {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  content: "";
+  background: var(--navy-deep, #071b4c);
+}

@@ -17,11 +17,14 @@ import { ServiceSlider } from "@/components/service-slider";
 import { StickySolutions } from "@/components/sticky-solutions";
 import { Reveal } from "@/components/motion";
 import { BrandMarquee } from "@/components/marquee";
+import { OpeningExperience } from "@/components/opening-experience";
 
 export default function Home() {
   const c = useContent();
   return (
-    <PageShell>
+    <>
+      <OpeningExperience />
+      <PageShell>
       <section className="hero section-shell">
         <div className="hero-copy">
           <Reveal delay={0}>
@@ -149,6 +152,7 @@ export default function Home() {
       <TestimonialPanel />
       <FAQ />
       <ContactBlock />
-    </PageShell>
+      </PageShell>
+    </>
   );
 }
