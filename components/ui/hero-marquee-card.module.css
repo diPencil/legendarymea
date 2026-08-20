@@ -1,0 +1,369 @@
+.card {
+  --card-navy: #0a2463;
+  --card-gold: #b48a35;
+  --card-ivory: #f7f2e8;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  padding: 20px;
+  color: var(--card-navy);
+}
+
+.card::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.image {
+  z-index: 0;
+  object-fit: cover;
+}
+
+.imageShade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgb(3 14 43 / 88%) 0%, rgb(3 14 43 / 22%) 76%);
+}
+
+.mediaField .image {
+  z-index: 0;
+}
+
+.icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  opacity: 0.9;
+}
+
+.topAccent {
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  width: 44px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--card-gold);
+}
+
+.navy .topAccent,
+.overlay .topAccent {
+  background: #d2ad5a;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.76;
+}
+
+.title {
+  margin: 10px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.cardTitleLong {
+  line-height: 1.12;
+}
+
+.cardTitleLong span {
+  display: block;
+  white-space: nowrap;
+}
+
+.cardTitleLong .accommodationWord {
+  font-size: 15.5px;
+}
+
+.description {
+  display: -webkit-box;
+  margin: 10px 0 0;
+  overflow: hidden;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  opacity: 0.74;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.rule {
+  width: 30px;
+  height: 2px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: var(--card-gold);
+}
+
+.navy {
+  color: #fffdf8;
+  background: var(--card-navy);
+}
+
+.navy::after {
+  background:
+    radial-gradient(circle at 90% 8%, rgb(255 255 255 / 9%), transparent 34%),
+    linear-gradient(145deg, transparent 55%, rgb(180 138 53 / 18%));
+}
+
+.navy .rule,
+.overlay .rule {
+  background: #d2ad5a;
+}
+
+.gold {
+  color: #fffdf8;
+  background: var(--card-gold);
+}
+
+.gold::after {
+  background: linear-gradient(150deg, rgb(255 255 255 / 12%), transparent 55%, rgb(10 36 99 / 13%));
+}
+
+.gold .rule {
+  background: #fffdf8;
+}
+
+.ivory {
+  color: var(--card-navy);
+  background: var(--card-ivory);
+  border: 1px solid rgb(10 36 99 / 9%);
+}
+
+.ivory::after {
+  background: linear-gradient(145deg, rgb(255 255 255 / 65%), transparent 58%);
+}
+
+.overlay {
+  color: #fffdf8;
+  background: linear-gradient(155deg, #071b4f 0%, #0a2463 58%, #161d32 100%);
+}
+
+.overlay::after {
+  background:
+    linear-gradient(to top, rgb(3 14 43 / 80%), transparent 68%),
+    repeating-linear-gradient(135deg, transparent 0 22px, rgb(255 255 255 / 4%) 22px 23px);
+}
+
+.unfilteredImage::after {
+  background: none;
+}
+
+.largeType .content {
+  justify-content: flex-end;
+}
+
+.largeType .eyebrow {
+  font-size: clamp(42px, 4.2vw, 62px);
+  font-weight: 800;
+  line-height: 0.84;
+  letter-spacing: -0.07em;
+  opacity: 1;
+  text-transform: none;
+}
+
+.largeType .title {
+  margin-top: 16px;
+  font-size: 18px;
+}
+
+.upperLeft .content {
+  justify-content: flex-start;
+}
+
+.upperLeft .icon {
+  margin-bottom: 16px;
+}
+
+.upperLeft .description {
+  -webkit-line-clamp: 3;
+}
+
+.bottomLeft .content {
+  justify-content: flex-end;
+}
+
+.bottomLeft .icon {
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+}
+
+.bottomLeft.inlineIcon .icon {
+  position: static;
+  margin-bottom: 16px;
+}
+
+.centered .content {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.centered.centeredLower .content {
+  justify-content: flex-end;
+}
+
+.bottomCentered .content {
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
+}
+
+.topCentered .content {
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+
+.sideCentered .content {
+  align-items: flex-start;
+  justify-content: center;
+  text-align: start;
+}
+
+.centered .title {
+  max-width: 180px;
+  font-size: 23px;
+}
+
+.centered .description {
+  max-width: 180px;
+}
+
+.overlayBottom .content {
+  justify-content: flex-end;
+}
+
+.overlayBottom .title {
+  font-size: 21px;
+}
+
+.splitPanel {
+  padding: 0;
+}
+
+.splitPanel .content {
+  align-self: flex-end;
+  min-height: 58%;
+  padding: 17px 18px 18px;
+  justify-content: flex-end;
+  background: var(--card-ivory);
+}
+
+.mediaField {
+  position: absolute;
+  inset: 0 0 auto;
+  display: grid;
+  height: 44%;
+  place-items: center;
+  color: rgb(255 253 248 / 76%);
+  background:
+    radial-gradient(circle at 68% 34%, rgb(210 173 90 / 38%), transparent 26%),
+    linear-gradient(145deg, #0a2463, #183877);
+}
+
+.mediaField::after {
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 8px;
+  content: "";
+}
+
+[dir="rtl"] .card {
+  direction: rtl;
+  text-align: left;
+}
+
+[dir="rtl"] .sideCentered .content {
+  text-align: left;
+}
+
+[dir="rtl"] .eyebrow {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[dir="rtl"] .title {
+  letter-spacing: 0;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 27px;
+  }
+
+  .icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+  }
+
+  .title {
+    margin-top: 13px;
+    font-size: 25px;
+  }
+
+  .cardTitleLong {
+    line-height: 1.1;
+  }
+
+  .description {
+    margin-top: 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .rule {
+    width: 38px;
+    margin-top: 18px;
+  }
+
+  .largeType .title {
+    font-size: 23px;
+  }
+
+  .upperLeft .icon {
+    margin-bottom: 20px;
+  }
+
+  .centered .title {
+    font-size: 29px;
+  }
+
+  .overlayBottom .title {
+    font-size: 27px;
+  }
+
+  .splitPanel .content {
+    padding: 21px 23px 23px;
+  }
+}

@@ -1,0 +1,77 @@
+Created At: 2026-08-11T01:22:00+03:00
+Completed At: 2026-08-11T01:22:00+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1119,7 +1119,7 @@
+ 
+ .audience-item {
+   position: relative;
+-  padding: 35px 25px;
++  padding: 28px 24px;
+   border-radius: 20px;
+   border: 1px solid rgba(8, 29, 96, 0.08);
+   background: #ffffff;
+@@ -1167,11 +1167,11 @@
+ .audience-item-inner {
+   display: flex;
+   flex-direction: column;
+-  justify-content: space-between;
+-  height: 100%;
+-  position: relative;
+-  z-index: 1;
+-  min-height: 240px;
++  justify-content: flex-start;
++  height: 100%;
++  position: relative;
++  z-index: 1;
++  min-height: 184px;
+ }
+ 
+ .audience-item-header {
+@@ -1178,5 +1178,5 @@
+   flex-direction: column;
+-  gap: 16px;
++  gap: 12px;
+   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+ }
+ 
+@@ -1197,9 +1197,9 @@
+ 
+ .audience-reveal {
+   display: flex;
+-  justify-content: space-between;
+-  align-items: flex-end;
+-  gap: 15px;
++  flex-direction: column;
++  justify-content: flex-start;
++  align-items: flex-start;
+   margin-top: 24px;
+   transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+ }
+@@ -1207,7 +1207,7 @@
+   margin: 0;
+   font-size: clamp(14px, 1.1vw, 15px);
+   color: var(--muted);
+-  max-width: 85%;
++  max-width: 90%;
+   line-height: 1.5;
+   transition: color 0.35s ease;
+ }
+@@ -1214,7 +1214,14 @@
+ .audience-arrow {
++  position: absolute;
++  bottom: 0;
++  right: 0;
+   color: var(--muted);
+   transition: color 0.35s ease, transform 0.35s ease;
+ }
++[dir="rtl"] .audience-arrow {
++  right: auto;
++  left: 0;
++}
+ 
+ /* Hover States for interior elements */
+ .audience-item:hover .audience-index,
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

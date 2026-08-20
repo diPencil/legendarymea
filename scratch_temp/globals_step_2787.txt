@@ -1,0 +1,15 @@
+Created At: 2026-08-10T23:19:19+03:00
+Completed At: 2026-08-10T23:19:19+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1421,6 +1421,7 @@
+ }
+ .faq-roller-card {
+   width: 440px;
++  min-height: 320px;
+   background: #ffffff;
+   border: 1px solid var(--line);
+   border-radius: 20px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

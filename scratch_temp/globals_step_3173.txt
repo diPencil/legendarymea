@@ -1,0 +1,39 @@
+Created At: 2026-08-11T00:41:17+03:00
+Completed At: 2026-08-11T00:41:17+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -996,8 +996,29 @@
+   margin: 0;
+   line-height: 1.5;
+ }
+-.footer > span {
+-  font-size: 10px;
++.footer-copyright-row {
++  display: flex;
++  align-items: center;
++  gap: 16px;
++  flex-wrap: wrap;
++  font-size: 10px;
++}
++.powered-by-link {
++  display: inline-flex;
++  align-items: center;
++  gap: 8px;
++  text-decoration: none;
++  color: inherit;
++  transition: opacity 0.2s ease;
++}
++.powered-by-link:hover {
++  opacity: 0.8;
++}
++.pencil-logo {
++  height: 16px;
++  width: auto;
++  object-fit: contain;
++  min-height: 14px;
+ }
+ .inner-hero {
+   min-height: 520px;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

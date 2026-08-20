@@ -1,0 +1,42 @@
+Created At: 2026-08-10T19:07:42+03:00
+Completed At: 2026-08-10T19:07:42+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -628,6 +628,34 @@
+   transform: translateX(-50%) translateY(-15px) scale(1.02);
+   opacity: 1;
+ }
++
++@media (max-width: 1024px) {
++  .taxidia-service-grid {
++    display: flex;
++    overflow-x: auto;
++    scroll-snap-type: x mandatory;
++    scroll-behavior: smooth;
++    gap: 16px;
++    padding-bottom: 20px;
++  }
++  
++  .taxidia-card {
++    flex: 0 0 85%;
++    scroll-snap-align: center;
++    min-height: 420px;
++  }
++}
++
++@media (max-width: 768px) {
++  .taxidia-panel {
++    padding: 60px 5%;
++  }
++  .taxidia-heading {
++    grid-template-columns: 1fr;
++    gap: 20px;
++  }
++}
++
+ .service-card .arrow-link {
+   align-self: flex-start;
+ }
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

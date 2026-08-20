@@ -1,0 +1,45 @@
+Created At: 2026-08-09T21:59:55+03:00
+Completed At: 2026-08-09T21:59:55+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -127,30 +127,13 @@
+   backdrop-filter: blur(12px);
+ }
+ .brand {
+-  display: inline-flex;
+-  align-items: center;
+-  gap: 10px;
+-  letter-spacing: -0.06em;
+-  line-height: 0.9;
+-  font-size: 12px;
+-}
+-.brand span {
+-  display: grid;
+-  place-items: center;
+-  width: 31px;
+-  height: 31px;
+-  background: var(--ink);
+-  color: var(--cream);
+-  border-radius: 50%;
+-  font-size: 10px;
+-  letter-spacing: -0.1em;
+-}
+-.brand strong {
+-  font-weight: 700;
+-}
+-.brand i {
+-  color: #9d8251;
+-  font-style: normal;
++  display: flex;
++  align-items: center;
++}
++.brand-logo {
++  height: 38px;
++  width: auto;
++  object-fit: contain;
+ }
+ .nav {
+   display: flex;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

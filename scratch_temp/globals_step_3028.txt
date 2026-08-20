@@ -1,0 +1,22 @@
+Created At: 2026-08-10T23:54:46+03:00
+Completed At: 2026-08-10T23:54:46+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1307,6 +1307,14 @@
+   .regional-desc-cta p {
+     font-size: 15px;
+   }
++  .grid-pattern {
++    background-image: 
++      linear-gradient(to right, rgba(8, 29, 96, 0.05) 1px, transparent 1px),
++      linear-gradient(to bottom, rgba(8, 29, 96, 0.05) 1px, transparent 1px);
++  }
++  .grid-beam {
++    box-shadow: 0 0 10px 1px rgba(160, 127, 49, 0.1);
++  }
+ }
+ 
+ @media (prefers-reduced-motion: reduce) {
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

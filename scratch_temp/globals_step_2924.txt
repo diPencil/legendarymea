@@ -1,0 +1,15 @@
+Created At: 2026-08-10T23:39:24+03:00
+Completed At: 2026-08-10T23:39:25+03:00
+The following changes were made by the replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1242,6 +1242,7 @@
+   width: clamp(900px, 82vw, 1450px);
+   height: fit-content;
+   pointer-events: none;
++  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.08));
+ }
+ .regional-fly-asset img {
+   width: 100%;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

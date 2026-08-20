@@ -1,0 +1,198 @@
+Created At: 2026-08-10T22:30:24+03:00
+Completed At: 2026-08-10T22:30:24+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1717,21 +1717,18 @@
+ .slider-progress span {
+   height: 100%;
+   display: block;
+-  background: var(--gold);
+-  transition: width 0.6s ease;
+-}
+-.sticky-solutions-wrapper {
+-  background-color: #081D60;
+-  width: 100%;
+-}
+ .sticky-solutions {
+   display: grid;
+-  grid-template-columns: 1fr 1fr;
+-  gap: 9vw;
++  grid-template-columns: 44% 50%;
++  justify-content: space-between;
++  gap: 6%;
+   padding: 130px 0;
+ }
+ .sticky-solutions .section-kicker {
+-  color: var(--paper); /* soft white/ivory */
++  color: var(--paper); /* muted white/ivory */
++  margin-bottom: 32px;
++  position: relative;
++  z-index: 2;
+ }
+ .sticky-visual-column {
+   position: relative;
+@@ -1739,12 +1739,22 @@
+ .sticky-visual {
+   position: relative;
+   height: 520px;
++  border-radius: 26px;
++  padding: 32px;
++}
++.sticky-visual-bg {
++  position: absolute;
++  inset: 0;
++  background: var(--navy);
++  border-radius: 26px;
++  z-index: 0;
+ }
+ .sticky-photo {
+   position: absolute;
+-  inset: 76px 0 0;
+-  overflow: hidden;
+-  border-radius: 22px;
++  inset: 96px 32px 32px 32px;
++  overflow: hidden;
++  border-radius: 20px;
++  z-index: 1;
+ }
+ .sticky-photo img {
+   object-fit: cover;
+@@ -1753,11 +1753,11 @@
+ }
+ .sticky-caption {
+   position: absolute;
+-  bottom: 18px;
+-  inset-inline-start: 18px;
+-  inset-inline-end: 18px;
+-  background: #ffffffec;
+-  color: var(--ink);
++  bottom: 44px;
++  inset-inline-start: 44px;
++  inset-inline-end: 44px;
++  background: rgba(255, 255, 255, 0.95);
++  color: var(--navy);
+   border-radius: 14px;
+   padding: 14px 16px;
+   display: flex;
+@@ -1764,4 +1764,6 @@
+   font-size: 11px;
++  z-index: 2;
++  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+ }
+ .sticky-caption span {
+   color: var(--gold);
+@@ -1768,17 +1768,30 @@
+ .sticky-list {
+-  padding-top: 70px;
++  padding-top: 30px;
++  position: relative;
++}
++.sticky-list::before {
++  content: "";
++  position: absolute;
++  top: 30px;
++  bottom: 30px;
++  left: -20px;
++  width: 1px;
++  background: var(--gold);
++  opacity: 0.15;
++}
++[dir="rtl"] .sticky-list::before {
++  left: auto;
++  right: -20px;
+ }
+ .sticky-list article {
+-  min-height: 220px;
+-  display: grid;
+-  grid-template-columns: 55px 1fr;
+-  gap: 20px;
+-  padding: 30px 0;
+-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+-  opacity: 1; /* override original opacity behavior to manage child opacity directly */
+-  transition:
+-    transform 0.35s,
+-    background-color 0.35s;
++  min-height: 160px;
++  display: grid;
++  grid-template-columns: 45px 1fr;
++  gap: 16px;
++  padding: 24px 0;
++  border-top: 1px solid var(--line);
++  opacity: 1; 
++  transition: transform 0.35s, background-color 0.35s;
+   cursor: pointer;
+   background: transparent;
+   text-align: start;
+@@ -1785,5 +1785,5 @@
+ .sticky-list article:hover {
+-  /* handled on children */
++  /* opacity handled per element */
+ }
+ .sticky-list article.is-active {
+   transform: translateX(8px);
+@@ -1791,9 +1791,10 @@
+   transform: translateX(-8px);
+ }
+ .sticky-list article > span {
+-  color: rgba(255, 255, 255, 0.4);
+-  font-size: 12px;
+-  transition: color 0.35s;
++  color: var(--muted);
++  font-size: 13px;
++  opacity: 0.6;
++  transition: color 0.35s, opacity 0.35s;
+ }
+ .sticky-list article:hover > span,
+ .sticky-list article.is-active > span {
+@@ -1800,27 +1800,35 @@
++  opacity: 1;
+ }
+ .sticky-list h3 {
+-  font-size: clamp(24px, 2vw, 32px);
+-  margin: 0 0 12px;
+-  letter-spacing: -0.05em;
+-  color: rgba(255, 255, 255, 0.48);
+-  transition: color 0.35s;
++  font-size: clamp(22px, 1.8vw, 28px);
++  margin: 0 0 10px;
++  letter-spacing: -0.04em;
++  color: var(--navy);
++  opacity: 0.45;
++  transition: opacity 0.35s, color 0.35s;
+ }
+ .sticky-list article:hover h3 {
+-  color: rgba(255, 255, 255, 0.6);
++  opacity: 0.7;
+ }
+ .sticky-list article.is-active h3 {
+-  color: var(--paper); /* warm ivory / white */
++  opacity: 1;
++  color: var(--navy);
+ }
+ .sticky-list p {
+   max-width: 320px;
+-  color: rgba(255, 255, 255, 0.34);
+-  font-size: 13px;
+-  line-height: 1.6;
+-  margin: 0;
+-  transition: color 0.35s;
++  color: var(--muted);
++  font-size: 13.5px;
++  line-height: 1.55;
++  margin: 0;
++  transition: color 0.35s, opacity 0.35s;
++  opacity: 0.6;
++}
++.sticky-list article:hover p {
++  opacity: 0.8;
+ }
+ .sticky-list article.is-active p {
+-  color: rgba(255, 255, 255, 0.72);
++  color: var(--muted);
++  opacity: 1;
+ }
+ .scroll-top {
+   position: fixed;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

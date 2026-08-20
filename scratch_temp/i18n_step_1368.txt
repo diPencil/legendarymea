@@ -1,0 +1,16 @@
+Created At: 2026-08-10T06:19:08+03:00
+Completed At: 2026-08-10T06:19:08+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/components/i18n.tsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -28,7 +28,7 @@
+ export const copy = {
+   en: {
+     nav: { home: 'Home', about: 'About', services: 'Solutions', careers: 'Careers', contact: 'Contact', partner: 'Become a Partner', language: 'العربية' },
+-    hero: { kicker: 'Corporate, Hospitality & Business Travel Solutions', title: 'Empowering travel businesses to grow with', accent: 'Legendary.', body: 'Access travel, hospitality and destination management services through a single regional partner, built for travel professionals and businesses in the Middle East.', primary: 'Partner with us', secondary: 'Explore our solutions' },
++    hero: { kicker: 'LEGENDARY MANAGEMENT MEA', title: 'Travel services for agencies, companies and hospitality partners.', accent: '', body: 'Legendary Management MEA coordinates accommodation, flights, transfers, group travel and corporate travel services for business partners.', primary: 'View Our Services', secondary: 'Talk to Our Team' },
+     audiences: [
+       ['Travel Agencies', 'Travel services for individual, group and client bookings.'],
+       ['Corporate Travel Teams', 'Accommodation, transport and travel coordination for business requirements.'],
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

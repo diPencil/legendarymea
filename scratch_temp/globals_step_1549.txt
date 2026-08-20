@@ -1,0 +1,115 @@
+Created At: 2026-08-10T06:48:43+03:00
+Completed At: 2026-08-10T06:48:43+03:00
+The following changes were made by the multi_replace_file_content tool to: /Users/dipencil/Development/legendary-management-mea-website/app/globals.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1251,13 +1251,46 @@
+   border-inline-start: 0;
+   padding-inline-end: 0;
+ }
+-.infinite-ribbon-wrapper {
+-  width: 100%;
+-  overflow: hidden;
+-  background: var(--navy);
+-  padding: 24px 0;
+-  border-block: 1px solid rgba(255, 255, 255, 0.1);
+-  display: flex;
++.infinite-ribbon-section {
++  width: 100%;
++  position: relative;
++  overflow: hidden;
++  background: var(--ink);
++  min-height: 220px;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++}
++.infinite-ribbon-container {
++  position: absolute;
++  top: 50%;
++  left: -5%;
++  width: 110%;
++  height: 0;
++}
++.ribbon-band {
++  position: absolute;
++  top: 0;
++  left: 0;
++  width: 100%;
++  background: var(--gold);
++  color: var(--ink);
++  display: flex;
++  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
++  padding: 16px 0;
++}
++.ribbon-band-1 {
++  transform: translateY(-50%) rotate(4deg);
++  z-index: 1;
++}
++.ribbon-band-2 {
++  transform: translateY(-50%) rotate(-4deg);
++  z-index: 2;
++}
++@media (max-width: 767px) {
++  .ribbon-band-1 { transform: translateY(-50%) rotate(6deg); }
++  .ribbon-band-2 { transform: translateY(-50%) rotate(-6deg); }
++  .infinite-ribbon-section { min-height: 180px; }
+ }
+ .infinite-ribbon-track {
+   display: flex;
+@@ -1264,6 +1264,9 @@
+-  animation: ribbon-scroll 55s linear infinite;
++  animation: ribbon-scroll 45s linear infinite;
+   will-change: transform;
+ }
++.infinite-ribbon-track.reverse {
++  animation: ribbon-scroll-reverse 45s linear infinite;
++}
+ .ribbon-sequence {
+   display: flex;
+   align-items: center;
+@@ -1273,26 +1273,27 @@
+   gap: 3vw;
+   padding-inline-end: 3vw;
+   white-space: nowrap;
+-  color: var(--cream);
+-  font-size: clamp(14px, 1.2vw, 18px);
+-  font-weight: 500;
+-  letter-spacing: 0.1em;
++  font-size: clamp(14px, 1.4vw, 18px);
++  font-weight: 600;
++  letter-spacing: 0.05em;
+   text-transform: uppercase;
+ }
+ .ribbon-separator {
+-  color: var(--gold);
+-  font-size: 14px;
++  color: var(--ink);
++  opacity: 0.5;
++  font-size: 12px;
+ }
+ @keyframes ribbon-scroll {
+-  from {
+-    transform: translateX(0);
+-  }
+-  to {
+-    transform: translateX(calc(-100% / var(--repeats)));
+-  }
+-}
+-@media (prefers-reduced-motion: reduce) {
+-  .infinite-ribbon-track {
++  from { transform: translateX(0); }
++  to { transform: translateX(calc(-100% / var(--repeats))); }
++}
++@keyframes ribbon-scroll-reverse {
++  from { transform: translateX(calc(-100% / var(--repeats))); }
++  to { transform: translateX(0); }
++}
++@media (prefers-reduced-motion: reduce) {
++  .infinite-ribbon-track,
++  .infinite-ribbon-track.reverse {
+     animation: none;
+   }
+ }
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
