@@ -13,7 +13,7 @@ import { OpeningExperience } from '@/components/opening-experience'
 export default function Home(){const common=useContent();const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].home;const Arrow=ar?ArrowLeft:ArrowRight;return <>
  <OpeningExperience/>
  <PageShell>
- <Hero3 kicker={common.hero.kicker} title={common.hero.title} accent={common.hero.accent} body={common.hero.body} primaryCta={{label:common.hero.primary,href:'/solutions'}} secondaryCta={{label:common.hero.secondary,href:'/contact'}} images={[{src:'/hotel.png',alt:''},{src:'/meeting.png',alt:''},{src:'/travel.png',alt:''}]}/>
+ <Hero3 kicker={common.hero.kicker} title={common.hero.title} accent={common.hero.accent} body={common.hero.body} primaryCta={{label:common.hero.primary,href:'/solutions'}} secondaryCta={{label:common.hero.secondary,href:'/request'}} images={[{src:'/hotel.png',alt:''},{src:'/meeting.png',alt:''},{src:'/travel.png',alt:''}]}/>
  <AudienceStrip/>
  <HomepageServices/>
  <HomepageCoordination/>
