@@ -8374,3 +8374,11 @@ html[lang="ar"] h3 {
   .acc-row-desc-wrapper { padding-inline-start: 0; }
   .acc-option-row.active .acc-row-desc { padding-top: 16px; }
 }
+
+html.legendary-intro-pending::before {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  content: "";
+  background: var(--navy-deep, #071b4c);
+}

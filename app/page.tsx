@@ -8,8 +8,11 @@ import { HomepageServices } from '@/components/homepage-services'
 import { HomepageRequestJourney } from '@/components/homepage-request-journey'
 import { HomepageCoordination } from '@/components/homepage-coordination'
 import { experienceCopy } from '@/components/experience-content'
+import { OpeningExperience } from '@/components/opening-experience'
 
-export default function Home(){const common=useContent();const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].home;const Arrow=ar?ArrowLeft:ArrowRight;return <PageShell>
+export default function Home(){const common=useContent();const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].home;const Arrow=ar?ArrowLeft:ArrowRight;return <>
+ <OpeningExperience/>
+ <PageShell>
  <Hero3 kicker={common.hero.kicker} title={common.hero.title} accent={common.hero.accent} body={common.hero.body} primaryCta={{label:common.hero.primary,href:'/solutions'}} secondaryCta={{label:common.hero.secondary,href:'/contact'}} images={[{src:'/hotel.png',alt:''},{src:'/meeting.png',alt:''},{src:'/travel.png',alt:''}]}/>
  <AudienceStrip/>
  <HomepageServices/>
@@ -21,4 +24,5 @@ export default function Home(){const common=useContent();const{locale}=useLocale
  <RegionalPerspective/>
  <FAQ/>
  <section className="xp-home-final-request xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-home-final-request-inner section-shell"><div><div className="section-kicker light">10 / REQUEST</div><h2>{c.finalTitle}</h2><p>{c.finalBody}</p></div><Link href="/contact" className="button button-gold">{c.finalCta}<Arrow size={17}/></Link></div></section>
- </PageShell>}
+ </PageShell>
+ </>}
