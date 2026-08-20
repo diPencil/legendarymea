@@ -6,7 +6,6 @@ import { useLocale } from '@/components/i18n'
 import styles from './opening-experience.module.css'
 
 const SCENE_DURATIONS = [2_600, 2_850, 3_100]
-const OPENING_SEEN_KEY = 'legendary-opening-seen-v1'
 
 const content = {
   en: [
@@ -33,35 +32,17 @@ export function OpeningExperience() {
     setLeaving(true)
     window.setTimeout(() => {
       document.body.style.removeProperty('overflow')
-      document.documentElement.classList.remove('legendary-intro-pending')
       setActive(false)
     }, reduced ? 80 : 620)
   }, [leaving, reduced])
 
   useEffect(() => {
-    const forceIntro = new URLSearchParams(window.location.search).get('intro') === '1'
-    let hasSeenIntro = false
-    try {
-      hasSeenIntro = window.sessionStorage.getItem(OPENING_SEEN_KEY) === '1'
-    } catch {}
-
-    if (!forceIntro && hasSeenIntro) {
-      document.documentElement.classList.remove('legendary-intro-pending')
-      return
-    }
-
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setReduced(prefersReduced)
     setScene(prefersReduced ? 2 : 0)
     setActive(true)
     document.body.style.overflow = 'hidden'
-    try {
-      window.sessionStorage.setItem(OPENING_SEEN_KEY, '1')
-    } catch {}
-    return () => {
-      document.body.style.removeProperty('overflow')
-      document.documentElement.classList.remove('legendary-intro-pending')
-    }
+    return () => { document.body.style.removeProperty('overflow') }
   }, [])
 
   useEffect(() => {
@@ -74,7 +55,7 @@ export function OpeningExperience() {
     return () => window.clearTimeout(timer)
   }, [active, finish, leaving, reduced, scene])
 
-  if (!active) return null
+  if (!active) return <div className={styles.preflight} aria-hidden="true" />
 
   const copy = content[locale]
   return (

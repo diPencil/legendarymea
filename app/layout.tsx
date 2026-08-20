@@ -37,27 +37,13 @@ export const viewport: Viewport = {
   themeColor: '#f4f1eb',
 }
 
-const openingPreflightScript = `
-  try {
-    var isHome = window.location.pathname === '/';
-    var forceIntro = new URLSearchParams(window.location.search).get('intro') === '1';
-    var introSeen = window.sessionStorage.getItem('legendary-opening-seen-v1') === '1';
-    if (isHome && (forceIntro || !introSeen)) {
-      document.documentElement.classList.add('legendary-intro-pending');
-    }
-  } catch (_) {}
-`
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: openingPreflightScript }} />
-      </head>
+    <html lang="en">
       <body className="antialiased">
         <LocaleProvider>{children}</LocaleProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

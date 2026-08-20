@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "project": {
+    "name": "my-project",
+    "productType": null,
+    "stack": [
+      "nextjs",
+      "react",
+      "shadcn",
+      "tailwind-v4"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "app/globals.css"
+    ],
+    "components": [
+      "components/ui"
+    ],
+    "assets": [],
+    "instructions": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ]
+  },
+  "design": {
+    "colorMode": "light-and-dark",
+    "colors": {
+      "--color-background": {
+        "value": "var(--background)",
+        "source": "app/globals.css"
+      },
+      "--color-foreground": {
+        "value": "var(--foreground)",
+        "source": "app/globals.css"
+      },
+      "--color-border": {
+        "value": "var(--line)",
+        "source": "app/globals.css"
+      },
+      "--color-primary": {
+        "value": "var(--gold)",
+        "source": "app/globals.css"
+      },
+      "--color-primary-foreground": {
+        "value": "var(--ink)",
+        "source": "app/globals.css"
+      },
+      "--legendary-muted": {
+        "value": "#6d716f",
+        "source": "app/globals.css"
+      },
+      "--background": {
+        "value": "var(--legendary-ivory)",
+        "source": "app/globals.css"
+      },
+      "--foreground": {
+        "value": "var(--legendary-ink)",
+        "source": "app/globals.css"
+      },
+      "--muted": {
+        "value": "var(--legendary-muted)",
+        "source": "app/globals.css"
+      }
+    },
+    "typography": {
+      "--font-sans": {
+        "value": "var(--font-ar), sans-serif",
+        "source": "app/globals.css"
+      },
+      "--font-serif": {
+        "value": "var(--font-ar), sans-serif",
+        "source": "app/globals.css"
+      },
+      "--font-ar": {
+        "value": "'Montserrat Arabic', Arial, sans-serif",
+        "source": "app/globals.css"
+      },
+      "--font-en": {
+        "value": "'Montserrat', Arial, sans-serif",
+        "source": "app/globals.css"
+      }
+    },
+    "spacing": {},
+    "radius": {
+      "--radius": {
+        "value": "1.5rem",
+        "source": "app/globals.css"
+      }
+    },
+    "shadows": {},
+    "motion": {},
+    "density": "unknown"
+  },
+  "components": {
+    "installed": [
+      "animated-beam",
+      "button",
+      "hero-3",
+      "kinetic-grid",
+      "language-toggle",
+      "responsive-masonry-layout"
+    ],
+    "preferredPrimitives": [
+      "radix-ui"
+    ],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [],
+    "avoid": []
+  },
+  "decisions": [
+    {
+      "decision": "Homepage opening experience uses a full-screen Legendary navy editorial composition with restrained grid, gold route points, three timed text scenes, and a continuous fade reveal into the existing homepage.",
+      "reason": "Preserves the existing Legendary identity while adding a lightweight first-session brand introduction without changing homepage content or routing.",
+      "source": "components/opening-experience.tsx"
+    }
+  ],
+  "evidence": [
+    {
+      "fact": "components.installed",
+      "source": "components/ui"
+    },
+    {
+      "fact": "design.colorMode:light-and-dark",
+      "source": "app/globals.css"
+    },
+    {
+      "fact": "design.tokens",
+      "source": "app/globals.css"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "AGENTS.md"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "CLAUDE.md"
+    },
+    {
+      "fact": "project.stack:nextjs",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:shadcn",
+      "source": "components.json"
+    },
+    {
+      "fact": "project.stack:tailwind-v4",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-08-19T18:47:18.372Z"
+}
