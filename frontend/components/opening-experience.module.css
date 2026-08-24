@@ -161,7 +161,7 @@
   letter-spacing: 0.24em;
 }
 .scene .title {
-  margin: 0;
+  margin: 0 auto;
   color: #fff;
   font-family: var(--font-en), sans-serif;
   font-size: clamp(44px, 5.8vw, 92px);
