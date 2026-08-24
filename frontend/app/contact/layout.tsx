@@ -1,3 +1,4 @@
 import type { Metadata } from 'next'
-export const metadata: Metadata = { title: 'Contact | Legendary Management MEA', description: 'Send a travel request, discuss a commercial partnership or ask how Taxidia fits your travel operation.' }
+import { pageMetadata, staticSeo } from '@/lib/seo'
+export const metadata: Metadata = pageMetadata('/contact', staticSeo.contact)
 export default function Layout({children}:{children:React.ReactNode}){return children}

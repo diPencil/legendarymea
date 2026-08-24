@@ -36,7 +36,7 @@ export function LanguageToggle() {
       {/* AR Label */}
       <span
         className={cn(
-          "relative z-10 flex items-center justify-center w-[30px] text-[13px] font-bold transition-colors duration-500 leading-none",
+          "language-toggle-ar relative z-10 flex items-center justify-center w-[30px] text-[13px] font-bold transition-colors duration-500 leading-none",
           !isEn ? "text-white" : "text-[#081D60]/60 hover:text-[#A07F31]"
         )}
       >

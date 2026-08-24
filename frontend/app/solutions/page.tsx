@@ -53,17 +53,18 @@ export default function SolutionsPage() {
           <img src="/solutions/Corporate-Travel.jpg" alt="" />
         </div>
         <div className="sol-hero-shade" />
-        <div className="sol-hero-content section-shell">
-          <div className="section-kicker light">{c.heroKicker}</div>
-          <h1>{c.heroTitle}</h1>
-          <div className="sol-hero-bottom">
+        <div className="internal-hero-layout section-shell">
+          <div className="internal-hero-title-col">
+            <div className="section-kicker light">{c.heroKicker}</div>
+            <h1>{c.heroTitle}</h1>
+          </div>
+          <div className="internal-hero-desc-col sol-hero-desc">
             <p>{c.heroBody}</p>
             <Link href="#service-showcase" className="sol-text-link">
               {ar ? 'استعرض الخدمات' : 'View the service desk'} <Arrow size={18} />
             </Link>
           </div>
         </div>
-        <div className="sol-hero-index" aria-hidden="true"><span>01</span><i /><b>08</b></div>
       </section>
 
       <section className="sol-marquee" aria-label={c.navigator} dir={ar ? 'rtl' : 'ltr'}>

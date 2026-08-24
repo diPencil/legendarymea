@@ -89,7 +89,7 @@ export function OpeningExperience() {
         {copy.map((item, index) => (
           <article key={index} className={`${styles.scene} ${index === scene ? styles.visible : ''}`} aria-hidden={index !== scene}>
             <span className={styles.eyebrow}>{item.eyebrow}</span>
-            <h1>{item.title}</h1>
+            <p className={styles.title}>{item.title}</p>
             <p>{item.body}</p>
           </article>
         ))}

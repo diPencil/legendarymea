@@ -36,7 +36,7 @@ export const experienceCopy = {
     },
     solutions: {
       heroKicker: 'TRAVEL SERVICES', heroTitle: 'What can Legendary arrange?',
-      heroBody: 'Hotels, flights, transfers, mobility, experiences and group travel—handled from a clear request brief through confirmation.',
+      heroBody: 'Send us the destination, dates and traveler details. We’ll coordinate the hotels, flights, transfers, car hire, experiences or group arrangements required.',
       navigator: 'Choose a service',
       sectionIntro: 'Every service starts with the information that shapes availability, timing and cost.',
       groupsTitle: 'A group request is more than room count.',
@@ -111,7 +111,7 @@ export const experienceCopy = {
       distinctionTitle: 'Legendary manages the relationship. Taxidia provides the technology.', distinctionBody: 'The company brings travel, hospitality and commercial context. The product organizes the workflow used to manage that context.',
       finalTitle: 'Talk to us about the platform.', finalBody: 'Share how your travel business works today and where the operation needs more structure.', finalCta: 'Discuss Taxidia',
     },
-    contact: { heroTitle: 'Tell us what needs arranging.', heroBody: 'Share the destination, dates and services involved. If the request is about a partnership or Taxidia, tell us about the business and the relationship you have in mind.', guideTitle: 'Start with the useful details.', guideBody: 'For travel, include dates, travelers, rooms, routing or ground movements. For a partnership, include your business type and the cooperation you want to discuss.' },
+    contact: { heroTitle: 'Business starts with a clear conversation.', heroBody: 'Contact our team about a commercial partnership, corporate travel requirement, supplier relationship or Taxidia platform enquiry.', guideTitle: 'Let’s talk about your business needs.', guideBody: 'Tell us about your company, the type of partnership you are exploring, and any operational or commercial requirements you would like to discuss.' },
   },
   ar: {
     home: {
@@ -123,7 +123,7 @@ export const experienceCopy = {
       finalTitle: 'وش تحتاج ترتيبه؟', finalBody: 'ابدأ بالوجهة والتواريخ والخدمات المطلوبة، وأضف المعلومات المتوفرة عندك.', finalCta: 'أرسل تفاصيل الرحلة',
     },
     solutions: {
-      heroKicker: 'خدمات السفر', heroTitle: 'وش نقدر نرتّب لك؟', heroBody: 'سكن وطيران وتنقلات وسيارات وتجارب ومجموعات، من مراجعة الطلب إلى تأكيد الترتيبات.', navigator: 'اختر الخدمة', sectionIntro: 'كل خدمة تبدأ بالمعلومات اللي تحدد التوفر والمواعيد والتكلفة.',
+      heroKicker: 'خدمات السفر', heroTitle: 'وش نقدر نرتّب لك؟', heroBody: 'شاركنا الوجهة والتواريخ وبيانات المسافرين، ونرتّب الفنادق والطيران والتنقلات وتأجير السيارات والتجارب أو ترتيبات المجموعات حسب الطلب.', navigator: 'اختر الخدمة', sectionIntro: 'كل خدمة تبدأ بالمعلومات اللي تحدد التوفر والمواعيد والتكلفة.',
       groupsTitle: 'طلب المجموعة مو مجرد عدد غرف.', groupsBody: 'قوائم المسافرين ومواعيد الوصول وتوزيع الغرف والتنقلات مرتبطة ببعض. نتابعها ضمن خطة تشغيل واحدة.', groupFlow: ['قائمة المسافرين', 'مواعيد الوصول', 'توزيع الغرف', 'التنقلات', 'مواعيد البرنامج'],
       corporateTitle: 'سفر يمشي حسب متطلبات الشركة.', corporateBody: 'رحلات الموظفين والتنفيذيين قد تشمل سياسة سفر ومسارات متكررة وشروط سكن وتعديلات مرتبطة بالوقت.',
       hospitalityTitle: 'تعاون تجاري مع منشآت الضيافة.', hospitalityBody: 'نناقش آلية الحجوزات والتمثيل والعلاقات مع قطاع السفر حسب طبيعة المنشأة والسوق المستهدف.',
@@ -163,7 +163,7 @@ export const experienceCopy = {
       distinctionTitle: 'ليجندري تدير العلاقة، وتاكسيديا توفر التقنية.', distinctionBody: 'الشركة تضيف سياق السفر والضيافة والعلاقة التجارية، والمنتج ينظم سير العمل المستخدم لإدارتها.',
       finalTitle: 'ودك تعرف كيف تناسب المنصة شغلك؟', finalBody: 'شاركنا طريقة عمل شركتك اليوم والجوانب اللي تحتاج ترتيب أوضح.', finalCta: 'نتكلم عن تاكسيديا',
     },
-    contact: { heroTitle: 'وش تحتاج ترتيبه؟', heroBody: 'شاركنا الوجهة والتواريخ والخدمات المطلوبة. وإذا الموضوع شراكة أو تاكسيديا، أرسل نبذة عن نشاطك ونوع العلاقة اللي تبحث عنها.', guideTitle: 'ابدأ بالمعلومات المفيدة.', guideBody: 'لطلبات السفر، أضف التواريخ والمسافرين والغرف وخط السير أو التنقلات. وللشراكة، أضف نوع النشاط والتعاون اللي ودك تناقشه.' },
+    contact: { heroTitle: 'بداية واضحة لعلاقة أعمال ناجحة.', heroBody: 'تواصل مع فريقنا لمناقشة شراكة تجارية، أو احتياج سفر للشركات، أو تعاون مع الموردين، أو استفسار عن منصة تاكسيديا.', guideTitle: 'خلّنا نعرف أكثر عن احتياج شركتك.', guideBody: 'شاركنا نبذة عن شركتك ونوع التعاون اللي حاب تناقشه، وأضف أي تفاصيل تشغيلية أو تجارية تساعد فريقنا يفهم احتياجك بشكل أوضح.' },
   },
 } as const
 

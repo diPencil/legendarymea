@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /company-profile/print/
+
+Host: https://legendary-management.com/
+Sitemap: https://legendary-management.com/sitemap.xml

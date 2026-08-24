@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowUpRight, ArrowUpLeft, Menu, X, Globe2, Globe, BriefcaseBusiness, Building, Users, User, LogIn, CircleHelp } from 'lucide-react'
+import { ArrowUpRight, ArrowUpLeft, Menu, X, Globe2, Globe, BriefcaseBusiness, Building, Users, User, LogIn, CircleHelp, BookOpenText } from 'lucide-react'
 import { useEffect, useState, useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import { useContent, useLocale } from './i18n'
@@ -12,6 +12,7 @@ export const images = { hero: '/travel.png', meeting: '/meeting.png', travel: '/
 import Image from 'next/image'
 import { LanguageToggle } from '@/components/ui/language-toggle'
 import { usePathname } from 'next/navigation'
+import { CountryPhoneFields } from '@/components/country-phone-fields'
 
 export function Brand() { 
   return (
@@ -62,7 +63,7 @@ export function Header() { const [open, setOpen] = useState(false); const [solut
     [c.nav.services, '/solutions'],
     [locale === 'ar' ? 'الشراكات' : 'Partners', '/partners'],
     [locale === 'ar' ? 'المنصة' : 'Platform', '/platform'],
-  ] as const; const solutionLinks = c.services.map(([name], i) => [name, ['/solutions/hotels-accommodation','/solutions/flights','/solutions/transfers','/solutions/car-rental','/solutions/tours-experiences','/solutions/groups-special-requests','/solutions/corporate-travel','/solutions/hospitality-solutions'][i]] as const); useEffect(() => { const onScroll = () => setScrolled(window.scrollY > 50); window.addEventListener('scroll', onScroll, { passive: true }); return () => window.removeEventListener('scroll', onScroll) }, []); useEffect(() => { if (!open) return; const previous = document.body.style.overflow; document.body.style.overflow = 'hidden'; const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false) }; document.addEventListener('keydown', closeOnEscape); requestAnimationFrame(() => drawerRef.current?.querySelector<HTMLElement>('a,button')?.focus()); return () => { document.body.style.overflow = previous; document.removeEventListener('keydown', closeOnEscape) } }, [open]); const closeDrawer = () => { setOpen(false); setSolutionsOpen(false) }; const mobileHelp = <Link className="help-nav-control mobile-help-control" href="/help-center" aria-label={isAr ? 'مركز المساعدة' : 'Help Center'}><CircleHelp size={19} strokeWidth={1.8}/></Link>; return <header className={`header ${scrolled ? 'is-scrolled' : ''}`}><Brand /><div className="mobile-header-controls">{mobileHelp}<AccountMenu isAr={isAr}/><button className="menu-button" aria-label={open ? (isAr ? 'إغلاق القائمة' : 'Close menu') : (isAr ? 'فتح القائمة' : 'Open menu')} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(value => !value)}>{open ? <X /> : <Menu />}</button></div><button className={`mobile-nav-backdrop ${open ? 'is-open' : ''}`} type="button" aria-label={isAr ? 'إغلاق القائمة' : 'Close menu'} tabIndex={open ? 0 : -1} onClick={closeDrawer}/><nav ref={drawerRef} id="mobile-navigation" className={open ? 'nav open' : 'nav'} aria-label="Main navigation" aria-modal={open || undefined} role={open ? 'dialog' : undefined}><Link className={pathname === '/' ? 'is-current' : ''} href="/" onClick={closeDrawer}>{c.nav.home}</Link><div className="nav-dropdown"><button className={`nav-drop-button ${pathname.startsWith('/solutions') ? 'is-current' : ''}`} onClick={() => setSolutionsOpen(!solutionsOpen)}>{c.nav.services}</button><div className={solutionsOpen ? 'mega-menu is-open' : 'mega-menu'}>{solutionLinks.map(([label, href]) => <Link key={href} href={href} onClick={closeDrawer}>{label}</Link>)}</div></div>{links.filter(([label]) => label !== c.nav.services).map(([label, href]) => <Link className={pathname === href ? 'is-current' : ''} key={href} href={href} onClick={closeDrawer}>{label}</Link>)}<Link className={pathname === '/faq' ? 'is-current' : ''} href="/faq" onClick={closeDrawer}>{locale === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}</Link><div className="header-actions"><LanguageToggle /><Link className="help-nav-control desktop-help-control" href="/help-center" aria-label={isAr ? 'مركز المساعدة' : 'Help Center'} data-tooltip={isAr ? 'مركز المساعدة' : 'Help Center'}><CircleHelp size={19} strokeWidth={1.8}/></Link><div className="desktop-account-control"><AccountMenu isAr={isAr}/></div><Link className="nav-contact" href="/contact" onClick={closeDrawer}>{locale === 'ar' ? 'كن شريكًا' : 'Become a Partner'} {locale === 'ar' ? <ArrowUpLeft size={15} /> : <ArrowUpRight size={15} />}</Link></div></nav></header> }
+  ] as const; const solutionLinks = c.services.map(([name], i) => [name, ['/solutions/hotels-accommodation','/solutions/flights','/solutions/transfers','/solutions/car-rental','/solutions/tours-experiences','/solutions/groups-special-requests','/solutions/corporate-travel','/solutions/hospitality-solutions'][i]] as const); useEffect(() => { const onScroll = () => setScrolled(window.scrollY > 50); window.addEventListener('scroll', onScroll, { passive: true }); return () => window.removeEventListener('scroll', onScroll) }, []); useEffect(() => { if (!open) return; const previous = document.body.style.overflow; document.body.style.overflow = 'hidden'; const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false) }; document.addEventListener('keydown', closeOnEscape); requestAnimationFrame(() => drawerRef.current?.querySelector<HTMLElement>('a,button')?.focus()); return () => { document.body.style.overflow = previous; document.removeEventListener('keydown', closeOnEscape) } }, [open]); const closeDrawer = () => { setOpen(false); setSolutionsOpen(false) }; const profileLabel = isAr ? 'ملف الشركة' : 'Company Profile'; const mobileHelp = <Link className="help-nav-control mobile-help-control" href="/help-center" aria-label={isAr ? 'مركز المساعدة' : 'Help Center'}><CircleHelp size={19} strokeWidth={1.8}/></Link>; const mobileProfile = <Link className="help-nav-control mobile-profile-control" href="/company-profile" aria-label={profileLabel} aria-current={pathname.startsWith('/company-profile') ? 'page' : undefined}><BookOpenText size={19} strokeWidth={1.8}/></Link>; return <header className={`header ${scrolled ? 'is-scrolled' : ''}`}><Brand /><div className="mobile-header-controls">{mobileHelp}{mobileProfile}<AccountMenu isAr={isAr}/><button className="menu-button" aria-label={open ? (isAr ? 'إغلاق القائمة' : 'Close menu') : (isAr ? 'فتح القائمة' : 'Open menu')} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(value => !value)}>{open ? <X /> : <Menu />}</button></div><button className={`mobile-nav-backdrop ${open ? 'is-open' : ''}`} type="button" aria-label={isAr ? 'إغلاق القائمة' : 'Close menu'} tabIndex={open ? 0 : -1} onClick={closeDrawer}/><nav ref={drawerRef} id="mobile-navigation" className={open ? 'nav open' : 'nav'} aria-label="Main navigation" aria-modal={open || undefined} role={open ? 'dialog' : undefined}><Link className={pathname === '/' ? 'is-current' : ''} href="/" onClick={closeDrawer}>{c.nav.home}</Link><div className="nav-dropdown"><button className={`nav-drop-button ${pathname.startsWith('/solutions') ? 'is-current' : ''}`} onClick={() => setSolutionsOpen(!solutionsOpen)}>{c.nav.services}</button><div className={solutionsOpen ? 'mega-menu is-open' : 'mega-menu'}>{solutionLinks.map(([label, href]) => <Link key={href} href={href} onClick={closeDrawer}>{label}</Link>)}</div></div>{links.filter(([label]) => label !== c.nav.services).map(([label, href]) => <Link className={pathname === href ? 'is-current' : ''} key={href} href={href} onClick={closeDrawer}>{label}</Link>)}<Link className={pathname === '/faq' ? 'is-current' : ''} href="/faq" onClick={closeDrawer}>{locale === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}</Link><div className="header-actions"><LanguageToggle /><Link className="help-nav-control desktop-help-control" href="/help-center" aria-label={isAr ? 'مركز المساعدة' : 'Help Center'} data-tooltip={isAr ? 'مركز المساعدة' : 'Help Center'}><CircleHelp size={19} strokeWidth={1.8}/></Link><Link className="help-nav-control desktop-profile-control" href="/company-profile" aria-label={profileLabel} aria-current={pathname.startsWith('/company-profile') ? 'page' : undefined} data-tooltip={profileLabel}><BookOpenText size={19} strokeWidth={1.8}/></Link><div className="desktop-account-control"><AccountMenu isAr={isAr}/></div><Link className="nav-contact" href="/contact" onClick={closeDrawer}>{locale === 'ar' ? 'كن شريكًا' : 'Become a Partner'} {locale === 'ar' ? <ArrowUpLeft size={15} /> : <ArrowUpRight size={15} />}</Link></div></nav></header> }
 export function ArrowButton({ label, href = '/contact' }: { label?: string; href?: string }) { return <Link href={href} className="arrow-link">{label}<span><ArrowUpRight size={16} /></span></Link> }
 export function SectionTitle({ kicker, children, light = false }: { kicker: string; children: React.ReactNode; light?: boolean }) { return <div><div className={light ? 'section-kicker light' : 'section-kicker'}>{kicker}</div><h2>{children}</h2></div> }
 export function Footer() { 
@@ -78,6 +79,7 @@ export function Footer() {
       <div className="footer-links">
         <Link href="/solutions">{c.footerLinks.solutions}</Link>
         <Link href="/about">{c.footerLinks.company}</Link>
+        <Link href="/company-profile">{c.footerLinks.profile}</Link>
         <Link href="/contact">{c.footerLinks.partnership}</Link>
       </div>
       <div className="footer-copyright-row" dir={isAr ? 'rtl' : 'ltr'}>
@@ -92,10 +94,49 @@ export function Footer() {
   ) 
 }
 export function PageShell({ children, className = '' }: { children: React.ReactNode; className?: string }) { return <main className={`page-shell ${className}`.trim()}><Header />{children}<Footer /><ScrollTop /></main> }
-export function ContactForm() {
+const businessInterestOptions = {
+  en: [
+    'B2B Travel Partnership',
+    'Corporate Travel Management',
+    'Travel Agency / Tour Operator Cooperation',
+    'DMC Partnership',
+    'Hotels & Hospitality Partnership',
+    'Supplier / Distribution Cooperation',
+    'Groups & Business Travel',
+    'Ground Services & Transfers Partnership',
+    'Tours & Experiences Cooperation',
+    'Taxidia Platform / Travel Technology',
+    'Commercial Representation',
+    'Strategic Partnership',
+    'Other Business Enquiry',
+  ],
+  ar: [
+    'شراكة سفر B2B',
+    'إدارة سفر الشركات',
+    'تعاون مع وكالة سفر / منظم رحلات',
+    'شراكة مع شركة إدارة وجهات DMC',
+    'شراكة فنادق وضيافة',
+    'تعاون مع مورد / توزيع',
+    'مجموعات وسفر أعمال',
+    'شراكة نقل وخدمات أرضية',
+    'تعاون في الجولات والتجارب',
+    'منصة Taxidia / تقنية السفر',
+    'تمثيل تجاري',
+    'شراكة استراتيجية',
+    'طلب أعمال آخر',
+  ],
+} as const
+
+export function ContactForm({ variant = 'travel' }: { variant?: 'travel' | 'business' } = {}) {
   const c = useContent();
   const { locale } = useLocale();
   const isAr = locale === 'ar';
+  const isBusiness = variant === 'business';
+  const interestLabel = isAr ? 'نوع التعاون / مجال الاهتمام' : 'Business interest / partnership type';
+  const informationLabel = isAr ? 'معلومات إضافية عن الطلب' : 'Additional business information';
+  const informationPlaceholder = isAr
+    ? 'اكتب لنا أي معلومات إضافية عن شركتك أو نوع التعاون أو المتطلبات اللي حاب تناقشها معنا.'
+    : 'Tell us anything else that would help us understand your company, requirements or proposed partnership.';
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,40 +161,33 @@ export function ContactForm() {
           <span className="label-text">{c.form.type}</span>
           <input placeholder={c.form.type} />
         </label>
-        <label>
-          <span className="label-text">{c.form.country}</span>
-          <input placeholder={c.form.country} />
-        </label>
-
-        <label>
-          <span className="label-text">{c.form.email}</span>
-          <input type="email" required placeholder={c.form.email} />
-        </label>
-        <label>
-          <span className="label-text">{c.form.phone}</span>
-          <input type="tel" placeholder={c.form.phone} />
-        </label>
+        <CountryPhoneFields isAr={isAr} countryLabel={c.form.country} phoneLabel={c.form.phone}>
+          <label>
+            <span className="label-text">{c.form.email}</span>
+            <input type="email" required placeholder={c.form.email} />
+          </label>
+        </CountryPhoneFields>
 
         <label className="full-width">
-          <span className="label-text">{c.form.service}</span>
+          <span className="label-text">{isBusiness ? interestLabel : c.form.service}</span>
           <div className="select-wrapper">
             <select defaultValue="">
-              <option value="" disabled>{c.form.service}</option>
-              {c.services.slice(0, 5).map(([name]) => <option key={name}>{name}</option>)}
+              <option value="" disabled>{isBusiness ? interestLabel : c.form.service}</option>
+              {(isBusiness ? businessInterestOptions[locale] : c.services.slice(0, 5).map(([name]) => name)).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
             <div className="select-chevron"></div>
           </div>
         </label>
 
         <label className="full-width">
-          <span className="label-text">{c.form.message}</span>
-          <textarea placeholder={c.form.message} rows={4} />
+          <span className="label-text">{isBusiness ? informationLabel : c.form.message}</span>
+          <textarea placeholder={isBusiness ? informationPlaceholder : c.form.message} rows={4} />
         </label>
       </div>
 
       <div className="submit-row">
         <button className="button button-navy-gold" type="submit">
-          {c.form.submit}
+          {isBusiness ? (isAr ? 'إرسال الطلب' : 'Send Enquiry') : c.form.submit}
         </button>
       </div>
     </form>

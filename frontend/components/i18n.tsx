@@ -518,7 +518,7 @@ export const copy = {
     },
     page: { services: 'Travel Capabilities', servicesTitle: 'Arrange the', servicesAccent: 'entire trip.', careers: 'Careers', careersTitle: 'Join the', careersAccent: 'team.', contact: 'Contact Us', contactTitle: 'Send a', contactAccent: 'request.' },
     form: { name: 'Full name', company: 'Company name', type: 'Business type', country: 'Country', email: 'Work email', phone: 'Phone', service: 'Service interested in', message: 'Travel request details', submit: 'Send Details', required: 'Please complete the required fields.' },
-    footerLinks: { solutions: 'Capabilities', company: 'Company', partnership: 'Partnership' },
+      footerLinks: { solutions: 'Capabilities', company: 'About Legendary', profile: 'Company Profile', partnership: 'Partnership' },
     solutionsPage: {
       heroKicker: 'WHAT WE ARRANGE',
       heroTitle: 'Send one request. We handle the rest.',
@@ -1060,7 +1060,7 @@ export const copy = {
     },
     page: { services: 'خدمات السفر', servicesTitle: 'رتب تفاصيل', servicesAccent: 'الرحلة.', careers: 'الوظائف', careersTitle: 'انضم إلى', careersAccent: 'فريقنا.', contact: 'تواصل معنا', contactTitle: 'أرسل طلب', contactAccent: 'سفر.' },
     form: { name: 'الاسم الكامل', company: 'اسم الشركة', type: 'نوع النشاط', country: 'الدولة', email: 'البريد الإلكتروني للعمل', phone: 'رقم الهاتف', service: 'الخدمة المطلوبة', message: 'تفاصيل طلب السفر', submit: 'أرسل التفاصيل', required: 'يرجى إكمال الحقول المطلوبة.' },
-    footerLinks: { solutions: 'الخدمات', company: 'الشركة', partnership: 'التعاون' },
+    footerLinks: { solutions: 'الخدمات', company: 'الشركة', profile: 'ملف الشركة', partnership: 'التعاون' },
     solutionsPage: {
       heroKicker: 'ما نرتبه لك',
       heroTitle: 'أرسل طلباً واحداً. وسنتولى الباقي.',

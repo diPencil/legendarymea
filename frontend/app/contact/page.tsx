@@ -28,16 +28,30 @@ export default function ContactPage() {
       <section className="contact-request-section">
         <div className="contact-request-layout section-shell" dir={isAr ? "rtl" : "ltr"}>
           <aside className="contact-request-intro">
-            <div className="section-kicker">{isAr ? 'أرسل طلبك' : 'SEND A REQUEST'}</div>
+            <div className="section-kicker">{isAr ? 'الأعمال والشراكات' : 'BUSINESS & PARTNERSHIPS'}</div>
             <h2>{content.guideTitle}</h2>
             <p>{content.guideBody}</p>
-            <div className="contact-request-email">
-              <span>{isAr ? 'البريد الإلكتروني' : 'EMAIL'}</span>
-              <a href="mailto:hello@legendarymea.com" dir="ltr">hello@legendarymea.com</a>
+            <div className="contact-business-details">
+              <div className="contact-business-detail">
+                <span>{isAr ? 'للاستفسارات العامة' : 'GENERAL ENQUIRIES'}</span>
+                <a href="mailto:info@legendarymea.com" dir="ltr">info@legendarymea.com</a>
+              </div>
+              <div className="contact-business-detail">
+                <span>{isAr ? 'المبيعات والشراكات' : 'SALES & PARTNERSHIPS'}</span>
+                <a href="mailto:sales@legendarymea.com" dir="ltr">sales@legendarymea.com</a>
+              </div>
+              <div className="contact-business-detail">
+                <span>{isAr ? 'التواصل' : 'PHONE'}</span>
+                <a className="contact-business-phone" href="tel:+966530363444" dir="ltr">+966 53 036 3444</a>
+              </div>
             </div>
+            <blockquote className="contact-business-quote">
+              <span aria-hidden="true">“</span>
+              <p>{isAr ? 'وين ما كان موقع أعمالك، فريقنا حاضر لخدمتك ومتابعة احتياجك.' : 'Wherever your business is based, our team is ready to support you and follow through on what you need.'}</p>
+            </blockquote>
           </aside>
           <div className="contact-request-form">
-            <ContactForm />
+            <ContactForm variant="business" />
           </div>
         </div>
       </section>
