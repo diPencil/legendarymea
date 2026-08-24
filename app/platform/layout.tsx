@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
+import { pageMetadata, staticSeo } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Platform | Taxidia by Legendary Management MEA',
-  description: 'Taxidia connects travel bookings with customers, suppliers, pricing, finance, reporting and administration for B2B travel businesses.',
-}
+export const metadata: Metadata = pageMetadata('/platform', staticSeo.platform)
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) { return children }

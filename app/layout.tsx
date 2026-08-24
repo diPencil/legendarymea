@@ -9,6 +9,9 @@ import '@fontsource/montserrat/800.css'
 
 import './globals.css'
 import { LocaleProvider } from '@/components/i18n'
+import { LocaleSeoBridge } from '@/components/locale-seo-bridge'
+import { StructuredData } from '@/components/structured-data'
+import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL, staticSeo } from '@/lib/seo'
 
 const openingPreflightScript = `
   try {
@@ -22,9 +25,12 @@ const openingPreflightScript = `
 `
 
 export const metadata: Metadata = {
-  title: 'Legendary Management MEA | B2B Travel Operations',
-  description: 'Travel arrangements, commercial partnerships and B2B travel technology for agencies, companies and hospitality partners across the Middle East and Africa.',
-  generator: 'v0.app',
+  ...pageMetadata('/', staticSeo.home),
+  metadataBase: SITE_URL,
+  applicationName: SITE_NAME,
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: 'travel',
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
@@ -48,8 +54,12 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: openingPreflightScript }} />
       </head>
       <body className="antialiased">
-        <LocaleProvider>{children}</LocaleProvider>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <StructuredData data={[
+          { '@context': 'https://schema.org', '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/'), logo: absoluteUrl('/legendary-management.png') },
+          { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, url: absoluteUrl('/'), inLanguage: ['en', 'ar'] },
+        ]} />
+        <LocaleProvider><LocaleSeoBridge/>{children}</LocaleProvider>
+        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT !== 'true' && <Analytics />}
       </body>
     </html>
   )

@@ -1,3 +1,4 @@
 import type { Metadata } from 'next'
-export const metadata: Metadata = { title: 'About | Legendary Management MEA', description: 'How Legendary approaches travel operations, commercial relationships and technology across the Middle East and Africa.' }
+import { pageMetadata, staticSeo } from '@/lib/seo'
+export const metadata: Metadata = pageMetadata('/about', staticSeo.about)
 export default function Layout({children}:{children:React.ReactNode}){return children}

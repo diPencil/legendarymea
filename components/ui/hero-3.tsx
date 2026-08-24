@@ -6,6 +6,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n";
 import { KineticGrid } from "@/components/ui/kinetic-grid";
@@ -56,7 +57,7 @@ type HeroCardLayout =
   | "overlayBottom"
   | "splitPanel";
 
-interface HeroMarqueeCard {
+export interface HeroMarqueeCard {
   id: string;
   eyebrow: string;
   title: string;
@@ -70,7 +71,7 @@ interface HeroMarqueeCard {
   inlineIcon?: boolean;
 }
 
-const heroMarqueeCards: Record<"en" | "ar", readonly HeroMarqueeCard[]> = {
+export const heroMarqueeCards: Record<"en" | "ar", readonly HeroMarqueeCard[]> = {
   en: [
     { id: "b2b", eyebrow: "B2B", title: "Travel Solutions", description: "For agencies, companies and tour operators.", theme: "ivory", layout: "upperLeft", treatment: "text", image: { src: b2bTravelSolutionsImage, alt: "Connected travel destinations across the Middle East and Africa" } },
     { id: "flights", eyebrow: "FLIGHTS", title: "Flight Arrangements", description: "Routing. Timing. Travelers.", theme: "overlay", layout: "upperLeft", treatment: "label", image: { src: flightArrangementsImage, alt: "Aircraft wing above the clouds at sunset" } },
@@ -101,11 +102,11 @@ const heroMarqueeCards: Record<"en" | "ar", readonly HeroMarqueeCard[]> = {
   ],
 };
 
-function EditorialMarqueeCard({ card }: { card: HeroMarqueeCard }) {
+export function EditorialMarqueeCard({ card, tabIndex = 0, linked = true, className }: { card: HeroMarqueeCard; tabIndex?: number; linked?: boolean; className?: string }) {
   const Icon = card.icon;
   const showIcon = card.treatment === "icon" && Icon;
 
-  return (
+  const visual = (
     <article
       className={cn(
         styles.card,
@@ -118,7 +119,8 @@ function EditorialMarqueeCard({ card }: { card: HeroMarqueeCard }) {
         card.id === "reporting" && styles.sideCentered,
         card.inlineIcon && styles.inlineIcon,
         "relative flex-shrink-0 w-[180px] h-[220px] md:w-[230px] md:h-[300px]",
-        "rounded-xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
+        "rounded-xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)]",
+        className
       )}
     >
       {card.image && card.layout !== "splitPanel" && (
@@ -166,6 +168,14 @@ function EditorialMarqueeCard({ card }: { card: HeroMarqueeCard }) {
         <span className={styles.rule} aria-hidden="true" />
       </div>
     </article>
+  );
+
+  if (!linked) return visual;
+
+  return (
+    <Link href={`/highlights/${card.id}`} tabIndex={tabIndex} className={styles.cardLink} aria-label={`${card.title}: ${card.description}`}>
+      {visual}
+    </Link>
   );
 }
 
@@ -309,7 +319,7 @@ export function Hero3({
                          marginTop: isOdd ? "16px" : "0px"
                       }}
                     >
-                      <EditorialMarqueeCard card={card} />
+                      <EditorialMarqueeCard card={card} tabIndex={repIndex === 0 ? 0 : -1} />
                     </div>
                   );
                 })
@@ -332,7 +342,7 @@ export function Hero3({
                          marginTop: isOdd ? "16px" : "0px"
                       }}
                     >
-                      <EditorialMarqueeCard card={card} />
+                      <EditorialMarqueeCard card={card} tabIndex={-1} />
                     </div>
                   );
                 })
