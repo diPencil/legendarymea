@@ -50,7 +50,7 @@ export const profilePages: ProfilePage[] = [
     {title:L('Control commercial work','ضبط العمل التجاري'),body:L('Suppliers · Pricing · Finance','الموردون · الأسعار · المالية')},
     {title:L('Review the business','مراجعة الأعمال'),body:L('Reports · Settings · Administration','التقارير · الإعدادات · الإدارة')}
   ]},
-  { type:'audience', kicker:L('10 / WHO WE WORK WITH','١٠ / من نعمل معهم'), title:L('Built for businesses that manage travel every day.','لأعمال تدير السفر كل يوم.'), items:[
+  { type:'audience', kicker:L('10 / WHO WE WORK WITH','١٠ / من نعمل معهم'), title:L('Built for businesses that manage travel every day.','مصمم للشركات التي تدير عمليات السفر يوميًا.'), items:[
     {title:L('Travel agencies','وكالات السفر'),body:L('Requests, customer records and bookings.','الطلبات وسجلات العملاء والحجوزات.')},
     {title:L('Tour operators','منظمو الرحلات'),body:L('Multi-service programs and follow-through.','البرامج متعددة الخدمات ومتابعتها.')},
     {title:L('DMCs','شركات إدارة الوجهات'),body:L('Destination services and suppliers.','خدمات الوجهة والموردون.')},
@@ -136,7 +136,7 @@ export function ProfileLeaf({data,index,ar,onOpen,printMode=false}:{data:Profile
     {data.type==='partners'&&<div className={styles.partnerGrid}>{[['/partnership/mafairjets.jpg','MA Fairjets'],['/partnership/tarteeb.jpg','Tarteeb'],['/partnership/taxidia.jpg','Taxidia']].map(([src,name])=><figure key={name}><Image src={src} alt={name} fill sizes="20vw" loading={printMode?'eager':undefined}/><figcaption>{name}</figcaption></figure>)}</div>}
     {data.type==='why'&&<div className={styles.whyGrid}>{data.items?.map((x,i)=><section key={i}><Check/><span>{number(i+1,ar)}</span><h2>{x.title[locale]}</h2><p>{x.body?.[locale]}</p></section>)}</div>}
     {data.type==='ecosystem'&&<WorldMapNetwork items={data.items ?? []} locale={locale} printMode={printMode}/>}
-    {data.type==='contact'&&<div className={styles.contactCard}><div><span>{ar?'شراكات وأعمال':'PARTNERSHIPS & BUSINESS'}</span><a href="mailto:info@legendarymea.com">info@legendarymea.com</a></div><div><span>{ar?'المبيعات والاستفسارات':'SALES & ENQUIRIES'}</span><a href="mailto:sales@legendarymea.com">sales@legendarymea.com</a></div><div><span>{ar?'الهاتف وواتساب':'PHONE & WHATSAPP'}</span><a href="tel:+966530363444" dir="ltr">+966 53 036 3444</a></div><Link href="/contact">{ar?'ابدأ المحادثة':'Start a conversation'}{ar?<ArrowLeft/>:<ArrowRight/>}</Link></div>}
+    {data.type==='contact'&&<div className={styles.contactCard}><div><span>{ar?'شراكات وأعمال':'PARTNERSHIPS & BUSINESS'}</span><a href="mailto:info@legendarymea.com">info@legendarymea.com</a></div><div><span>{ar?'المبيعات والاستفسارات':'SALES & ENQUIRIES'}</span><a href="mailto:sales@legendarymea.com">sales@legendarymea.com</a></div><div><span>{ar?'الهاتف وواتساب':'PHONE & WHATSAPP'}</span><a href="tel:+966533144910" dir="ltr">+966 53 314 4910</a></div><Link href="/contact">{ar?'ابدأ المحادثة':'Start a conversation'}{ar?<ArrowLeft/>:<ArrowRight/>}</Link></div>}
     {data.type==='back'&&<><Image className={styles.backLogo} src="/legendary-management.png" alt="Legendary Management MEA" width={300} height={60} loading={printMode?'eager':undefined}/><p className={styles.backTagline}>{ar?'السفر · العلاقات · التقنية':'Travel · Relationships · Technology'}</p><div className={styles.backMark}>LM</div></>}
   </article>
 }

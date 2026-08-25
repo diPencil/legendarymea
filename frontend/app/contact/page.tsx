@@ -42,7 +42,7 @@ export default function ContactPage() {
               </div>
               <div className="contact-business-detail">
                 <span>{isAr ? 'التواصل' : 'PHONE'}</span>
-                <a className="contact-business-phone" href="tel:+966530363444" dir="ltr">+966 53 036 3444</a>
+                <a className="contact-business-phone" href="tel:+966533144910" dir="ltr">+966 53 314 4910</a>
               </div>
             </div>
             <blockquote className="contact-business-quote">
