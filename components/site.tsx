@@ -363,7 +363,7 @@ export function AudienceStrip() {
     <section className="audience-banner section-shell">
       <div className="audience-heading-block">
         <div className="section-kicker">01 / {c.hero.kicker}</div>
-        <h2>{isAr ? <>مين <em>نشتغل معه؟</em></> : <>Who we <em>work with.</em></>}</h2>
+        <h2>{isAr ? <>مع من <em>نعمل؟</em></> : <>Who we <em>work with.</em></>}</h2>
       </div>
       
       <div className="audience-interactive-strip">
