@@ -3,5 +3,5 @@ Allow: /
 Disallow: /api/
 Disallow: /company-profile/print/
 
-Host: https://legendary-management.com/
-Sitemap: https://legendary-management.com/sitemap.xml
+Host: https://legendarymea.com/
+Sitemap: https://legendarymea.com/sitemap.xml
