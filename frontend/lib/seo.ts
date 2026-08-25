@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const SITE_NAME = 'Legendary Management MEA'
-export const SITE_URL = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://legendary-management.com')
+export const SITE_URL = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://legendarymea.com')
 export const DEFAULT_DESCRIPTION = 'Travel arrangements, commercial partnerships and B2B travel technology for agencies, companies and hospitality partners across the Middle East and Africa.'
 export const SOCIAL_IMAGE = '/legendary-management.png'
 
