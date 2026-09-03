@@ -1,0 +1,50 @@
+name: Sync subtree branches
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-subtree-branches
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Regenerate backend and frontend branches
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch derived branches
+        run: |
+          git fetch origin backend frontend
+
+      - name: Generate backend subtree
+        run: |
+          git subtree split --prefix=backend HEAD -b sync-backend-${{ github.run_id }}
+
+      - name: Push backend branch
+        run: |
+          git push --force-with-lease origin sync-backend-${{ github.run_id }}:backend
+
+      - name: Generate frontend subtree
+        run: |
+          git subtree split --prefix=frontend HEAD -b sync-frontend-${{ github.run_id }}
+
+      - name: Push frontend branch
+        run: |
+          git push --force-with-lease origin sync-frontend-${{ github.run_id }}:frontend
