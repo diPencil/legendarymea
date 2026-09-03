@@ -7,6 +7,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Car, Check, Expand, Hotel, List, MapPinned, Maximize2, Minimize2, PackageCheck, Plane, Printer, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/components/i18n'
+import { fetchPublicSettings, publicSettingsFallback, telHref } from '@/lib/public-settings'
+import type { PublicSettings } from '@/lib/dashboard/settings'
 import styles from './company-profile-book.module.css'
 
 export type Localized = { en: string; ar: string }
@@ -118,6 +120,11 @@ export function CompanyProfileBook(){
 
 export function ProfileLeaf({data,index,ar,onOpen,printMode=false}:{data:ProfilePage;index:number;ar:boolean;onOpen?:()=>void;printMode?:boolean}){
   const locale=ar?'ar':'en'; const title=data.title[locale]; const body=data.body?.[locale]
+  const [settings,setSettings]=useState<PublicSettings | null>(null)
+  useEffect(()=>{if(data.type!=='contact')return;let mounted=true;void fetchPublicSettings().then(result=>{if(mounted)setSettings(result)});return()=>{mounted=false}},[data.type])
+  const publicEmail=settings?.contact?.public_email?.trim() || publicSettingsFallback.publicEmail
+  const salesEmail=settings?.contact?.sales_email?.trim() || publicSettingsFallback.salesEmail
+  const phone=settings?.contact?.phone?.trim() || settings?.contact?.whatsapp?.trim() || publicSettingsFallback.phone
   return <article className={`${styles.leaf} ${styles[data.type]}`}>
     <div className={styles.folio}>{number(index,ar)}</div>
     <span className={styles.kicker}>{data.kicker[locale]}</span>
@@ -136,7 +143,7 @@ export function ProfileLeaf({data,index,ar,onOpen,printMode=false}:{data:Profile
     {data.type==='partners'&&<div className={styles.partnerGrid}>{[['/partnership/mafairjets.jpg','MA Fairjets'],['/partnership/tarteeb.jpg','Tarteeb'],['/partnership/taxidia.jpg','Taxidia']].map(([src,name])=><figure key={name}><Image src={src} alt={name} fill sizes="20vw" loading={printMode?'eager':undefined}/><figcaption>{name}</figcaption></figure>)}</div>}
     {data.type==='why'&&<div className={styles.whyGrid}>{data.items?.map((x,i)=><section key={i}><Check/><span>{number(i+1,ar)}</span><h2>{x.title[locale]}</h2><p>{x.body?.[locale]}</p></section>)}</div>}
     {data.type==='ecosystem'&&<WorldMapNetwork items={data.items ?? []} locale={locale} printMode={printMode}/>}
-    {data.type==='contact'&&<div className={styles.contactCard}><div><span>{ar?'شراكات وأعمال':'PARTNERSHIPS & BUSINESS'}</span><a href="mailto:info@legendarymea.com">info@legendarymea.com</a></div><div><span>{ar?'المبيعات والاستفسارات':'SALES & ENQUIRIES'}</span><a href="mailto:sales@legendarymea.com">sales@legendarymea.com</a></div><div><span>{ar?'الهاتف وواتساب':'PHONE & WHATSAPP'}</span><a href="tel:+966533144910" dir="ltr">+966 53 314 4910</a></div><Link href="/contact">{ar?'ابدأ المحادثة':'Start a conversation'}{ar?<ArrowLeft/>:<ArrowRight/>}</Link></div>}
+    {data.type==='contact'&&<div className={styles.contactCard}><div><span>{ar?'شراكات وأعمال':'PARTNERSHIPS & BUSINESS'}</span><a href={`mailto:${publicEmail}`}>{publicEmail}</a></div><div><span>{ar?'المبيعات والاستفسارات':'SALES & ENQUIRIES'}</span><a href={`mailto:${salesEmail}`}>{salesEmail}</a></div><div><span>{ar?'الهاتف وواتساب':'PHONE & WHATSAPP'}</span><a href={telHref(phone)} dir="ltr">{phone}</a></div><Link href="/contact">{ar?'ابدأ المحادثة':'Start a conversation'}{ar?<ArrowLeft/>:<ArrowRight/>}</Link></div>}
     {data.type==='back'&&<><Image className={styles.backLogo} src="/legendary-management.png" alt="Legendary Management MEA" width={300} height={60} loading={printMode?'eager':undefined}/><p className={styles.backTagline}>{ar?'السفر · العلاقات · التقنية':'Travel · Relationships · Technology'}</p><div className={styles.backMark}>LM</div></>}
   </article>
 }

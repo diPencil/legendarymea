@@ -2,7 +2,7 @@
 
 import { Combobox } from '@base-ui/react/combobox'
 import { Check, ChevronDown, Search } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { countryPhoneData, type CountryPhoneRecord } from '@/lib/country-phone-data'
 
 type CountryPhoneFieldsProps = {
@@ -10,6 +10,17 @@ type CountryPhoneFieldsProps = {
   countryLabel: string
   phoneLabel: string
   children?: ReactNode
+  variant?: 'contact' | 'dashboard'
+  countryCode?: string
+  onCountryCodeChange?: (code: string) => void
+  phoneValue?: string
+  onPhoneChange?: (phone: string) => void
+  fieldClassName?: string
+}
+
+function findCountryRecord(value?: string | null) {
+  if (!value) return null
+  return countryPhoneData.find((country) => country.dialCode === value || country.iso === value) || null
 }
 
 function normalizeArabic(value: string) {
@@ -40,15 +51,42 @@ function normalizeLocalPhone(value: string) {
   return toAsciiDigits(value).replace(/\D/g, '')
 }
 
-export function CountryPhoneFields({ isAr, countryLabel, phoneLabel, children }: CountryPhoneFieldsProps) {
-  const [country, setCountry] = useState<CountryPhoneRecord | null>(null)
-  const [localPhone, setLocalPhone] = useState('')
+export function CountryPhoneFields({ 
+  isAr, 
+  countryLabel, 
+  phoneLabel, 
+  children,
+  variant = 'contact',
+  countryCode,
+  onCountryCodeChange,
+  phoneValue,
+  onPhoneChange,
+  fieldClassName
+}: CountryPhoneFieldsProps) {
+  const [country, setCountry] = useState<CountryPhoneRecord | null>(() => {
+    return findCountryRecord(countryCode)
+  })
+  const [localPhone, setLocalPhone] = useState(phoneValue || '')
   const locale = isAr ? 'ar' : 'en'
+  const isDashboard = variant === 'dashboard'
 
   const completePhone = useMemo(() => {
     const localDigits = normalizeLocalPhone(localPhone)
     return country && localDigits ? `${country.dialCode}${localDigits}` : ''
   }, [country, localPhone])
+
+  const handleCountryChange = (record: CountryPhoneRecord | null) => {
+    setCountry(record)
+    onCountryCodeChange?.(record?.dialCode ?? '')
+  }
+
+  const handlePhoneChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9٠-٩۰-۹\s().-]/g, '')
+    setLocalPhone(cleaned)
+    if (onPhoneChange) {
+      onPhoneChange(cleaned)
+    }
+  }
 
   const countryName = (record: CountryPhoneRecord) => isAr ? record.nameAr : record.nameEn
   const countrySearch = (record: CountryPhoneRecord, query: string) => {
@@ -59,16 +97,34 @@ export function CountryPhoneFields({ isAr, countryLabel, phoneLabel, children }:
       .some(value => normalizeSearch(value).includes(normalizedQuery))
   }
 
+  const countryWrapperClass = isDashboard ? fieldClassName : "contact-country-field"
+  const phoneWrapperClass = isDashboard ? fieldClassName : "contact-phone-field"
+
+  // If we have an unknown country code that didn't match our dataset, preserve it for display.
+  const displayDialCode = country?.dialCode ?? countryCode ?? '—'
+
+  useEffect(() => {
+    setCountry(findCountryRecord(countryCode))
+  }, [countryCode])
+
+  useEffect(() => {
+    setLocalPhone(phoneValue || '')
+  }, [phoneValue])
+
   return (
     <>
-      <div className="contact-country-field">
-        <label className="label-text" htmlFor="contact-country">{countryLabel}</label>
+      <div className={countryWrapperClass}>
+        {isDashboard ? (
+          <span>{countryLabel}</span>
+        ) : (
+          <label className="label-text" htmlFor="contact-country">{countryLabel}</label>
+        )}
         <Combobox.Root<CountryPhoneRecord>
           key={locale}
           name="country"
           items={countryPhoneData}
           value={country}
-          onValueChange={setCountry}
+          onValueChange={handleCountryChange}
           filter={countrySearch}
           itemToStringLabel={countryName}
           itemToStringValue={record => record.iso}
@@ -76,7 +132,7 @@ export function CountryPhoneFields({ isAr, countryLabel, phoneLabel, children }:
           autoHighlight
           locale={locale}
         >
-          <Combobox.InputGroup className="country-combobox-control">
+          <Combobox.InputGroup className="country-combobox-control" data-variant={variant}>
             <Search className="country-search-icon" size={17} aria-hidden="true" />
             <Combobox.Input
               id="contact-country"
@@ -120,11 +176,15 @@ export function CountryPhoneFields({ isAr, countryLabel, phoneLabel, children }:
 
       {children}
 
-      <label className="contact-phone-field" htmlFor="contact-phone-local">
-        <span className="label-text">{phoneLabel}</span>
-        <span className="contact-phone-control" dir="ltr">
-          <span className={`contact-phone-prefix ${country ? 'has-country' : ''}`} aria-label={isAr ? 'رمز الاتصال الدولي' : 'International calling code'}>
-            {country?.dialCode ?? '—'}
+      <label className={phoneWrapperClass} htmlFor="contact-phone-local">
+        {isDashboard ? (
+          <span>{phoneLabel}</span>
+        ) : (
+          <span className="label-text">{phoneLabel}</span>
+        )}
+        <span className="contact-phone-control" dir="ltr" data-variant={variant}>
+          <span className={`contact-phone-prefix ${(country || countryCode) ? 'has-country' : ''}`} aria-label={isAr ? 'رمز الاتصال الدولي' : 'International calling code'}>
+            {displayDialCode}
           </span>
           <input
             id="contact-phone-local"
@@ -133,11 +193,11 @@ export function CountryPhoneFields({ isAr, countryLabel, phoneLabel, children }:
             inputMode="tel"
             autoComplete="tel-national"
             value={localPhone}
-            onChange={event => setLocalPhone(event.target.value.replace(/[^0-9٠-٩۰-۹\s().-]/g, ''))}
-            placeholder={country ? (isAr ? 'رقم الهاتف بدون رمز الدولة' : 'Local phone number') : (isAr ? 'اختر الدولة أولًا' : 'Select country first')}
+            onChange={event => handlePhoneChange(event.target.value)}
+            placeholder={(country || countryCode) ? (isAr ? 'رقم الهاتف بدون رمز الدولة' : 'Local phone number') : (isAr ? 'اختر الدولة أولًا' : 'Select country first')}
             aria-label={isAr ? 'رقم الهاتف المحلي' : 'Local phone number'}
           />
-          <input type="hidden" name="phone" value={completePhone} />
+          {!isDashboard && <input type="hidden" name="phone" value={completePhone} />}
         </span>
       </label>
     </>

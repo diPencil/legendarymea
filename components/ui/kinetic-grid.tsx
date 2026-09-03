@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 interface Point {
   x: number;
@@ -21,7 +21,6 @@ export function KineticGrid() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const BG_COLOR = "transparent";
   const ACTIVE_COLOR = "#A07F31"; // Gold
   const BASE_LINE_COLOR = "rgba(8, 29, 96, 0.12)";
   const BASE_NODE_COLOR = "rgba(8, 29, 96, 0.18)";
@@ -247,7 +246,7 @@ export function KineticGrid() {
     mediaQuery.addEventListener("change", updateMotionPref);
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         const { width, height } = entry.contentRect;
         
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
