@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowUpRight, ArrowUpLeft, Menu, X, Globe2, Globe, BriefcaseBusiness, Building, Users, User, LogIn, CircleHelp, BookOpenText } from 'lucide-react'
+import { ArrowUpRight, ArrowUpLeft, Menu, X, Globe2, Globe, BriefcaseBusiness, Building, Users, User, LogIn, CircleHelp, BookOpenText, LogOut } from 'lucide-react'
 import { useEffect, useState, useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import { useContent, useLocale } from './i18n'
@@ -12,7 +12,10 @@ export const images = { hero: '/travel.png', meeting: '/meeting.png', travel: '/
 import Image from 'next/image'
 import { LanguageToggle } from '@/components/ui/language-toggle'
 import { usePathname } from 'next/navigation'
+import { DashboardAuthProvider, useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { CountryPhoneFields } from '@/components/country-phone-fields'
+import { fetchPublicSettings, publicSettingsFallback } from '@/lib/public-settings'
+import type { PublicSettings } from '@/lib/dashboard/settings'
 
 export function Brand() { 
   return (
@@ -28,6 +31,67 @@ export function Brand() {
     </Link>
   )
 }
+function AccountPopupInner({ isAr, accountOpen, setAccountOpen }: { isAr: boolean; accountOpen: boolean; setAccountOpen: (open: boolean) => void }) {
+  const { user, status, logout } = useDashboardAuth()
+
+  const close = () => setAccountOpen(false)
+
+  if (status === 'loading') {
+    return (
+      <div className={`account-dropdown ${accountOpen ? 'is-open' : ''}`} role="menu" aria-hidden={!accountOpen}>
+        <span className="account-eyebrow">{isAr ? 'الحساب' : 'ACCOUNT'}</span>
+        <div style={{ width: '100%', height: 48, background: '#f4f1eb', borderRadius: 8, animation: 'pulse 2s infinite' }} />
+      </div>
+    )
+  }
+
+  if (user) {
+    const isAdmin = user.roles.includes('super_admin') || user.roles.includes('admin')
+    const isEmployee = user.roles.includes('employee')
+    const showAdminDashboard = isAdmin
+    const showUserDashboard = isEmployee
+
+    return (
+      <div className={`account-dropdown ${accountOpen ? 'is-open' : ''}`} role="menu" aria-hidden={!accountOpen}>
+        <span className="account-eyebrow">{isAr ? 'الحساب' : 'ACCOUNT'}</span>
+        <strong>{user.name}</strong>
+        <p className="account-email" style={isAr ? { textAlign: 'right' } : {}} dir="ltr">@{user.username}</p>
+        <p className="account-email" style={isAr ? { textAlign: 'right' } : {}} dir="ltr">{user.email}</p>
+        
+        <Link href={`/profile/${user.username}`} className="account-action secondary" onClick={close}>
+          <User size={16} />{isAr ? 'الملف الشخصي' : 'Profile'}
+        </Link>
+
+        {showAdminDashboard && (
+          <Link href="/dashboard" className="account-action primary" onClick={close}>
+            {isAr ? 'لوحة تحكم الإدارة' : 'Admin Dashboard'}
+          </Link>
+        )}
+        
+        {(!showAdminDashboard && showUserDashboard) && (
+          <Link href="/dashboard" className="account-action primary" onClick={close}>
+            {isAr ? 'لوحة التحكم' : 'Dashboard'}
+          </Link>
+        )}
+
+        <button className="account-action secondary" type="button" onClick={() => { logout(); close(); }}>
+          <LogOut size={16} />{isAr ? 'تسجيل الخروج' : 'Sign Out'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`account-dropdown ${accountOpen ? 'is-open' : ''}`} role="menu" aria-hidden={!accountOpen}>
+      <span className="account-eyebrow">{isAr ? 'الحساب' : 'ACCOUNT'}</span>
+      <strong>{isAr ? 'سجّل الدخول إلى حسابك' : 'Sign in to your account'}</strong>
+      <p>{isAr ? 'ادخل إلى حسابك لإدارة الخدمات المتاحة.' : 'Access your account and manage available services.'}</p>
+      <button className="account-signin-disabled" type="button" disabled><LogIn size={16}/>{isAr ? 'تسجيل الدخول' : 'Sign In'}</button>
+      <div className="account-help"><span>{isAr ? 'تحتاج مساعدة؟' : 'Need help?'}</span><Link href="/contact" onClick={close}>{isAr ? 'تواصل معنا' : 'Contact us'}</Link></div>
+    </div>
+  )
+}
+
 function AccountMenu({ isAr }: { isAr: boolean }) {
   const [accountOpen, setAccountOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
@@ -47,16 +111,14 @@ function AccountMenu({ isAr }: { isAr: boolean }) {
     }
   }, [])
 
-  return <div className="account-menu" ref={accountRef} dir={isAr ? 'rtl' : 'ltr'}>
-    <button className="account-avatar" type="button" aria-label={isAr ? 'فتح قائمة الحساب' : 'Open account menu'} aria-expanded={accountOpen} aria-haspopup="menu" onClick={() => setAccountOpen(value => !value)}><User size={19} strokeWidth={1.8}/></button>
-    <div className={`account-dropdown ${accountOpen ? 'is-open' : ''}`} role="menu" aria-hidden={!accountOpen}>
-      <span className="account-eyebrow">{isAr ? 'الحساب' : 'ACCOUNT'}</span>
-      <strong>{isAr ? 'سجّل الدخول إلى حسابك' : 'Sign in to your account'}</strong>
-      <p>{isAr ? 'ادخل إلى حسابك لإدارة الخدمات المتاحة.' : 'Access your account and manage available services.'}</p>
-      <button className="account-signin-disabled" type="button" disabled><LogIn size={16}/>{isAr ? 'تسجيل الدخول' : 'Sign In'}</button>
-      <div className="account-help"><span>{isAr ? 'تحتاج مساعدة؟' : 'Need help?'}</span><Link href="/contact" onClick={() => setAccountOpen(false)}>{isAr ? 'تواصل معنا' : 'Contact us'}</Link></div>
+  return (
+    <div className="account-menu" ref={accountRef} dir={isAr ? 'rtl' : 'ltr'}>
+      <button className="account-avatar" type="button" aria-label={isAr ? 'فتح قائمة الحساب' : 'Open account menu'} aria-expanded={accountOpen} aria-haspopup="menu" onClick={() => setAccountOpen(value => !value)}><User size={19} strokeWidth={1.8}/></button>
+      <DashboardAuthProvider>
+        <AccountPopupInner isAr={isAr} accountOpen={accountOpen} setAccountOpen={setAccountOpen} />
+      </DashboardAuthProvider>
     </div>
-  </div>
+  )
 }
 export function Header() { const [open, setOpen] = useState(false); const [solutionsOpen, setSolutionsOpen] = useState(false); const [scrolled, setScrolled] = useState(false); const c = useContent(); const { locale } = useLocale(); const isAr = locale === 'ar'; const pathname = usePathname(); const drawerRef = useRef<HTMLElement>(null); const links = [
     [c.nav.about, '/about'],
@@ -94,39 +156,6 @@ export function Footer() {
   ) 
 }
 export function PageShell({ children, className = '' }: { children: React.ReactNode; className?: string }) { return <main className={`page-shell ${className}`.trim()}><Header />{children}<Footer /><ScrollTop /></main> }
-const businessInterestOptions = {
-  en: [
-    'B2B Travel Partnership',
-    'Corporate Travel Management',
-    'Travel Agency / Tour Operator Cooperation',
-    'DMC Partnership',
-    'Hotels & Hospitality Partnership',
-    'Supplier / Distribution Cooperation',
-    'Groups & Business Travel',
-    'Ground Services & Transfers Partnership',
-    'Tours & Experiences Cooperation',
-    'Taxidia Platform / Travel Technology',
-    'Commercial Representation',
-    'Strategic Partnership',
-    'Other Business Enquiry',
-  ],
-  ar: [
-    'شراكة سفر B2B',
-    'إدارة سفر الشركات',
-    'تعاون مع وكالة سفر / منظم رحلات',
-    'شراكة مع شركة إدارة وجهات DMC',
-    'شراكة فنادق وضيافة',
-    'تعاون مع مورد / توزيع',
-    'مجموعات وسفر أعمال',
-    'شراكة نقل وخدمات أرضية',
-    'تعاون في الجولات والتجارب',
-    'منصة Taxidia / تقنية السفر',
-    'تمثيل تجاري',
-    'شراكة استراتيجية',
-    'طلب أعمال آخر',
-  ],
-} as const
-
 export function ContactForm({ variant = 'travel' }: { variant?: 'travel' | 'business' } = {}) {
   const c = useContent();
   const { locale } = useLocale();
@@ -138,42 +167,121 @@ export function ContactForm({ variant = 'travel' }: { variant?: 'travel' | 'busi
     ? 'اكتب لنا أي معلومات إضافية عن شركتك أو نوع التعاون أو المتطلبات اللي حاب تناقشها معنا.'
     : 'Tell us anything else that would help us understand your company, requirements or proposed partnership.';
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+  
+  const [catalogServices, setCatalogServices] = useState<{name_en: string, name_ar: string, code: string}[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    const fetchServices = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+        const res = await fetch(`${baseUrl}/api/v1/public/services?show_in_contact=1&active=1`);
+        if (res.ok) {
+          const data = await res.json();
+          if (mounted && Array.isArray(data?.data)) {
+            setCatalogServices(data.data);
+          }
+        }
+      } catch (e) {
+        // Fallback to empty
+      }
+    };
+    fetchServices();
+    return () => { mounted = false; };
+  }, []);
+  
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+    
     if (process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true') {
       alert(isAr ? "نسخة تجريبية — تم التحقق من بيانات الطلب، ولم يتم إرساله فعلياً." : "Demo mode — your request has been validated but was not submitted.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      name: formData.get('name') as string,
+      company: formData.get('company') as string,
+      phone: formData.get('phone') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
+    };
+
+    try {
+      // Must map to port 8001 since frontend might not proxy this dynamically if it's public NextJS route
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+      const res = await fetch(`${baseUrl}/api/v1/public/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to submit');
+      }
+
+      setSuccess(true);
+      (e.target as HTMLFormElement).reset();
+    } catch (err) {
+      setError(isAr ? 'عذراً، حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.' : 'Sorry, an error occurred while submitting your request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
+  if (success) {
+    return (
+      <div className="contact-form-polished" dir={isAr ? 'rtl' : 'ltr'}>
+        <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+          <h3 style={{ color: 'var(--brand-gold)', marginBottom: '1rem' }}>
+            {isAr ? 'تم إرسال طلبك بنجاح' : 'Request submitted successfully'}
+          </h3>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+            {isAr ? 'سنتواصل معك في أقرب وقت ممكن.' : 'We will get back to you as soon as possible.'}
+          </p>
+          <button type="button" className="button button-navy-gold" onClick={() => setSuccess(false)} style={{ marginTop: '2rem' }}>
+            {isAr ? 'إرسال طلب آخر' : 'Send another request'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form className="contact-form-polished" onSubmit={handleSubmit} dir={isAr ? 'rtl' : 'ltr'}>
       <div className="form-grid">
         <label>
           <span className="label-text">{c.form.name}</span>
-          <input required placeholder={c.form.name} />
+          <input name="name" required placeholder={c.form.name} />
         </label>
         <label>
           <span className="label-text">{c.form.company}</span>
-          <input placeholder={c.form.company} />
+          <input name="company" placeholder={c.form.company} />
         </label>
 
         <label>
           <span className="label-text">{c.form.type}</span>
-          <input placeholder={c.form.type} />
+          <input name="type" placeholder={c.form.type} />
         </label>
         <CountryPhoneFields isAr={isAr} countryLabel={c.form.country} phoneLabel={c.form.phone}>
           <label>
             <span className="label-text">{c.form.email}</span>
-            <input type="email" required placeholder={c.form.email} />
+            <input name="email" type="email" required placeholder={c.form.email} />
           </label>
         </CountryPhoneFields>
 
         <label className="full-width">
           <span className="label-text">{isBusiness ? interestLabel : c.form.service}</span>
           <div className="select-wrapper">
-            <select defaultValue="">
+            <select name="subject" defaultValue="" required>
               <option value="" disabled>{isBusiness ? interestLabel : c.form.service}</option>
-              {(isBusiness ? businessInterestOptions[locale] : c.services.slice(0, 5).map(([name]) => name)).map(name => <option key={name} value={name}>{name}</option>)}
+              {catalogServices.map(svc => <option key={svc.code} value={svc.code}>{locale === 'ar' ? svc.name_ar : svc.name_en}</option>)}
             </select>
             <div className="select-chevron"></div>
           </div>
@@ -181,13 +289,19 @@ export function ContactForm({ variant = 'travel' }: { variant?: 'travel' | 'busi
 
         <label className="full-width">
           <span className="label-text">{isBusiness ? informationLabel : c.form.message}</span>
-          <textarea placeholder={isBusiness ? informationPlaceholder : c.form.message} rows={4} />
+          <textarea name="message" required placeholder={isBusiness ? informationPlaceholder : c.form.message} rows={4} />
         </label>
       </div>
 
+      {error && (
+        <div style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '0.9rem' }}>
+          {error}
+        </div>
+      )}
+
       <div className="submit-row">
-        <button className="button button-navy-gold" type="submit">
-          {isBusiness ? (isAr ? 'إرسال الطلب' : 'Send Enquiry') : c.form.submit}
+        <button className="button button-navy-gold" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (isAr ? 'جاري الإرسال...' : 'Sending...') : (isBusiness ? (isAr ? 'إرسال الطلب' : 'Send Enquiry') : c.form.submit)}
         </button>
       </div>
     </form>
@@ -198,6 +312,19 @@ export function ContactBlock() {
   const c = useContent();
   const { locale } = useLocale();
   const isAr = locale === 'ar';
+  const [settings, setSettings] = useState<PublicSettings | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    void fetchPublicSettings().then((data) => {
+      if (mounted) setSettings(data);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const publicEmail = settings?.contact?.public_email?.trim() || publicSettingsFallback.publicEmail;
   
   return (
     <section className="contact-workspace">
@@ -218,7 +345,7 @@ export function ContactBlock() {
             </p>
             <div className="contact-detail-item">
               <span className="detail-label">{isAr ? 'البريد الإلكتروني' : 'EMAIL'}</span>
-              <a href="mailto:hello@legendarymea.com" dir="ltr">hello@legendarymea.com</a>
+              <a href={`mailto:${publicEmail}`} dir="ltr">{publicEmail}</a>
             </div>
           </div>
         </div>

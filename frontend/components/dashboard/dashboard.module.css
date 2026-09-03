@@ -1,0 +1,4700 @@
+.dashboardRoot {
+  min-height: 100dvh;
+  color: #17202a;
+  background: #f7f4ee;
+  font-family: var(--font-en), Arial, sans-serif;
+}
+
+.dashboardRoot :global(button),
+.dashboardRoot :global(a),
+.dashboardRoot :global(input),
+.dashboardRoot :global(select),
+.dashboardRoot :global(textarea) {
+  font: inherit;
+}
+
+.dashboardRoot :global(button) {
+  cursor: pointer;
+}
+
+.shell[dir="rtl"],
+.loginPage[dir="rtl"] {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+}
+
+.shell {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-columns: 284px minmax(0, 1fr);
+  transition: grid-template-columns .25s ease;
+}
+
+.shellCollapsed {
+  grid-template-columns: 80px minmax(0, 1fr);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  inset-inline-start: 0;
+  display: flex;
+  height: 100dvh;
+  width: 284px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  flex-direction: column;
+  padding: 22px 16px;
+  color: rgba(255, 255, 255, .86);
+  background: #081d60;
+  border-inline-end: 1px solid rgba(255, 255, 255, .1);
+  transition: width .25s ease, padding .25s ease;
+}
+
+.shellCollapsed .sidebar {
+  width: 80px;
+  padding: 22px 8px;
+}
+
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 8px 26px;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+
+.brandFull {
+  display: grid;
+  gap: 14px;
+}
+
+.brandFull img {
+  width: 178px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+.brandCollapsedWrapper {
+  display: contents;
+}
+
+.brandCollapsed {
+  width: 32px;
+  height: 32px;
+  margin-inline-start: 4px;
+}
+
+.desktopCollapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: rgba(255, 255, 255, .56);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.desktopCollapseBtn:hover,
+.desktopCollapseBtn:focus-visible {
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  outline: none;
+}
+
+.shellCollapsed .desktopCollapseBtn {
+  margin: 0 auto;
+}
+
+.shellCollapsed .brandFull {
+  display: none;
+}
+
+.shellCollapsed .sidebarBrand {
+  flex-direction: column;
+  padding-bottom: 24px;
+  gap: 16px;
+}
+
+.sidebarBrand span,
+.navSection,
+.pageContext span,
+.sectionHeader span,
+.loginBrandPanel span,
+.loginFormHeader span,
+.sidebarFooter span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.sidebarBrand span,
+.navSection,
+.sidebarFooter span {
+  color: rgba(255, 255, 255, .56);
+}
+
+.sidebarNav {
+  display: grid;
+  gap: 12px;
+  overflow-y: auto;
+  padding-block: 22px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .22) transparent;
+}
+
+.navSection {
+  display: block;
+  padding: 0 12px 4px;
+}
+
+.navGroup {
+  display: grid;
+  gap: 5px;
+}
+
+.navGroupItems {
+  display: grid;
+  gap: 4px;
+}
+
+.navSectionButton {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 4px;
+  color: rgba(255, 255, 255, .56);
+  background: transparent;
+  border: 0;
+}
+
+.navSectionButton span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.navSectionButton svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  opacity: .72;
+  transition: transform .2s ease;
+}
+
+.navSectionButton[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+
+.shell[dir="rtl"] .navSectionButton[aria-expanded="false"] svg {
+  transform: rotate(90deg);
+}
+
+.navSectionButtonActive,
+.navSectionButton:hover,
+.navSectionButton:focus-visible {
+  color: rgba(255, 255, 255, .86);
+  outline: none;
+}
+
+.navLink {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  text-align: start;
+  color: rgba(255, 255, 255, .76);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.navLink svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.navLinkActive,
+.navLink:not(:disabled):hover,
+.navLink:not(:disabled):focus-visible {
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(160, 127, 49, .48);
+  outline: none;
+}
+
+.navLabel {
+  min-width: 0;
+  overflow: hidden;
+  flex: 1 1 auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navStatus {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 96px;
+  padding: 3px 6px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, .76);
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navLinkDormant {
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+.navLinkDormant:hover,
+.navLinkDormant:disabled {
+  color: rgba(255, 255, 255, .76);
+  background: transparent;
+  border-color: transparent;
+}
+
+.sidebarFooter {
+  margin-top: auto;
+  padding: 18px 12px 12px;
+}
+
+.sidebarFooterBox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(216, 194, 124, 0.1);
+  border: 1px solid rgba(216, 194, 124, 0.25);
+  border-radius: 12px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.sidebarFooterLabel {
+  color: rgba(216, 194, 124, 0.8);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.sidebarFooterUser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebarFooterAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(216, 194, 124, 0.2);
+  border-radius: 50%;
+  color: #d8c27c;
+  flex-shrink: 0;
+}
+
+.sidebarFooterAvatar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebarFooterUserInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sidebarFooterUserInfo strong {
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarFooterUserInfo span {
+  color: rgba(255, 255, 255, .64);
+  font-size: 9.5px;
+}
+
+.sidebarFooterEmail {
+  padding: 8px 8px;
+  border: 1px dashed rgba(216, 194, 124, 0.25);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.sidebarFooterEmail span {
+  display: block;
+  font-size: 8px;
+  color: rgba(255, 255, 255, .65);
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.shellCollapsed .sidebarFooter {
+  display: none;
+}
+
+.shellCollapsed .navSectionButton,
+.shellCollapsed .navSection,
+.shellCollapsed .navStatus {
+  display: none;
+}
+
+.shellCollapsed .navLink {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  position: relative;
+}
+
+.shellCollapsed .navLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Tooltip implementation */
+.floatingTooltip {
+  position: fixed;
+  inset-inline-start: 88px;
+  transform: translateY(-50%);
+  padding: 6px 12px;
+  background: #17202a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(8, 29, 96, 0.15);
+  animation: tooltipFadeIn 0.15s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.main {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px clamp(18px, 3vw, 34px);
+  background: rgba(255, 255, 255, .92);
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+  backdrop-filter: blur(16px);
+}
+
+.pageContext {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.pageContext span,
+.sectionHeader span,
+.loginFormHeader span {
+  color: #a07f31;
+}
+
+.pageContext h1,
+.sectionHeader h2,
+.cardTitle h2,
+.loginFormHeader h2,
+.welcomePanel h2 {
+  margin: 0;
+  color: #081d60;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+}
+
+.iconButton,
+.userButton,
+.primaryButton,
+.secondaryButton,
+.menuItem {
+  min-height: 44px;
+  border-radius: 8px;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.iconButton {
+  display: grid;
+  width: 44px;
+  place-items: center;
+  color: #081d60;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .13);
+}
+
+.iconButton svg,
+.userButton svg,
+.primaryButton svg,
+.secondaryButton svg,
+.menuItem svg,
+.cardTitle svg,
+.workBadge svg,
+.metricCard svg {
+  width: 18px;
+  height: 18px;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible,
+.userButton:hover,
+.userButton:focus-visible {
+  border-color: rgba(160, 127, 49, .7);
+  outline: none;
+}
+
+.topbar > .iconButton {
+  display: none;
+}
+
+.mobileOnlyBtn,
+.mobileActionLabel,
+.desktopLang {
+  display: none; /* these are overridden appropriately based on context */
+}
+
+.desktopLang {
+  display: block;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  color: #081d60;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .13);
+}
+
+.userButton .desktopUserInfo {
+  display: grid;
+  min-width: 0;
+  text-align: start;
+}
+
+.userButton strong {
+  max-width: 150px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userButton small {
+  color: #6d716f;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  inset-inline-end: 0;
+  z-index: 30;
+  display: grid;
+  width: min(310px, calc(100vw - 28px));
+  gap: 10px;
+  padding: 16px;
+  color: #17202a;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 8px;
+  box-shadow: 0 20px 50px rgba(8, 29, 96, .14);
+}
+
+.dropdown strong {
+  color: #081d60;
+}
+
+.dropdown p {
+  margin: 0;
+  color: #6d716f;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dropdown .menuError {
+  padding: 10px 12px;
+  color: #7a1f1f;
+  background: #fff3f0;
+  border: 1px solid #f2c5bb;
+  border-radius: 8px;
+}
+
+.mobileMenuLang {
+  display: none;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  color: #081d60;
+  background: #f7f4ee;
+  border: 1px solid rgba(8, 29, 96, .08);
+}
+
+.content {
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.overview {
+  display: grid;
+  gap: 24px;
+}
+
+.welcomePanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 24px;
+  align-items: end;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+  box-shadow: 0 12px 34px rgba(8, 29, 96, .06);
+}
+
+.welcomePanel span {
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.welcomePanel h2 {
+  margin-top: 8px;
+  font-size: clamp(28px, 3vw, 42px);
+}
+
+.welcomePanel p,
+.sectionHeader p {
+  max-width: 660px;
+  margin: 12px 0 0;
+  color: #626968;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.workBadge {
+  display: grid;
+  gap: 9px;
+  padding: 18px;
+  color: #081d60;
+  background: #f7f4ee;
+  border: 1px solid rgba(160, 127, 49, .25);
+  border-radius: 8px;
+}
+
+.workBadge span {
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workBadge strong {
+  color: #626968;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.metricsSection,
+.breakdownCard,
+.activityCard {
+  padding: 22px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.metricCard {
+  display: grid;
+  min-height: 132px;
+  gap: 12px;
+  padding: 18px;
+  color: #081d60;
+  background: #fbfaf7;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 8px;
+}
+
+.metricCard span {
+  color: #626968;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.metricCard strong {
+  align-self: end;
+  color: #081d60;
+  font-size: 30px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+}
+
+.cardTitle svg {
+  color: #a07f31;
+}
+
+.cardTitle h2 {
+  font-size: 18px;
+}
+
+.breakdownList {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.breakdownItem {
+  display: grid;
+  gap: 9px;
+}
+
+.breakdownItem div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.breakdownItem span {
+  color: #626968;
+  font-size: 13px;
+}
+
+.breakdownItem strong {
+  color: #081d60;
+}
+
+.breakdownBar {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  background: #ede9df;
+  border-radius: 999px;
+}
+
+.breakdownBar i {
+  display: block;
+  height: 100%;
+  background: #a07f31;
+  border-radius: inherit;
+}
+
+.emptyBlock {
+  display: grid;
+  min-height: 160px;
+  place-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 24px;
+  text-align: center;
+  background: #fbfaf7;
+  border: 1px dashed rgba(8, 29, 96, .18);
+  border-radius: 8px;
+}
+
+.emptyBlock strong {
+  color: #081d60;
+}
+
+.emptyBlock p {
+  max-width: 360px;
+  margin: 0 auto;
+  color: #626968;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.centerState {
+  display: grid;
+  min-height: min(540px, 100dvh);
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 34px;
+  text-align: center;
+}
+
+.inlineState {
+  min-height: 240px;
+}
+
+.centerState svg {
+  width: 32px;
+  height: 32px;
+  color: #a07f31;
+}
+
+.centerState strong {
+  color: #081d60;
+  font-size: 22px;
+}
+
+.centerState p {
+  max-width: 460px;
+  margin: 0;
+  color: #626968;
+  line-height: 1.6;
+}
+
+.loadingMark {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(8, 29, 96, .14);
+  border-top-color: #a07f31;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.loginPage {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr);
+}
+
+.loginBrandPanel {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  padding: clamp(32px, 7vw, 86px);
+  color: #fff;
+  background: #081d60;
+}
+
+.loginBrandPanel img {
+  width: min(245px, 70vw);
+  height: auto;
+  margin-bottom: 18px;
+  filter: brightness(0) invert(1);
+}
+
+.loginBrandPanel span {
+  color: #d9c188;
+}
+
+.loginBrandPanel h1 {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(34px, 4.5vw, 58px);
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.loginBrandPanel p {
+  max-width: 520px;
+  margin: 0;
+  color: rgba(255, 255, 255, .72);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.loginAssurance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.loginAssurance span {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, .85);
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.loginAssurance svg {
+  width: 16px;
+  height: 16px;
+  color: #d9c188;
+}
+
+.loginFormPanel {
+  display: grid;
+  align-content: center;
+  padding: clamp(24px, 6vw, 70px);
+}
+
+.loginFormHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.loginFormHeader h2 {
+  margin-top: 8px;
+  font-size: 28px;
+}
+
+.loginForm {
+  display: grid;
+  gap: 16px;
+  max-width: 440px;
+}
+
+.loginForm label {
+  display: grid;
+  gap: 8px;
+  color: #081d60;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.loginForm input {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 13px;
+  color: #17202a;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .15);
+  border-radius: 8px;
+  outline: none;
+}
+
+.loginForm input:focus-visible {
+  border-color: #a07f31;
+  box-shadow: 0 0 0 3px rgba(160, 127, 49, .18);
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  font-weight: 700;
+}
+
+.primaryButton {
+  margin-top: 4px;
+  color: #fff;
+  background: #081d60;
+  border: 1px solid #081d60;
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  background: #0d287c;
+  outline: none;
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+.secondaryButton {
+  color: #081d60;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .16);
+}
+
+.employeesPage {
+  display: grid;
+  gap: 20px;
+}
+
+.managementToolbar {
+  display: grid;
+  gap: 16px;
+}
+
+.managementHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.managementHeader span,
+.dialogHeader span {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.managementHeader h2,
+.dialogHeader h2 {
+  margin: 5px 0 0;
+  color: #081d60;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.managementHeader p {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: #626968;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.successAlert {
+  margin: 0;
+  padding: 12px 14px;
+  color: #145337;
+  background: #eef9f2;
+  border: 1px solid #b9dfc7;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.accessHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 0;
+}
+
+.accessHeader span {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.accessHeader h3 {
+  margin: 5px 0 0;
+  color: #081d60;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.accessHeader p {
+  margin: 8px 0 0;
+  color: #626968;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.accessTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.accessTab {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  color: #081d60;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.accessTabActive {
+  color: #fff;
+  background: #081d60;
+  border-color: #081d60;
+}
+
+.accessMatrixWrap {
+  width: 100%;
+  overflow-x: auto;
+  padding-top: 16px;
+}
+
+.rolePermissionCards {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.rolePermissionCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rolePermissionCardHeader h4 {
+  margin: 0;
+  color: #081d60;
+  font-size: 17px;
+  line-height: 1.25;
+  text-transform: capitalize;
+}
+
+.rolePermissionCardHeader p {
+  margin: 6px 0 0;
+  color: #626968;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rolePermissionGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.rolePermissionGroup > strong {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.permissionGroupRow td {
+  background: #f8f9fc;
+  color: #081d60;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.permissionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.permissionToggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #081d60;
+}
+
+.permissionToggle span {
+  color: #626968;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.permissionToggleOn {
+  color: #145337 !important;
+}
+
+.employeeToolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.invoiceToolbar {
+  grid-template-columns: minmax(240px, 1.4fr) repeat(5, minmax(132px, 1fr));
+}
+
+.companyToolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.35fr) repeat(5, minmax(132px, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.secondaryToolbar {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.managementSearchToolbar {
+  grid-template-columns: minmax(240px, 1.35fr);
+}
+
+.filterActionsRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filterCountBadge {
+  display: inline-flex;
+  min-width: 24px;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  color: #081d60;
+  background: #f7f4ee;
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.filterChevron {
+  transition: transform .2s ease;
+}
+
+.filterChevronOpen {
+  transform: rotate(180deg);
+}
+
+.employeeToolbar label,
+.companyToolbar label,
+.formField {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #081d60;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.employeeToolbar input,
+.employeeToolbar select,
+.companyToolbar input,
+.companyToolbar select,
+.formField input,
+.formField select,
+.formField textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: #17202a;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .14);
+  border-radius: 8px;
+  outline: none;
+}
+
+.employeeToolbar input:focus-visible,
+.employeeToolbar select:focus-visible,
+.companyToolbar input:focus-visible,
+.companyToolbar select:focus-visible,
+.formField input:focus-visible,
+.formField select:focus-visible,
+.formField textarea:focus-visible {
+  border-color: #a07f31;
+  box-shadow: 0 0 0 3px rgba(160, 127, 49, .16);
+}
+
+.formField textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.selectTrigger {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  color: #17202a;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .14);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  outline: none;
+}
+
+.selectTrigger:focus-visible,
+.selectTrigger[data-popup-open] {
+  border-color: #a07f31;
+  box-shadow: 0 0 0 3px rgba(160, 127, 49, .16);
+}
+
+.selectIcon {
+  display: inline-flex;
+  color: #626968;
+}
+
+.selectIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.selectPositioner {
+  z-index: 120;
+  min-width: var(--anchor-width);
+}
+
+.selectPopup {
+  max-height: 260px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .14);
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(8, 29, 96, .16);
+}
+
+.selectList {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.selectItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  color: #081d60;
+  border-radius: 7px;
+  cursor: default;
+  outline: none;
+}
+
+.selectItem[data-highlighted] {
+  background: #f7f4ee;
+}
+
+.selectItem[data-selected] {
+  font-weight: 800;
+}
+
+.selectItemIndicator {
+  display: inline-flex;
+  color: #a07f31;
+}
+
+.selectItemIndicator svg {
+  width: 16px;
+  height: 16px;
+}
+
+.formField em {
+  color: #7c817f;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.searchControl {
+  position: relative;
+}
+
+.searchControl svg {
+  position: absolute;
+  inset-block-end: 13px;
+  inset-inline-start: 12px;
+  width: 18px;
+  height: 18px;
+  color: #a07f31;
+  pointer-events: none;
+}
+
+.searchControl input {
+  padding-inline-start: 40px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.employeePanel {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.employeePanelRefreshing {
+  opacity: .72;
+}
+
+.employeeTableWrap {
+  overflow-x: auto;
+}
+
+.employeeTable {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.clientOnboardingTable,
+.companyTable,
+.quotationsTable,
+.approvalsTable,
+.activeServiceTable {
+  min-width: 980px;
+}
+
+/* Compact person cell for table use — name + truncated email on second line */
+.personCell {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.personCell strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  color: #081d60;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.personCell small {
+  overflow: hidden;
+  font-size: 11px;
+  color: #626968;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.employeeTable th,
+.employeeTable td {
+  padding: 14px 16px;
+  text-align: start;
+  border-bottom: 1px solid rgba(8, 29, 96, .08);
+  vertical-align: middle;
+}
+
+.employeeTable th {
+  color: #59605f;
+  background: #fbfaf7;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.employeeTable td {
+  color: #17202a;
+  font-size: 13px;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+}
+
+.sortButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sortButtonActive {
+  color: #081d60;
+}
+
+.referenceText {
+  color: #081d60;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.textMuted {
+  color: #626968;
+}
+
+.metaText {
+  overflow: hidden;
+  color: #626968;
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textLink,
+.entityLink {
+  color: #081d60;
+  text-decoration: none;
+}
+
+.textLink:hover,
+.textLink:focus-visible,
+.entityLink:hover,
+.entityLink:focus-visible {
+  color: #0d287c;
+  text-decoration: underline;
+  outline: none;
+}
+
+.employeeIdentity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 11px;
+}
+
+.employeeIdentity > span {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #fff;
+  background: #081d60;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.employeeIdentity > span svg {
+  width: 18px;
+  height: 18px;
+}
+
+.employeeIdentity div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.employeeIdentity strong {
+  overflow: hidden;
+  color: #081d60;
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.employeeIdentity small {
+  overflow: hidden;
+  color: #626968;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.actionCell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actionColumn {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.rowActions .iconButton {
+  width: 38px;
+  min-height: 38px;
+}
+
+.primaryAction,
+.secondaryAction,
+.dangerAction {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.primaryAction {
+  color: #fff;
+  background: #081d60;
+  border: 1px solid #081d60;
+}
+
+.primaryAction:hover,
+.primaryAction:focus-visible {
+  background: #0d287c;
+  outline: none;
+}
+
+.secondaryAction {
+  color: #081d60;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .16);
+}
+
+.dangerAction {
+  color: #8d2020;
+  background: #fff;
+  border: 1px solid rgba(141, 32, 32, .2);
+}
+
+.dangerIconButton {
+  color: #8d2020;
+}
+
+.statusBadge {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status_active {
+  color: #145337;
+  background: #eaf8ef;
+}
+
+.status_inactive {
+  color: #626968;
+  background: #ecebe6;
+}
+
+.status_on_leave {
+  color: #805d13;
+  background: #fff4d6;
+}
+
+.status_archived {
+  color: #5e5467;
+  background: #f1edf4;
+}
+
+.status_new {
+  color: #664319;
+  background: #fdf1d8;
+}
+
+.status_contacted {
+  color: #145267;
+  background: #e7f5fb;
+}
+
+.status_qualified,
+.status_discovery {
+  color: #145337;
+  background: #eaf8ef;
+}
+
+.status_unqualified,
+.status_lost {
+  color: #8d2020;
+  background: #fff0ed;
+}
+
+.status_converted,
+.status_won {
+  color: #145337;
+  background: #e3f7ea;
+}
+
+.status_qualification {
+  color: #6a4a16;
+  background: #fff5dd;
+}
+
+.status_proposal {
+  color: #5b3d87;
+  background: #f2ebff;
+}
+
+.status_negotiation {
+  color: #82451a;
+  background: #fdeedc;
+}
+
+.status_pending {
+  color: #805d13;
+  background: #fff4d6;
+}
+
+.status_approved {
+  color: #145337;
+  background: #e3f7ea;
+}
+
+.status_draft {
+  color: #6a4a16;
+  background: #fff5dd;
+}
+
+.status_sent,
+.status_published,
+.status_reviewing,
+.status_shortlisted,
+.status_interview,
+.status_hired {
+  color: #145337;
+  background: #e3f7ea;
+}
+
+.status_failed,
+.status_suspended {
+  color: #8d2020;
+  background: #fff0ed;
+}
+
+.status_closed,
+.status_withdrawn {
+  color: #626968;
+  background: #ecebe6;
+}
+
+.status_rejected,
+.status_cancelled {
+  color: #8d2020;
+  background: #fff0ed;
+}
+
+.priority_low {
+  color: #5f6671;
+  background: #eff2f5;
+}
+
+.priority_normal {
+  color: #145267;
+  background: #e7f5fb;
+}
+
+.priority_high {
+  color: #805d13;
+  background: #fff4d6;
+}
+
+.priority_urgent {
+  color: #8d2020;
+  background: #fff0ed;
+}
+
+.relationshipTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.relationshipTags span,
+.checkPill span {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 4px 8px;
+  color: #081d60;
+  background: #f7f4ee;
+  border: 1px solid rgba(160, 127, 49, .28);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.employeeMobileList {
+  display: none;
+}
+
+.employeeMobileCard {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(8, 29, 96, .08);
+}
+
+.mobileCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.employeeMobileCard dl,
+.employeeDetails dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.employeeMobileCard dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.employeeMobileCard div,
+.employeeDetails dl div {
+  min-width: 0;
+}
+
+.employeeMobileCard dt,
+.employeeDetails dt {
+  margin-bottom: 3px;
+  color: #626968;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.employeeMobileCard dd,
+.employeeDetails dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #081d60;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mobileDate {
+  flex: 0 0 auto;
+  color: #626968;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mobileCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #fbfaf7;
+}
+
+.managementPagination {
+  border-top: 1px solid rgba(8, 29, 96, .08);
+}
+
+.pagination p {
+  margin: 0;
+  color: #626968;
+  font-size: 13px;
+}
+
+.pagination div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  place-items: center;
+  margin: 0;
+  padding: 18px;
+  overflow: hidden;
+  background: rgba(6, 16, 45, .55);
+  border: 0;
+}
+
+dialog.dialogOverlay {
+  background: rgba(6, 16, 45, .55);
+}
+
+.dialogContent {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(920px, 100%);
+  max-height: calc(100dvh - 36px);
+  min-width: 0;
+  overflow: hidden;
+  gap: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 8px;
+  box-shadow: 0 28px 90px rgba(6, 16, 45, .28);
+}
+
+.dialogBody {
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 18px;
+  padding-inline-end: 4px;
+}
+
+.dialogFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 14px;
+  background: #fff;
+  border-top: 1px solid rgba(8, 29, 96, .1);
+}
+
+.pageButton {
+  display: grid;
+  width: 38px;
+  min-height: 38px;
+  place-items: center;
+  color: #081d60;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.pageButtonActive {
+  color: #fff;
+  background: #081d60;
+}
+
+.modalLayer {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(6, 16, 45, .55);
+}
+
+.employeeDialog {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(760px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow: hidden;
+  gap: 18px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 8px;
+  box-shadow: 0 28px 90px rgba(6, 16, 45, .28);
+}
+
+.companyDialog {
+  width: min(920px, 100%);
+}
+
+.largeDialog {
+  width: min(1080px, 100%);
+}
+
+.employeeDetailDialog {
+  width: min(620px, 100%);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+}
+
+.employeeForm,
+.employeeDetails,
+.confirmDialog {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+}
+
+.employeeForm,
+.companyForm {
+  min-height: 0;
+  overflow-y: auto;
+  padding-inline-end: 4px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.emailPreviewBlock,
+.emailPreviewDialogBody {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.emailPreviewBlock {
+  padding: 16px;
+  background: #f8f6f1;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.emailPreviewFrame {
+  width: 100%;
+  min-height: 260px;
+  max-height: 560px;
+  overflow: auto;
+  padding: 18px;
+  background: #f4f1eb;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.emailPreviewFrame table {
+  max-width: 100%;
+}
+
+.emailPreviewFrame img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.emailTemplateImageField {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 8px;
+}
+
+.emailTemplateImagePreview {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  max-height: 440px;
+  overflow: auto;
+  background: #f4f1eb;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.emailTemplateImagePreview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.uploadMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 0;
+  color: #081d60;
+}
+
+.uploadMeta div {
+  display: grid;
+  gap: 2px;
+}
+
+.uploadMeta dt {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.uploadMeta dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.emailTemplateImageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.emailTemplateImageActions input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.templateModeSwitch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 6px;
+  background: #f7f4ee;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.previewEmpty {
+  margin: 0;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.templateModeSwitch .primaryButton,
+.templateModeSwitch .secondaryButton {
+  min-height: 42px;
+  margin: 0;
+}
+
+.emailConfigurationStatusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.emailConfigurationStatus {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  background: #fbfaf7;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.emailConfigurationStatus span {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.statusActive,
+.statusMuted {
+  font-size: 15px;
+}
+
+.statusActive {
+  color: #0f7a45;
+}
+
+.statusMuted {
+  color: #9a3412;
+}
+
+.pageNotice,
+.emailTestToast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 122, 69, .2);
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #064e3b;
+}
+
+.pageNotice {
+  display: block;
+}
+
+.pageNotice p,
+.emailTestToast p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.emailTestToast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 90;
+  width: min(420px, calc(100vw - 36px));
+  box-shadow: 0 18px 45px rgba(8, 29, 96, .18);
+}
+
+[dir="rtl"] .emailTestToast {
+  right: auto;
+  left: 18px;
+}
+
+.emailTestToast svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.emailTestToast strong {
+  display: block;
+  margin-bottom: 2px;
+  color: inherit;
+  font-size: 14px;
+}
+
+.emailTestToastDanger {
+  border-color: rgba(141, 32, 32, .2);
+  background: #fff5f5;
+  color: #8d2020;
+}
+
+.passwordField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+}
+
+.emailTestRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.emailTestRow > label {
+  flex: 1 1 280px;
+}
+
+.emailTestRow > p {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.invoiceThreeColumnGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.invoiceWideField {
+  grid-column: 1 / -1;
+}
+
+.companyForm {
+  display: grid;
+  gap: 18px;
+}
+
+.employeeForm > .dialogActions,
+.companyForm > .dialogActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding-top: 14px;
+  background: #fff;
+  border-top: 1px solid rgba(8, 29, 96, .1);
+}
+
+.formSection {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.formSection legend {
+  padding-inline: 6px;
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.formSectionStack {
+  display: grid;
+  gap: 14px;
+}
+
+.contractTemplateEditor {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.contractTemplatePageLabel {
+  border-bottom: 1px solid rgba(8, 29, 96, .12);
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  padding: 10px 0 4px;
+  text-transform: uppercase;
+}
+
+.contractAgreementTermsHeader {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: center;
+  min-width: 0;
+}
+
+.contractAgreementTermsHeader strong {
+  display: block;
+  background: #b69338;
+  color: #fff;
+  padding: 7px 10px;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.contractAgreementTermsHeader strong[dir="rtl"] {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  text-align: right;
+  letter-spacing: 0;
+}
+
+.contractTemplateEditor .contractAgreementTermsHeader strong {
+  font-size: 14px;
+}
+
+.contractTemplateSection {
+  overflow: hidden;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.contractTemplateTrigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: #fbfaf7;
+  padding: 13px 14px;
+  color: #081d60;
+  text-align: start;
+  cursor: pointer;
+}
+
+.contractTemplateTrigger[aria-expanded="true"] {
+  border-bottom-color: rgba(8, 29, 96, .1);
+}
+
+.contractTemplateTrigger span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+  min-width: 0;
+}
+
+.contractTemplateTrigger strong {
+  color: #a07f31;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.contractTemplateTrigger small {
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.contractTemplateChevron {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  transition: transform .2s ease;
+}
+
+.contractTemplateChevronOpen {
+  transform: rotate(180deg);
+}
+
+.contractClauseList {
+  display: grid;
+  gap: 0;
+  padding: 4px 14px 14px;
+}
+
+.contractClauseRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  min-width: 0;
+  border-bottom: 1px solid rgba(8, 29, 96, .08);
+  padding: 12px 0;
+}
+
+.contractClauseRow:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.contractClauseEditField {
+  gap: 6px;
+}
+
+.contractClauseEditLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.contractClauseEditLabel[dir="rtl"] {
+  flex-direction: row;
+  justify-content: flex-start;
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.contractClauseEditLabel i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #a07f31;
+}
+
+.contractClauseEditField textarea {
+  min-height: 96px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.contractClauseEditField textarea[dir="rtl"] {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+.fieldHint {
+  margin: 0;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.readOnlyField {
+  display: grid;
+  gap: 4px;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: #17202a;
+  background: #f8f9fc;
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 8px;
+}
+
+.readOnlyValue {
+  margin: 0;
+  color: #17202a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.readOnlyMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.loadingState {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: dashboardSpin 0.9s linear infinite;
+}
+
+.lineItemGrid {
+  display: grid;
+  gap: 14px;
+  align-items: end;
+  grid-template-columns: minmax(0, 2.8fr) repeat(3, minmax(0, 1fr)) auto;
+}
+
+.lineItemActions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #f8f9fc;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.summaryGrid > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summaryTotal {
+  padding-top: 10px;
+  border-top: 1px solid rgba(8, 29, 96, .1);
+  font-weight: 800;
+}
+
+.relationshipCheckGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checkPill {
+  cursor: pointer;
+}
+
+.checkPill input {
+  position: absolute;
+  opacity: 0;
+}
+
+.checkPill input:checked + span {
+  color: #fff;
+  background: #081d60;
+  border-color: #081d60;
+}
+
+.checkboxField,
+.formCheckbox {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: #081d60;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkboxField input,
+.formCheckbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #081d60;
+}
+
+.company360 {
+  display: grid;
+  gap: 20px;
+}
+
+.company360Header,
+.detailPanel {
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.company360Header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 22px;
+}
+
+.invoiceHeader {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  align-items: start;
+}
+
+.invoicePage {
+  display: grid;
+  gap: 20px;
+}
+
+.invoiceAdminHeader {
+  background: linear-gradient(180deg, #fff, #fcfbf6);
+}
+
+.invoiceAdminHeader p {
+  margin: 10px 0 0;
+  color: #626968;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.invoiceAdminEyebrow {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.invoiceAdminActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  align-self: flex-start;
+}
+
+.invoiceAdminActions .backLink {
+  margin-bottom: 0;
+}
+
+.invoiceAdminActions > button {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  gap: 0;
+}
+
+.invoiceAdminActions > button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.invoiceDocument {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(8, 29, 96, .08);
+}
+
+.invoiceDocumentHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+}
+
+.invoiceIssuer {
+  display: grid;
+  gap: 14px;
+  max-width: 560px;
+}
+
+.invoiceIssuerCopy {
+  display: grid;
+  gap: 4px;
+}
+
+.invoiceIssuerCopy span {
+  color: #081d60;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.invoiceIssuerCopy p {
+  margin: 0;
+  color: #626968;
+  font-size: 13px;
+}
+
+.invoiceDocumentMark {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  text-align: end;
+}
+
+.invoiceDocumentMark span {
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.invoiceDocumentMark h1 {
+  margin: 0;
+  color: #081d60;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -.02em;
+}
+
+.invoiceDetailPanel {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  background: #fcfcf8;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 14px;
+}
+
+.invoiceSummaryPanel {
+  justify-items: end;
+}
+
+.invoiceTableWrap {
+  overflow-x: auto;
+}
+
+.invoiceTable {
+  width: 100%;
+  min-width: 940px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.invoiceTableColService {
+  width: 16%;
+}
+
+.invoiceTableColServiceName {
+  width: 30%;
+}
+
+.invoiceTableColDates {
+  width: 20%;
+}
+
+.invoiceTableColQty {
+  width: 7%;
+}
+
+.invoiceTableColUnitPrice {
+  width: 13.5%;
+}
+
+.invoiceTableColLineTotal {
+  width: 13.5%;
+}
+
+.invoiceTable th,
+.invoiceTable td {
+  padding: 14px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(8, 29, 96, .08);
+}
+
+.invoiceTable th {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+.invoiceTable td {
+  color: #081d60;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.invoiceTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.invoiceTable td:nth-child(4) {
+  text-align: center;
+}
+
+.invoiceTable td:nth-child(5),
+.invoiceTable td:nth-child(6) {
+  text-align: end;
+}
+
+.invoiceTable td:nth-child(3) {
+  white-space: nowrap;
+}
+
+.invoiceMoneyValue {
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+
+.invoiceTable td:nth-child(5) .invoiceMoneyValue,
+.invoiceTable td:nth-child(6) .invoiceMoneyValue {
+  vertical-align: top;
+}
+
+.invoiceBillGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.invoicePartyCard {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 12px;
+}
+
+.invoicePartyKicker {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.invoicePartyName {
+  color: #081d60;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.invoicePartyLines {
+  display: grid;
+  gap: 4px;
+  color: #626968;
+  font-size: 13px;
+}
+
+.invoiceDetailsGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.invoiceDetailsGrid div,
+.internalFinanceDetails div {
+  display: grid;
+  gap: 4px;
+}
+
+.invoiceDetailsGrid dt,
+.internalFinanceDetails dt {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.invoiceDetailsGrid dd,
+.internalFinanceDetails dd {
+  margin: 0;
+  color: #081d60;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.invoiceCellMain {
+  display: grid;
+  gap: 4px;
+}
+
+.invoiceCellMain strong {
+  font-weight: 800;
+}
+
+.invoiceCellMain span {
+  color: #626968;
+  font-size: 12px;
+}
+
+.invoiceTotalsBlock {
+  display: grid;
+  justify-self: end;
+  width: min(360px, 100%);
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #fff, #fbfaf4);
+  border: 1px solid rgba(8, 29, 96, .12);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(8, 29, 96, .06);
+}
+
+.invoiceTotalsRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+}
+
+.invoiceTotalsRow span {
+  color: #626968;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.invoiceTotalsRow strong {
+  color: #081d60;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.invoiceTotalsDivider {
+  height: 1px;
+  margin: 6px 0;
+  background: rgba(8, 29, 96, .12);
+}
+
+.invoiceTotalsTotalRow span,
+.invoiceTotalsTotalRow strong {
+  color: #081d60;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.invoiceTotalsBalanceRow span,
+.invoiceTotalsBalanceRow strong {
+  color: #a07f31;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.invoiceNotesArea {
+  display: grid;
+  gap: 16px;
+}
+
+.invoiceNotesArea strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #081d60;
+}
+
+.invoiceNotesArea p {
+  margin: 0;
+  color: #626968;
+  line-height: 1.7;
+}
+
+.invoiceFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(8, 29, 96, .1);
+}
+
+.invoiceFooterBrand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.invoiceFooterBrand strong {
+  display: block;
+  color: #081d60;
+  font-size: 15px;
+}
+
+.invoiceFooterBrand span,
+.invoiceFooterMeta span {
+  display: block;
+  color: #626968;
+  font-size: 13px;
+}
+
+.invoiceFooterBrand img {
+  width: 22px;
+  height: 22px;
+}
+
+.invoiceFooterContactLine {
+  display: inline-flex !important;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.invoiceFooterMeta {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  text-align: end;
+}
+
+.internalFinanceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.internalFinanceItem {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 12px;
+}
+
+.internalFinanceItemHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.internalFinanceItemHeader strong {
+  color: #081d60;
+  font-size: 15px;
+}
+
+.internalFinanceItemHeader span {
+  color: #626968;
+  font-size: 13px;
+}
+
+.internalFinanceDetails {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .invoiceBillGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceSummaryPanel {
+    justify-items: stretch;
+  }
+
+  .invoiceTotalsBlock {
+    width: 100%;
+  }
+}
+
+@media (max-width: 860px) {
+  .invoiceTable {
+    min-width: 0;
+  }
+
+  .invoiceTable,
+  .invoiceTable thead,
+  .invoiceTable tbody,
+  .invoiceTable tr,
+  .invoiceTable th,
+  .invoiceTable td {
+    display: block;
+  }
+
+  .invoiceTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  .invoiceTable tr {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(8, 29, 96, .08);
+  }
+
+  .invoiceTable td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border: 0;
+  }
+
+  .invoiceTable td::before {
+    content: attr(data-label);
+    color: #a07f31;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    flex: 0 0 42%;
+  }
+
+  .invoiceTable td > * {
+    text-align: end;
+  }
+
+  .invoiceTable td:nth-child(4),
+  .invoiceTable td:nth-child(5),
+  .invoiceTable td:nth-child(6),
+  .invoiceTable td:nth-child(3) {
+    text-align: end;
+    white-space: normal;
+  }
+
+  .invoiceTable td:nth-child(4)::before {
+    content: 'Qty';
+  }
+
+  .invoiceTable td:nth-child(5)::before {
+    content: 'Unit Price';
+  }
+
+  .invoiceTable td:nth-child(6)::before {
+    content: 'Line Total';
+  }
+}
+
+@media print {
+  :global(html),
+  :global(body) {
+    background: #fff !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  :global(body) * {
+    visibility: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .invoiceDocument,
+  .invoiceDocument *,
+  .contractDocument,
+  .contractDocument * {
+    visibility: visible !important;
+  }
+
+  .invoiceDocument,
+  .contractDocument {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .invoiceDocumentHeader,
+  .invoiceDetailPanel,
+  .invoiceFooter {
+    break-inside: avoid;
+  }
+
+  .contractPdfPage {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .invoiceTotalsBlock {
+    width: 100%;
+  }
+
+  .invoicePage > :not(.invoiceDocument),
+  .invoicePage > :not(.contractDocument) {
+    display: none !important;
+  }
+}
+
+.approvalDetailHeader {
+  grid-template-columns: 1fr;
+}
+
+.company360Header > div:first-child {
+  min-width: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #081d60;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.backLink svg {
+  width: 16px;
+  height: 16px;
+}
+
+.company360Header span {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.company360Header h2 {
+  margin: 4px 0 0;
+  color: #081d60;
+  font-size: 28px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.companyHeaderMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.companyHeaderMeta > strong {
+  color: #081d60;
+  font-size: 13px;
+}
+
+.companyHeaderActions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-self: start;
+  gap: 10px;
+}
+
+.invoiceHeaderMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.invoiceHeaderSummary {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.invoiceHeaderTotalCard {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  text-align: end;
+  background: #f8f9fc;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.invoiceHeaderTotalCard span {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.invoiceHeaderTotalCard strong {
+  color: #081d60;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.approvalDetailHeader .companyHeaderActions {
+  justify-content: flex-start;
+}
+
+.dangerTextButton {
+  color: #8d2020;
+}
+
+.primaryIcon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 8px;
+  vertical-align: middle;
+  color: #a07f31;
+}
+
+.company360Grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr);
+  gap: 18px;
+}
+
+.contractSummaryGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.contractSummaryGrid .detailWide {
+  grid-column: 1 / -1;
+}
+
+.onboardingSummaryGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.onboardingSummaryGrid .detailWide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1180px) {
+  .contractSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .onboardingSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .contractSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .onboardingSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .contractSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .onboardingSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.invoiceMainStack {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.detailPanel {
+  min-width: 0;
+  padding: 20px;
+}
+
+.invoiceSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.invoiceSummaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.invoiceLineItemsList {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.invoiceLineItem {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: #fbfaf7;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 8px;
+}
+
+.invoiceLineItemHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+}
+
+.invoiceLineItemTitle {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.invoiceLineItemTitle h3 {
+  margin: 0;
+  color: #081d60;
+  font-size: 18px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.invoiceLineItemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.invoiceCatalogBadge {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 5px 10px;
+  color: #805d13;
+  background: #fff4d6;
+  border: 1px solid rgba(160, 127, 49, .24);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.invoiceLineItemGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.invoiceLineItemFinancials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(8, 29, 96, .1);
+}
+
+.invoiceFinancialBlock {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px 16px;
+  background: #f8f9fc;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 8px;
+}
+
+.invoiceFinancialBlock span {
+  color: #626968;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.invoiceFinancialBlock strong {
+  color: #081d60;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.invoiceFinancialEmphasis {
+  background: #081d60;
+  border-color: #081d60;
+}
+
+.invoiceFinancialEmphasis span {
+  color: rgba(255, 255, 255, .72);
+}
+
+.invoiceFinancialEmphasis strong {
+  color: #fff;
+  font-size: 20px;
+}
+
+.invoiceFinancialDue {
+  background: #f7f4ee;
+  border-color: rgba(160, 127, 49, .28);
+}
+
+.invoiceFinancialDue span {
+  color: #a07f31;
+}
+
+.invoiceFinancialDue strong {
+  color: #081d60;
+  font-size: 20px;
+}
+
+.detailList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+}
+
+.detailList dt {
+  margin-bottom: 4px;
+  color: #626968;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.detailList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #081d60;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.roleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.employeeTable .roleChips {
+  margin-top: 0;
+}
+
+.roleChip {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 999px;
+  background: #f7f4ee;
+  color: #081d60;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.tableMuted {
+  color: #626968;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detailWide {
+  grid-column: 1 / -1;
+}
+
+.mutedState {
+  margin: 14px 0 0;
+  color: #626968;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.fieldError {
+  color: #8d2020;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.uploadSuccess {
+  margin: 0;
+  color: #0f7a45;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirmDialog > svg {
+  width: 34px;
+  height: 34px;
+  color: #8d2020;
+}
+
+.confirmDialog p {
+  margin: 0;
+  color: #17202a;
+  line-height: 1.6;
+}
+
+.dangerButton {
+  background: #8d2020;
+  border-color: #8d2020;
+}
+
+.dangerButton:hover,
+.dangerButton:focus-visible {
+  background: #731818;
+}
+
+.inlineAlert {
+  margin: 0;
+  padding: 12px 14px;
+  color: #7a1f1f;
+  background: #fff3f0;
+  border: 1px solid #f2c5bb;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.drawerBackdrop {
+  display: none;
+}
+
+@keyframes dashboardSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ltrText {
+  direction: ltr;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.employeeTable td,
+.employeeTable th,
+.employeeMobileCard dd,
+.detailList dd {
+  min-width: 0;
+}
+
+.employeeTable td[dir="ltr"],
+.employeeMobileCard dd[dir="ltr"],
+.detailList dd[dir="ltr"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingMark {
+    animation: none;
+  }
+
+  .navLink,
+  .iconButton,
+  .userButton,
+  .primaryButton,
+  .secondaryButton,
+  .menuItem {
+    transition: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .employeeToolbar,
+  .invoiceToolbar,
+  .companyToolbar,
+  .managementSearchToolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .invoiceHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceSummaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .invoiceSummaryMetrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .invoiceLineItemGrid,
+  .invoiceLineItemFinancials {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .company360Header {
+    grid-template-columns: 1fr;
+  }
+
+  .companyHeaderActions {
+    justify-content: flex-start;
+  }
+
+  .searchControl {
+    grid-column: 1 / -1;
+  }
+
+  .metricGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboardGrid,
+  .welcomePanel,
+  .company360Grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .invoiceThreeColumnGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invoiceSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invoiceSummaryMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invoiceLineItemGrid,
+  .invoiceLineItemFinancials {
+    grid-template-columns: 1fr;
+  }
+
+  .shell {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    z-index: 50;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(86vw, 320px);
+    transform: translateX(-103%);
+    transition: transform .25s ease;
+  }
+
+  .shell[dir="rtl"] .sidebar {
+    transform: translateX(103%);
+  }
+
+  .sidebarOpen,
+  .shell[dir="rtl"] .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .drawerBackdrop {
+    position: fixed;
+    z-index: 45;
+    inset: 0;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    background: rgba(6, 16, 45, .46);
+    border: 0;
+    border-radius: 0;
+    transition: opacity .25s ease, visibility .25s ease;
+  }
+
+  .drawerBackdropOpen {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .mobileOnlyBtn {
+    display: flex;
+  }
+
+  .mobileActionLabel {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 4px;
+    color: #6d716f;
+  }
+
+  .desktopLang,
+  .desktopUserInfo {
+    display: none !important;
+  }
+
+  .topbar {
+    backdrop-filter: none;
+    background: #fff;
+  }
+
+  .topbarActions {
+    position: fixed;
+    z-index: 40;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #fff;
+    border-top: 1px solid rgba(8, 29, 96, 0.1);
+    box-shadow: 0 -4px 20px rgba(8, 29, 96, 0.05);
+    padding-bottom: env(safe-area-inset-bottom);
+    margin: 0;
+  }
+
+  .topbarActions > button,
+  .topbarActions > a,
+  .topbarActions .menuWrap > button {
+    width: 100%;
+    min-height: 64px;
+    border: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    padding: 8px 4px;
+  }
+
+  .topbarActions > button:active,
+  .topbarActions > a:active,
+  .topbarActions .menuWrap > button:active {
+    background: #f7f4ee;
+  }
+  
+  .topbarActions > a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .mobileMenuLang {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-top: 1px solid rgba(8, 29, 96, 0.08);
+    margin-top: 4px;
+    margin-bottom: 4px;
+    width: 100%;
+  }
+
+  .mobileMenuLangLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #081d60;
+  }
+
+  .menuWrap {
+    position: static;
+  }
+
+  .dropdown {
+    top: auto;
+    bottom: calc(100% + 10px);
+    inset-inline-end: 12px;
+    inset-inline-start: auto;
+    transform: none;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+  }
+
+  .dropdown p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .shell[dir="rtl"] .dropdown {
+    transform: none;
+  }
+
+  .main {
+    grid-column: 1 / -1;
+  }
+
+  .content {
+    /* 65px (mobile bottom bar height) + env(safe-area-inset-bottom) + 36px (safe scroll gap) */
+    padding-bottom: calc(101px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    min-height: auto;
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .topbarActions {
+    margin-inline-start: 0;
+  }
+
+  .userButton strong,
+  .userButton small {
+    display: none;
+  }
+
+  .content {
+    padding: 16px 12px calc(101px + env(safe-area-inset-bottom));
+  }
+
+  .metricGrid,
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .welcomePanel,
+  .metricsSection,
+  .breakdownCard,
+  .activityCard {
+    padding: 18px;
+  }
+
+  .managementHeader,
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .managementHeader .primaryButton,
+  .pagination .secondaryButton {
+    width: 100%;
+  }
+
+  .employeeToolbar,
+  .invoiceToolbar,
+  .companyToolbar,
+  .managementSearchToolbar,
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceThreeColumnGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contractClauseRow {
+    grid-template-columns: 1fr;
+  }
+
+  .contractAgreementParties,
+  .contractAgreementTermsHeader,
+  .contractAgreementSectionTitle,
+  .contractAgreementClause {
+    grid-template-columns: 1fr;
+  }
+
+  .contractPdfPage {
+    min-height: auto;
+    padding: 32px 20px 54px;
+  }
+
+  .contractPdfFooter {
+    right: 20px;
+    left: 20px;
+  }
+
+  .contractAgreementTitle {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filterActionsRow {
+    justify-content: stretch;
+  }
+
+  .filterActionsRow .secondaryButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .employeeTableWrap {
+    display: none;
+  }
+
+  .employeeMobileList {
+    display: grid;
+  }
+
+  .employeeMobileCard .rowActions {
+    justify-content: flex-end;
+  }
+
+  .mobileCardHeader,
+  .mobileCardActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mobileCardActions .secondaryButton {
+    width: 100%;
+  }
+
+  .pagination div {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .employeeDialog {
+    align-self: end;
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 16px;
+  }
+
+  .largeDialog {
+    width: 100%;
+  }
+
+  .dialogOverlay {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .dialogContent {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 16px;
+  }
+
+  .dialogBody {
+    padding-top: 16px;
+  }
+
+  .dialogFooter {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .lineItemGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .lineItemActions {
+    justify-content: flex-start;
+  }
+
+  .company360Header {
+    align-items: stretch;
+  }
+
+  .companyHeaderActions {
+    justify-content: stretch;
+  }
+
+  .companyHeaderActions .secondaryButton {
+    width: 100%;
+  }
+
+  .detailList {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceHeaderTotalCard {
+    text-align: start;
+  }
+
+  .loginPage {
+    grid-template-columns: 1fr;
+  }
+
+  .loginBrandPanel {
+    min-height: 42dvh;
+  }
+
+  .loginFormPanel {
+    align-content: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .invoiceSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceSummaryMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceHeaderSummary,
+  .companyHeaderActions {
+    justify-content: stretch;
+  }
+
+  .companyHeaderActions .secondaryButton,
+  .companyHeaderActions .primaryButton,
+  .companyHeaderActions .destructiveButton {
+    width: 100%;
+  }
+}
+
+.company360Header .backLink {
+  display: flex;
+  width: max-content;
+  margin-bottom: 8px;
+}
+
+.company360Header .companyHeaderActions > button,
+.company360Header .companyHeaderActions > a {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  gap: 0;
+  font-size: 0;
+}
+
+.company360Header .companyHeaderActions > button svg,
+.company360Header .companyHeaderActions > a svg {
+  width: 18px;
+  height: 18px;
+}
+
+.company360Header .companyHeaderActions > .destructiveButton {
+  color: #8d2020;
+  background: #fff;
+  border-color: rgba(141, 32, 32, .2);
+}
+
+/* SETTINGS LAYOUT */
+.settingsLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  min-width: 0;
+  padding: 18px;
+}
+
+@media (min-width: 1024px) {
+  .settingsLayout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+.settingsNav {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(210px, 1fr);
+  gap: 10px;
+  overflow-x: auto;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+@media (min-width: 1024px) {
+  .settingsNav {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    align-content: start;
+    overflow-x: visible;
+    position: sticky;
+    top: 18px;
+  }
+}
+
+.settingsNavItem {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #475467;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: start;
+  transition: all 0.2s ease;
+}
+
+.settingsNavItem svg {
+  width: 36px;
+  height: 36px;
+  padding: 9px;
+  color: #081d60;
+  background: #f8f6f1;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 8px;
+}
+
+.settingsNavItem span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settingsNavItem strong {
+  overflow: hidden;
+  color: #081d60;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settingsNavItem small {
+  overflow: hidden;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settingsNavItem:hover {
+  background: #fbfaf7;
+  border-color: rgba(8, 29, 96, .12);
+}
+
+.settingsNavItemActive {
+  background: #f4f7ff;
+  border-color: rgba(8, 29, 96, .3);
+  box-shadow: inset 3px 0 0 #081d60;
+}
+
+.settingsContent {
+  min-width: 0;
+}
+
+.settingsContentCard {
+  min-width: 0;
+  padding: 20px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+}
+
+.settingsPanelHeader {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(8, 29, 96, .1);
+}
+
+.settingsPanelHeader > svg {
+  width: 42px;
+  height: 42px;
+  padding: 10px;
+  color: #081d60;
+  background: #f8f6f1;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 8px;
+}
+
+.settingsPanelHeader h2 {
+  margin: 0;
+  color: #081d60;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.settingsPanelHeader p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: #626968;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .settingsLayout {
+    padding: 14px;
+  }
+
+  .settingsContentCard {
+    padding: 16px;
+  }
+
+  .emailConfigurationStatusGrid,
+  .settingsContentCard .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.textNowrap {
+  white-space: nowrap;
+}
+
+.bilingualPrintPanel {
+  margin-top: 2rem;
+}
+
+.contractAgreementPanel {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+
+.contractPdfPages {
+  display: grid;
+  gap: 22px;
+}
+
+.contractPdfPage {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  min-height: min(1122px, calc((100vw - 420px) * 1.414));
+  overflow: hidden;
+  border: 1px solid rgba(8, 29, 96, .1);
+  background: #fff;
+  padding: 56px 56px 48px;
+  color: #172357;
+  isolation: isolate;
+}
+
+.contractPdfWatermark {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 70%;
+  background-image: url('/contract.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.15;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.contractPdfCorner {
+  position: absolute;
+  top: -45px;
+  right: -75px;
+  width: 180px;
+  height: 180px;
+  background-image: url('/contract.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  transform: scaleX(-1);
+  z-index: 0;
+}
+
+.contractPdfLogo {
+  display: flex;
+  align-items: center;
+  min-height: 84px;
+}
+
+.contractPdfFooter {
+  position: absolute;
+  right: 56px;
+  bottom: 28px;
+  left: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #172357;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.contractPdfFooter i {
+  height: 1px;
+  flex: 1;
+  background: #172357;
+}
+
+.contractAgreementTitle {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(8, 29, 96, .12);
+  padding-bottom: 14px;
+}
+
+.contractAgreementTitle span {
+  color: #a07f31;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.contractAgreementTitle strong {
+  color: #081d60;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.contractAgreementParties {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contractAgreementParties > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+  background: #fbfaf7;
+  padding: 14px;
+}
+
+.contractAgreementParties span,
+.contractAgreementParties small {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.contractAgreementParties strong {
+  color: #081d60;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.contractAgreementSections {
+  display: grid;
+  gap: 16px;
+}
+
+.contractAgreementSection {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  break-inside: avoid;
+}
+
+.contractAgreementSectionTitle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  border-bottom: 2px solid rgba(160, 127, 49, .22);
+  padding-bottom: 8px;
+}
+
+.contractAgreementSectionTitle h3 {
+  margin: 0;
+  color: #a07f31;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.contractAgreementSectionTitle h3[dir="rtl"] {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+.contractAgreementClauses {
+  display: grid;
+  gap: 0;
+}
+
+.contractAgreementClause {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  border-bottom: 1px solid rgba(8, 29, 96, .08);
+  padding: 10px 0;
+}
+
+.contractAgreementClause:last-child {
+  border-bottom: 0;
+}
+
+.contractAgreementClause p {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  color: #081d60;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.contractAgreementClause p[dir="rtl"] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+.contractAgreementClause span {
+  display: inline-grid;
+  place-items: center;
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: #a07f31;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+}
+
+.contractAgreementBanking .contractAgreementClause span,
+.contractAgreementSignatures .contractAgreementClause span {
+  display: none;
+}
+
+.contractAgreementBanking .contractAgreementClause {
+  align-items: start;
+  border-bottom: 0;
+  padding-top: 0;
+}
+
+.contractAgreementBanking p {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.42;
+}
+
+.contractAgreementBanking p::first-line {
+  color: #a07f31;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.contractAgreementSignatures {
+  border-top: 5px solid #172357;
+  padding-top: 22px;
+}
+
+.contractAgreementSignatures .contractAgreementClause {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  border-bottom: 0;
+  padding: 16px 22px;
+  background: #b69338;
+}
+
+.contractAgreementSignatures .contractAgreementClause p {
+  display: block;
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+.contractAgreementSignatures .contractAgreementClause p + p {
+  text-align: right;
+}
+
+.bilingualGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+.bilingualColumn h3 {
+  margin-top: 1.5rem;
+  font-size: 1.25rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+@media print {
+  .topbar, .invoiceAdminActions, .sidebar {
+    display: none !important;
+  }
+  .shell {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .main {
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
+

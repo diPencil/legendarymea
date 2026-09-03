@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import * as LucideIcons from 'lucide-react'
-import { Check, ChevronLeft, ChevronRight, Clock3, LucideIcon } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock3, type LucideIcon } from 'lucide-react'
 import { PageShell } from '@/components/site'
 import { solutionDetailCopy } from '@/components/experience-content'
 
@@ -41,7 +41,7 @@ export function ServiceDetailTemplate({
   const phaseTitles = c.phaseTitles
 
   const getIcon = (name: string): LucideIcon => {
-    return (LucideIcons as any)[name] || LucideIcons.Check
+    return (LucideIcons as unknown as Record<string, LucideIcon | undefined>)[name] || LucideIcons.Check
   }
 
   return (

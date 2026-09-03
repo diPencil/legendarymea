@@ -5,11 +5,33 @@ import {
 } from "@/components/site";
 import { useLocale } from "@/components/i18n";
 import { experienceCopy } from "@/components/experience-content";
+import { fetchPublicSettings, publicSettingsFallback, telHref } from "@/lib/public-settings";
+import type { PublicSettings } from "@/lib/dashboard/settings";
+import { useEffect, useState } from "react";
 
 export default function ContactPage() {
   const { locale } = useLocale();
   const isAr = locale === 'ar';
   const content = experienceCopy[locale].contact;
+  const [settings, setSettings] = useState<PublicSettings | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    void fetchPublicSettings().then((data) => {
+      if (mounted) setSettings(data);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const publicEmail = settings?.contact?.public_email?.trim() || publicSettingsFallback.publicEmail;
+  const salesEmail = settings?.contact?.sales_email?.trim() || publicSettingsFallback.salesEmail;
+  const phone = settings?.contact?.phone?.trim() || settings?.contact?.whatsapp?.trim() || publicSettingsFallback.phone;
+  const address = (isAr ? settings?.contact?.address_ar : settings?.contact?.address_en)?.trim() || (isAr ? publicSettingsFallback.addressAr : publicSettingsFallback.addressEn);
+  const contactNote = (isAr ? settings?.contact?.contact_note_ar : settings?.contact?.contact_note_en)?.trim() || (isAr ? publicSettingsFallback.contactNoteAr : publicSettingsFallback.contactNoteEn);
 
   return (
     <PageShell>
@@ -34,20 +56,24 @@ export default function ContactPage() {
             <div className="contact-business-details">
               <div className="contact-business-detail">
                 <span>{isAr ? 'للاستفسارات العامة' : 'GENERAL ENQUIRIES'}</span>
-                <a href="mailto:info@legendarymea.com" dir="ltr">info@legendarymea.com</a>
+                <a href={`mailto:${publicEmail}`} dir="ltr">{publicEmail}</a>
               </div>
               <div className="contact-business-detail">
                 <span>{isAr ? 'المبيعات والشراكات' : 'SALES & PARTNERSHIPS'}</span>
-                <a href="mailto:sales@legendarymea.com" dir="ltr">sales@legendarymea.com</a>
+                <a href={`mailto:${salesEmail}`} dir="ltr">{salesEmail}</a>
               </div>
               <div className="contact-business-detail">
                 <span>{isAr ? 'التواصل' : 'PHONE'}</span>
-                <a className="contact-business-phone" href="tel:+966533144910" dir="ltr">+966 53 314 4910</a>
+                <a className="contact-business-phone" href={telHref(phone)} dir="ltr">{phone}</a>
+              </div>
+              <div className="contact-business-detail">
+                <span>{isAr ? 'العنوان' : 'ADDRESS'}</span>
+                <p dir={isAr ? 'rtl' : 'ltr'}>{address}</p>
               </div>
             </div>
             <blockquote className="contact-business-quote">
               <span aria-hidden="true">“</span>
-              <p>{isAr ? 'وين ما كان موقع أعمالك، فريقنا حاضر لخدمتك ومتابعة احتياجك.' : 'Wherever your business is based, our team is ready to support you and follow through on what you need.'}</p>
+              <p>{contactNote}</p>
             </blockquote>
           </aside>
           <div className="contact-request-form">

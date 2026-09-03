@@ -177,6 +177,12 @@ html[lang="ar"] .nav {
 .account-signin-disabled { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; color: rgba(255,255,255,.72); background: var(--navy); border: 0; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 600; cursor: not-allowed; opacity: .65; }
 .account-help { display: flex; justify-content: space-between; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .account-help a { color: var(--navy); font-weight: 600; }
+.account-action { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: background-color .2s; margin-bottom: 8px; }
+.account-action.primary { color: #fff; background: var(--navy); border: 0; }
+.account-action.primary:hover { background: var(--navy-hover); }
+.account-action.secondary { color: var(--navy); background: #f4f1eb; border: 0; }
+.account-action.secondary:hover { background: #eadecc; }
+.account-email { margin: 4px 0 18px; color: var(--muted); font-size: 13px; line-height: 1.6; direction: ltr; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .help-nav-control { position: relative; display: grid; width: 42px; height: 42px; padding: 0 !important; place-items: center; flex: none; color: var(--navy); background: #fff; border: 1px solid var(--line) !important; border-radius: 50%; transition: color .25s ease, border-color .25s ease, background-color .25s ease; }
 .help-nav-control:hover,.help-nav-control:focus-visible { color: var(--gold); border-color: var(--gold) !important; outline: none; }
 .help-nav-control[aria-current="page"] { color: var(--gold); border-color: var(--gold) !important; }
@@ -7919,12 +7925,17 @@ html[lang="ar"] h3 {
   font-weight: 700;
   letter-spacing: .12em;
 }
-.contact-business-detail a {
+.contact-business-detail a,
+.contact-business-detail p {
   width: fit-content;
   color: var(--navy);
   font-size: clamp(15px, 1.25vw, 18px);
   font-weight: 500;
   unicode-bidi: isolate;
+}
+.contact-business-detail p {
+  margin: 0;
+  line-height: 1.55;
 }
 .contact-business-detail a:hover,
 .contact-business-detail a:focus-visible {
@@ -8155,6 +8166,61 @@ html[lang="ar"] h3 {
   text-align: left;
   unicode-bidi: isolate;
 }
+
+/* Dashboard variant overrides */
+.country-combobox-control[data-variant="dashboard"],
+.contact-phone-control[data-variant="dashboard"] {
+  min-height: 44px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .14);
+  border-radius: 8px;
+}
+.country-combobox-control[data-variant="dashboard"]:focus-within,
+.contact-phone-control[data-variant="dashboard"]:focus-within {
+  border-color: #a07f31;
+  box-shadow: 0 0 0 3px rgba(160, 127, 49, .16);
+}
+.country-combobox-control[data-variant="dashboard"] .country-combobox-input {
+  min-height: 44px;
+  padding: 10px 12px;
+  color: #17202a;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  font-family: inherit;
+}
+.contact-phone-control[data-variant="dashboard"] .contact-phone-prefix {
+  min-height: 44px;
+  padding: 0 12px;
+  background: transparent;
+  border-right: 1px solid rgba(8, 29, 96, .14);
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+[dir="rtl"] .contact-phone-control[data-variant="dashboard"] .contact-phone-prefix {
+  border-right: 0;
+  border-left: 1px solid rgba(8, 29, 96, .14);
+}
+.contact-phone-control[data-variant="dashboard"] .contact-phone-local {
+  min-height: 44px;
+  padding: 10px 12px;
+  color: #17202a;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+}
+.country-combobox-control[data-variant="dashboard"] .country-combobox-trigger {
+  min-height: 44px;
+  color: #a07f31;
+}
+.country-combobox-control[data-variant="dashboard"] .country-search-icon {
+  color: #a07f31;
+}
+
 @media (max-width: 520px) {
   .country-combobox-popup {
     min-width: 0;
@@ -8662,8 +8728,6 @@ html.legendary-intro-pending::before {
 @media print {
   html,
   body {
-    width: 15in !important;
-    min-width: 15in !important;
     height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
