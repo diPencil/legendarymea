@@ -24,11 +24,11 @@ class ContractPdfGenerator
                 'margin_bottom' => 9,
                 'margin_header' => 0,
                 'margin_footer' => 7,
-                'autoScriptToLang' => true,
-                'autoLangToFont' => true,
+                'default_font' => 'xbriyaz',
             ]);
+            $mpdf->autoScriptToLang = true;
+            $mpdf->autoLangToFont = true;
 
-            $mpdf->SetDirectionality('rtl');
             $mpdf->WriteHTML($html);
 
             $pdfContent = $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
