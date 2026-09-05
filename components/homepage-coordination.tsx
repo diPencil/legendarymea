@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useState } from 'react'
 
 import { useLocale } from '@/components/i18n'
+import { useWebsiteImage } from '@/lib/website-media'
 
 const coordinationImages = [
   '/coordination01.png',
@@ -50,6 +51,13 @@ export function HomepageCoordination() {
   const c = content[locale]
   const [activeIndex, setActiveIndex] = useState(0)
   const Arrow = isAr ? ArrowLeft : ArrowRight
+  const managedImages = [
+    useWebsiteImage('home_coordination_1', coordinationImages[0]),
+    useWebsiteImage('home_coordination_2', coordinationImages[1]),
+    useWebsiteImage('home_coordination_3', coordinationImages[2]),
+    useWebsiteImage('home_coordination_4', coordinationImages[3]),
+    useWebsiteImage('home_coordination_5', coordinationImages[4]),
+  ]
 
   return (
     <section className="coordination-section" dir={isAr ? 'rtl' : 'ltr'}>
@@ -61,13 +69,13 @@ export function HomepageCoordination() {
           <p>{c.intro}</p>
           <strong>{c.statement}</strong>
           <div className="coordination-locale-visual" aria-hidden="true">
-            {coordinationImages.map((src, index) => (
+            {managedImages.map((src, index) => (
               <img
                 className={`coordination-locale-image ${isAr ? 'mirrored' : ''} ${activeIndex === index ? 'active' : ''}`}
                 src={src}
                 alt=""
                 decoding="async"
-                key={src}
+                key={`${coordinationImages[index]}-${index}`}
               />
             ))}
           </div>

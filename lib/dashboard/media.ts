@@ -23,8 +23,15 @@ export interface MediaFile {
   } | null
   created_at: string
   updated_at: string
-  is_in_use?: boolean
-  usage_count?: number
+  content_url?: string
+  download_url?: string
+  usage?: Array<{
+    type: string
+    label: string
+    reference: string
+  }>
+  is_in_use: boolean
+  usage_count: number
 }
 
 export interface MediaListParams {
@@ -32,6 +39,7 @@ export interface MediaListParams {
   per_page?: number
   search?: string
   type?: string
+  usage?: string
   sort?: string
   direction?: 'asc' | 'desc'
 }
@@ -73,6 +81,15 @@ export async function uploadMediaFile(file: File): Promise<{ data: MediaFile }> 
   formData.append('file', file)
 
   const mediaFile = await dashboardFetchMultipart<MediaFile>('/api/v1/media-files', formData)
+
+  return { data: mediaFile }
+}
+
+export async function replaceMediaFile(id: number, file: File): Promise<{ data: MediaFile }> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const mediaFile = await dashboardFetchMultipart<MediaFile>(`/api/v1/media-files/${id}/replace`, formData)
 
   return { data: mediaFile }
 }

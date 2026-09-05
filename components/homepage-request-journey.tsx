@@ -6,6 +6,7 @@ import { useState } from 'react'
 
 import { useLocale } from '@/components/i18n'
 import { experienceCopy } from '@/components/experience-content'
+import { useWebsiteImage } from '@/lib/website-media'
 
 const summary = {
   en: {
@@ -62,6 +63,13 @@ export function HomepageRequestJourney() {
   const support = summary[locale]
   const [activeIndex, setActiveIndex] = useState(0)
   const Arrow = isAr ? ArrowLeft : ArrowRight
+  const managedImages = [
+    useWebsiteImage('home_request_journey_1', stepImages[0]),
+    useWebsiteImage('home_request_journey_2', stepImages[1]),
+    useWebsiteImage('home_request_journey_3', stepImages[2]),
+    useWebsiteImage('home_request_journey_4', stepImages[3]),
+    useWebsiteImage('home_request_journey_5', stepImages[4]),
+  ]
 
   return (
     <section className="request-journey section-shell" dir={isAr ? 'rtl' : 'ltr'}>
@@ -92,10 +100,10 @@ export function HomepageRequestJourney() {
         </div>
 
         <div className="request-journey-image">
-          {stepImages.map((src, index) => (
+          {managedImages.map((src, index) => (
             <div
               className={`request-journey-image-state ${activeIndex === index ? 'active' : ''}`}
-              key={`${src}-${index}`}
+              key={`${stepImages[index]}-${index}`}
               aria-hidden={activeIndex !== index}
             >
               <Image

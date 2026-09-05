@@ -8,6 +8,7 @@ export type DashboardUser = {
   status: string
   roles: DashboardRole[]
   permissions: string[]
+  avatar_url?: string | null
 }
 
 export type LoginInput = {

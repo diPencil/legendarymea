@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, BadgeDollarSign, BookOpenCheck, Car, ChartNoAxesCombined, ClipboardCheck, ContactRound, Handshake, Hotel, Landmark, MapPinned, Package as PackageIcon, Plane, Search, Settings, ShieldCheck, Tags, Users, Warehouse, type LucideIcon } from 'lucide-react'
 import { PageShell } from '@/components/site'
 import { useLocale } from '@/components/i18n'
+import { useWebsiteImage } from '@/lib/website-media'
 import styles from './platform.module.css'
 
 const content = {
@@ -158,6 +159,16 @@ export default function PlatformPage() {
   const [oneProgress, setOneProgress] = useState(0)
   const [oneActive, setOneActive] = useState(false)
   const oneMetricRef = useRef<HTMLDivElement>(null)
+  const storyImage = useWebsiteImage('platform_story', img.story)
+  const recordsImage = useWebsiteImage('platform_records', img.records)
+  const audienceImage = useWebsiteImage('platform_audience', img.audience)
+  const taxidia01 = useWebsiteImage('platform_taxidia_01', '/taxidia01.png')
+  const taxidia02 = useWebsiteImage('platform_taxidia_02', '/taxidia02.png')
+  const taxidia03 = useWebsiteImage('platform_taxidia_03', '/taxidia03.png')
+  const taxidia04 = useWebsiteImage('platform_taxidia_04', '/taxidia04.png')
+  const taxidia05 = useWebsiteImage('platform_taxidia_05', '/taxidia05.png')
+  const taxidia06 = useWebsiteImage('platform_taxidia_06', '/taxidia06.png')
+  const taxidiaMark = useWebsiteImage('platform_logo_mark', '/taxidiaplatform.png')
   useEffect(() => {
     const element = oneMetricRef.current
     if (!element) return
@@ -193,12 +204,12 @@ export default function PlatformPage() {
           <p>{c.hero[2]}</p>
         </div>
         <div className={styles.heroCollage} aria-label={isAr ? 'مشاهد من تشغيل السفر والضيافة والأعمال' : 'Travel, hospitality and business operations collage'}>
-          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageFarLeft}`}><Image src="/taxidia01.png" alt={isAr ? 'نظرة عامة على الحجز في تاكسيديا' : 'Taxidia booking overview'} fill sizes="18vw"/></div>
-          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageTopLeft}`}><Image src="/taxidia02.png" alt={isAr ? 'إدارة طلب السفر في تاكسيديا' : 'Taxidia trip request management'} fill sizes="22vw"/></div>
-          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageBottomLeft}`}><Image src="/taxidia03.png" alt={isAr ? 'تنسيق الرحلات الجوية في تاكسيديا' : 'Taxidia flight coordination'} fill sizes="22vw"/></div>
-          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageMain}`}><Image src="/taxidia04.png" alt={isAr ? 'إدارة النقل والخدمات الأرضية في تاكسيديا' : 'Taxidia transfer and ground operations'} fill sizes="(max-width: 760px) 52vw, 34vw" priority/></div>
-          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageTopRight}`}><Image src="/taxidia05.png" alt={isAr ? 'المتابعة والتحديثات في تاكسيديا' : 'Taxidia follow-up and changes'} fill sizes="22vw"/></div>
-          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageFarRight}`}><Image src="/taxidia06.png" alt={isAr ? 'توافر الفنادق في تاكسيديا' : 'Taxidia hotel availability'} fill sizes="19vw"/></div>
+          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageFarLeft}`}><Image src={taxidia01} alt={isAr ? 'نظرة عامة على الحجز في تاكسيديا' : 'Taxidia booking overview'} fill sizes="18vw"/></div>
+          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageTopLeft}`}><Image src={taxidia02} alt={isAr ? 'إدارة طلب السفر في تاكسيديا' : 'Taxidia trip request management'} fill sizes="22vw"/></div>
+          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageBottomLeft}`}><Image src={taxidia03} alt={isAr ? 'تنسيق الرحلات الجوية في تاكسيديا' : 'Taxidia flight coordination'} fill sizes="22vw"/></div>
+          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageMain}`}><Image src={taxidia04} alt={isAr ? 'إدارة النقل والخدمات الأرضية في تاكسيديا' : 'Taxidia transfer and ground operations'} fill sizes="(max-width: 760px) 52vw, 34vw" priority/></div>
+          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageTopRight}`}><Image src={taxidia05} alt={isAr ? 'المتابعة والتحديثات في تاكسيديا' : 'Taxidia follow-up and changes'} fill sizes="22vw"/></div>
+          <div className={`${styles.collageCard} ${styles.collageImage} ${styles.collageFarRight}`}><Image src={taxidia06} alt={isAr ? 'توافر الفنادق في تاكسيديا' : 'Taxidia hotel availability'} fill sizes="19vw"/></div>
           <div className={`${styles.collageCard} ${styles.collageUi}`} aria-label={isAr ? 'رسم توضيحي لمسار التشغيل' : 'Illustrative operational flow'}>
             {c.heroWorkflow.map(([number,title,description,meta,status],index)=><article key={title} className={styles.workflowStage}>
               <div className={styles.workflowStageHead}><span>{number}</span><strong>{title}</strong><em>{status}</em></div>
@@ -214,12 +225,12 @@ export default function PlatformPage() {
         <div className={styles.problemIntro}><div><span className={styles.kicker}>{c.problem[0]}</span><h2>{c.problem[1]}</h2></div><div className={styles.problemBody}>{c.problem[2].map(x=><p key={x}>{x}</p>)}</div></div>
         <div className={styles.problemBoard}>
           <div className={styles.problemMap}><small>{c.problemMapLabel}</small>{c.problemMap.map(([service,details],i)=><article key={service}><span>0{i+1}</span><strong>{service}</strong><div>{details.map(detail=><em key={detail}>{detail}</em>)}</div></article>)}</div>
-          <div className={styles.problemCore} aria-label={c.problemCore[0]}><span>{c.problemCore[0]}</span><div><i/><Image src="/taxidiaplatform.png" alt="Taxidia" width={58} height={31}/><b/></div><h3>{c.problemCore[1]}</h3><small>{c.problemCore[2]}</small></div>
+          <div className={styles.problemCore} aria-label={c.problemCore[0]}><span>{c.problemCore[0]}</span><div><i/><Image src={taxidiaMark} alt="Taxidia" width={58} height={31}/><b/></div><h3>{c.problemCore[1]}</h3><small>{c.problemCore[2]}</small></div>
           <div className={styles.problemOutcomes}><small>{c.problemOutcomeLabel}</small>{c.problemPoints.map((x,i)=><div key={x}><span>0{i+1}</span><strong>{x}</strong><i/></div>)}</div>
         </div>
       </section>
 
-      <section id="platform-story" className={`${styles.story} section-shell`}><div className={styles.storyImage}><Image src={img.story} alt={isAr?'متخصصة سفر تعمل على متابعة طلبات الحجز':'Travel professional handling booking operations'} fill sizes="(max-width: 850px) 100vw, 46vw" /><div className={styles.storyImageMeta}><span>01</span><small>{c.storyLabel}</small></div></div><div className={styles.storyContent}><span className={styles.kicker}>{c.storyLabel}</span><h2>{c.storyTitle}</h2><div className={styles.storyRows}>{c.story.map(([title,body],i)=><button key={title} type="button" onMouseEnter={()=>setActiveStory(i)} onFocus={()=>setActiveStory(i)} onClick={()=>setActiveStory(i)} className={activeStory===i?styles.active:''} aria-expanded={activeStory===i}><span>0{i+1}</span><div><strong>{title}</strong><p>{body}</p></div><i/></button>)}</div></div></section>
+      <section id="platform-story" className={`${styles.story} section-shell`}><div className={styles.storyImage}><Image src={storyImage} alt={isAr?'متخصصة سفر تعمل على متابعة طلبات الحجز':'Travel professional handling booking operations'} fill sizes="(max-width: 850px) 100vw, 46vw" /><div className={styles.storyImageMeta}><span>01</span><small>{c.storyLabel}</small></div></div><div className={styles.storyContent}><span className={styles.kicker}>{c.storyLabel}</span><h2>{c.storyTitle}</h2><div className={styles.storyRows}>{c.story.map(([title,body],i)=><button key={title} type="button" onMouseEnter={()=>setActiveStory(i)} onFocus={()=>setActiveStory(i)} onClick={()=>setActiveStory(i)} className={activeStory===i?styles.active:''} aria-expanded={activeStory===i}><span>0{i+1}</span><div><strong>{title}</strong><p>{body}</p></div><i/></button>)}</div></div></section>
 
       <section className={`${styles.capabilities} section-shell`}><div className={styles.sectionIntro}><span className={styles.kicker}>{c.capabilitiesLabel}</span><h2>{c.capabilitiesTitle}</h2></div><div className={styles.capabilityGrid}>{c.capabilities.map(([label,title,body,items],i)=><article key={title}><div className={styles.capTop}><span>0{i+1} / {label}</span><div className={styles.miniDiagram}>{items.slice(0,3).map(x=><i key={x}/>)}</div></div><div className={styles.capMain}><h3>{title}</h3><p>{body}</p></div><ul>{items.map((x,j)=>{const Icon=capabilityIcons[i][j];return <li key={x}><Icon aria-hidden="true"/><span>{x}</span></li>})}</ul></article>)}</div></section>
 
@@ -229,7 +240,7 @@ export default function PlatformPage() {
 
       <section className={`${styles.oneSection} section-shell`}><div className={styles.oneTop}><div ref={oneMetricRef} className={`${styles.oneMetric} ${oneActive ? styles.oneMetricActive : ''}`}><strong aria-label={isAr ? `نسبة ترابط النظام ${progressLabel}` : `${progressLabel} system connection`}>{progressLabel}</strong><small>{c.one[3]}</small><div className={styles.oneMeter}><i/><i/><i/><i/></div></div><div className={styles.oneCopy}><span className={styles.kicker}>{c.one[3]}</span><h2>{c.one[1]}</h2><p>{c.one[2]}</p></div></div><div className={styles.contextGrid}>{c.contexts.map(([title,body],i)=>{const Icon=contextIcons[i];return <article key={title}><div><span>0{i+1}</span><Icon aria-hidden="true"/></div><h3>{title}</h3><p>{body}</p></article>})}</div></section>
 
-      <section className={`${styles.records} section-shell`}><div className={styles.recordIntro}><span className={styles.kicker}>{c.recordsLabel}</span><h2>{c.recordsTitle}</h2></div><div className={styles.recordOrbit}><div className={styles.recordCenter}><Image src="/connected-records.png" alt={isAr?'صورة توضح ترابط سجلات وخدمات السفر':'Connected travel services and operating records'} fill sizes="(max-width: 760px) 100vw, 38vw"/></div>{c.records.map(([title,body],i)=>{const Icon=recordIcons[i];return <article className={styles.recordNode} key={title}><div><span>0{i+1}</span><Icon aria-hidden="true"/></div><h3>{title}</h3><p>{body}</p></article>})}</div></section>
+      <section className={`${styles.records} section-shell`}><div className={styles.recordIntro}><span className={styles.kicker}>{c.recordsLabel}</span><h2>{c.recordsTitle}</h2></div><div className={styles.recordOrbit}><div className={styles.recordCenter}><Image src={recordsImage} alt={isAr?'صورة توضح ترابط سجلات وخدمات السفر':'Connected travel services and operating records'} fill sizes="(max-width: 760px) 100vw, 38vw"/></div>{c.records.map(([title,body],i)=>{const Icon=recordIcons[i];return <article className={styles.recordNode} key={title}><div><span>0{i+1}</span><Icon aria-hidden="true"/></div><h3>{title}</h3><p>{body}</p></article>})}</div></section>
 
       <section className={styles.commercialBand}><div className={`${styles.commercial} section-shell`}><div className={styles.commercialHeader}><div><span className={styles.kicker}>{c.commercialLabel}</span><h2>{c.commercialTitle}</h2></div><p>{c.commercialIntro}</p></div><div className={styles.commercialEngine}>{c.commercial.map(([title,items],i)=>{const Icon=i===0?Warehouse:BadgeDollarSign;return <article key={title}><div className={styles.commercialTop}><span>{c.commercialFlow[i]}</span><Icon aria-hidden="true"/></div><h3>{title}</h3><ol>{items.map((x,j)=><li key={x}><span>0{j+1}</span><strong>{x}</strong></li>)}</ol></article>})}<div className={styles.commercialBridge}><i/><span>{c.commercialFlow[2]}</span><i/></div></div></div></section>
 
@@ -239,7 +250,7 @@ export default function PlatformPage() {
 
       <section className={styles.rolesBand}><div className={`${styles.roles} section-shell`}><div className={styles.sectionIntro}><span className={styles.kicker}>{c.rolesLabel}</span><h2>{c.rolesTitle}</h2></div><div className={styles.roleGrid}>{c.roles.map(([title,meta,body],i)=><article key={title}><span>0{i+1}</span><h3>{title}</h3><small>{meta}</small><p>{body}</p></article>)}</div></div></section>
 
-      <section className={`${styles.audience} section-shell`}><div className={styles.audienceHead}><div><span className={styles.kicker}>{c.audienceLabel}</span><h2>{c.audienceTitle}</h2></div><div className={styles.audienceImage}><Image src={img.audience} alt={isAr?'فريق أعمال يناقش تشغيل السفر':'Business team discussing travel operations'} fill sizes="(max-width: 850px) 100vw, 42vw"/></div></div><div className={styles.audienceGrid}>{c.audiences.map(([title,body],i)=>{const Icon=audienceIcons[i];const number=isAr?['٠١','٠٢','٠٣','٠٤','٠٥','٠٦','٠٧','٠٨'][i]:`0${i+1}`;return <article key={title}><div className={styles.audienceCardTop}><span>{number}</span><Icon aria-hidden="true"/></div><strong aria-hidden="true">{number}</strong><h3>{title}</h3><p>{body}</p></article>})}</div></section>
+      <section className={`${styles.audience} section-shell`}><div className={styles.audienceHead}><div><span className={styles.kicker}>{c.audienceLabel}</span><h2>{c.audienceTitle}</h2></div><div className={styles.audienceImage}><Image src={audienceImage} alt={isAr?'فريق أعمال يناقش تشغيل السفر':'Business team discussing travel operations'} fill sizes="(max-width: 850px) 100vw, 42vw"/></div></div><div className={styles.audienceGrid}>{c.audiences.map(([title,body],i)=>{const Icon=audienceIcons[i];const number=isAr?['٠١','٠٢','٠٣','٠٤','٠٥','٠٦','٠٧','٠٨'][i]:`0${i+1}`;return <article key={title}><div className={styles.audienceCardTop}><span>{number}</span><Icon aria-hidden="true"/></div><strong aria-hidden="true">{number}</strong><h3>{title}</h3><p>{body}</p></article>})}</div></section>
 
       <section className={styles.adoptionBand}><div className={`${styles.adoption} section-shell`}><div className={styles.sectionIntro}><span className={styles.kickerLight}>{c.adoptionLabel}</span><h2>{c.adoptionTitle}</h2></div><ol>{c.adoption.map(([title,body],i)=>{const Icon=adoptionIcons[i];const number=isAr?['٠١','٠٢','٠٣','٠٤','٠٥'][i]:`0${i+1}`;return <li key={title}><div className={styles.adoptionMarker}><span>{number}</span><i><Icon aria-hidden="true"/></i></div><h3>{title}</h3><p>{body}</p></li>})}</ol></div></section>
 

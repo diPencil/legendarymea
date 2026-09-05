@@ -251,7 +251,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <div className={styles.sidebarFooterBox}>
             <div className={styles.sidebarFooterUser}>
               <div className={styles.sidebarFooterAvatar}>
-                <UserRound aria-hidden="true" />
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt="" />
+                ) : (
+                  <UserRound aria-hidden="true" />
+                )}
               </div>
               <div className={styles.sidebarFooterUserInfo}>
                 <strong>{user?.name}</strong>
@@ -329,7 +333,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   setIsNotificationsOpen(false)
                 }}
               >
-                <UserRound aria-hidden="true" />
+                <span className={styles.userButtonAvatar}>
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="" />
+                  ) : (
+                    <UserRound aria-hidden="true" />
+                  )}
+                </span>
                 <span className={styles.desktopUserInfo}>
                   <strong>{user?.name}</strong>
                   <small>{displayRole(user)}</small>
