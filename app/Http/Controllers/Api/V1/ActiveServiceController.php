@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreActiveServiceRequest;
 use App\Http\Requests\UpdateActiveServiceRequest;
@@ -109,13 +111,15 @@ class ActiveServiceController extends Controller
         $activeService->delete();
 
         // Audit log for deletion
-        \App\Models\AuditLog::create([
-            'user_id' => request()->user()->id,
-            'action' => 'active_service.deleted',
-            'subject_type' => ActiveService::class,
-            'subject_id' => $activeService->id,
-            'old_values' => $activeService->toArray(),
-        ]);
+        \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'ActiveService',
+            entity: $activeService,
+            oldValues: $activeService->toArray(),
+            newValues: [],
+            metadata: []
+        );
 
         return response()->noContent();
     }

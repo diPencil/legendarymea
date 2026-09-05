@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\InvoiceStatus;
 use App\Enums\SupplierStatus;
 use App\Models\ActiveService;
-use App\Models\AuditLog;
 use App\Models\Contract;
-use App\Models\CrmActivity;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\SupplierLedgerEntry;
@@ -125,27 +125,19 @@ class UpdateInvoiceService
                 'terms' => array_key_exists('terms', $data) ? $data['terms'] : $invoice->terms,
             ]);
 
-            AuditLog::create([
-                'user_id' => $updaterId,
-                'action' => 'invoice.updated',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'new_values' => ['reference' => $invoice->reference, 'total_amount' => $invoice->total_amount],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $updaterId,
-                'type' => 'invoice.updated',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'company_id' => $invoice->company_id,
-                'metadata' => [
-                    'invoice_reference' => $invoice->reference,
-                    'total_amount' => $invoice->total_amount,
-                    'currency' => $invoice->currency,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: [],
+            newValues: ['reference' => $invoice->reference],
+            metadata: [
+                            'invoice_reference' => $invoice->reference,
+                            'total_amount' => $invoice->total_amount,
+                            'currency' => $invoice->currency,
+                        ]
+        );
 
             return $invoice->fresh(['company', 'customerUser', 'soldByEmployee.user', 'contract', 'activeService', 'creator', 'items.supplier', 'items.serviceCatalog']);
         });

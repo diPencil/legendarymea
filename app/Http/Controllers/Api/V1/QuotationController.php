@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreQuotationRequest;
 use App\Http\Requests\UpdateQuotationRequest;
 use App\Http\Resources\QuotationResource;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Quotation;
 use App\Services\CreateQuotationService;
 use App\Services\QuotationLifecycleService;
@@ -102,6 +102,9 @@ class QuotationController extends Controller
 
         $quotation->load($this->eagerLoads());
 
+
+        \App\Services\SystemActivityService::recordView(auth()->user(), 'Quotation', $quotation);
+
         return new QuotationResource($quotation);
     }
 
@@ -142,27 +145,18 @@ class QuotationController extends Controller
 
         $quotation->delete();
 
-        AuditLog::create([
-            'user_id'         => auth()->id(),
-            'action'          => 'quotation.deleted',
-            'subject_type'    => Quotation::class,
-            'subject_id'      => $quotation->id,
-            'old_values'      => $oldValues,
-            'new_values'      => null,
-            'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-        ]);
-
-        CrmActivity::create([
-            'actor_id'     => auth()->id(),
-            'type'         => 'quotation.deleted',
-            'subject_type' => Quotation::class,
-            'subject_id'   => $quotation->id,
-            'company_id'   => $quotation->company_id,
-            'metadata'     => [
-                'quotation_id'        => $quotation->id,
-                'quotation_reference' => $quotation->reference,
-            ],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Quotation',
+            entity: $quotation,
+            oldValues: $oldValues,
+            newValues: null,
+            metadata: [
+                        'quotation_id'        => $quotation->id,
+                        'quotation_reference' => $quotation->reference,
+                    ]
+        );
 
         return response()->json(['message' => 'Quotation deleted']);
     }

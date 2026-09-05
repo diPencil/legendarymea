@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\RequestStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -22,48 +22,37 @@ class UpdateRequestService
             $request->update($data);
             $request->refresh();
 
-            AuditLog::create([
-                'user_id' => $updatedBy,
-                'action' => 'request.updated',
-                'subject_type' => Request::class,
-                'subject_id' => $request->id,
-                'old_values' => $oldData,
-                'new_values' => $this->auditValues($request),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $updatedBy,
-                'type' => 'request.updated',
-                'subject_type' => Request::class,
-                'subject_id' => $request->id,
-                'company_id' => $request->company_id,
-                'metadata' => [
-                    'request_id' => $request->id,
-                    'request_reference' => $request->reference,
-                    'updated_fields' => array_keys($data),
-                    'old_status' => $oldStatus?->value,
-                    'new_status' => $request->status?->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Request',
+            entity: $request,
+            oldValues: $oldData,
+            newValues: $this->auditValues($request),
+            metadata: [
+                            'request_id' => $request->id,
+                            'request_reference' => $request->reference,
+                            'updated_fields' => array_keys($data),
+                            'old_status' => $oldStatus?->value,
+                            'new_status' => $request->status?->value,
+                        ]
+        );
 
             if ($oldStatus !== $request->status) {
-                CrmActivity::create([
-                    'actor_id' => $updatedBy,
-                    'type' => 'request.status_changed',
-                    'subject_type' => Request::class,
-                    'subject_id' => $request->id,
-                    'company_id' => $request->company_id,
-                    'metadata' => [
-                        'request_id' => $request->id,
-                        'request_reference' => $request->reference,
-                        'old_status' => $oldStatus?->value,
-                        'new_status' => $request->status?->value,
-                    ],
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'status_changed',
+            module: 'Request',
+            entity: $request,
+            oldValues: [],
+            newValues: [],
+            metadata: [
+                                'request_id' => $request->id,
+                                'request_reference' => $request->reference,
+                                'old_status' => $oldStatus?->value,
+                                'new_status' => $request->status?->value,
+                            ]
+        );
             }
 
             return $request->fresh();

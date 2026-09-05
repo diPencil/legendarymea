@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -87,17 +89,15 @@ class CreateEmployeeService
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            \App\Models\AuditLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'employee.created',
-                'subject_type' => Employee::class,
-                'subject_id' => $employee->id,
-                'new_values' => collect($employee->toArray())->except(['password', 'remember_token'])->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Employee',
+            entity: $employee,
+            oldValues: [],
+            newValues: collect($employee->toArray())->except(['password'])->toArray(),
+            metadata: []
+        );
             
             return $employee;
         });

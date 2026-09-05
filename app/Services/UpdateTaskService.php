@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\TaskStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Task;
 use App\Models\Company;
 use App\Models\Contact;
@@ -74,34 +74,19 @@ class UpdateTaskService
             if ($oldData !== $newValues) {
                 $isStatusChange = isset($data['status']);
 
-                AuditLog::create([
-                    'user_id' => $updatedBy,
-                    'action' => $isStatusChange ? 'task.status_changed' : 'task.updated',
-                    'subject_type' => Task::class,
-                    'subject_id' => $task->id,
-                    'old_values' => $oldData,
-                    'new_values' => $newValues,
-                    'request_context' => [
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent(),
-                    ],
-                ]);
-
-                if ($isStatusChange) {
-                    CrmActivity::create([
-                        'actor_id' => $updatedBy,
-                        'type' => 'task.status_changed',
-                        'subject_type' => Task::class,
-                        'subject_id' => $task->id,
-                        'company_id' => $task->company_id,
-                        'metadata' => [
-                            'task_id' => $task->id,
-                            'task_reference' => $task->reference,
-                            'old_status' => $oldData['status'],
-                            'new_status' => $newValues['status'],
-                        ],
-                    ]);
-                }
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'status_changed',
+            module: 'Task',
+            entity: $task,
+            oldValues: $oldData,
+            newValues: $newValues,
+            metadata: [
+                                    'task_id' => $task->id,
+                                    'task_reference' => $task->reference,
+                                    'old_status' => $oldData['status']
+                                ]
+        );
             }
 
             return $task;

@@ -69,7 +69,7 @@ class Phase0Test extends TestCase
         
         $this->assertDatabaseHas('audit_logs', [
             'user_id' => $user->id,
-            'action' => 'login'
+            'action' => 'system.login'
         ]);
     }
 
@@ -85,7 +85,7 @@ class Phase0Test extends TestCase
         
         $this->assertDatabaseHas('audit_logs', [
             'user_id' => $user->id,
-            'action' => 'logout'
+            'action' => 'system.logout'
         ]);
     }
 

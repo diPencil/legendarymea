@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
@@ -48,34 +48,34 @@ class CreatePaymentService
 
             $this->invoiceSettlementService->recalculate($invoice);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'payment.created',
-                'subject_type' => Payment::class,
-                'subject_id' => $payment->id,
-                'new_values' => [
-                    'reference' => $payment->reference,
-                    'invoice_reference' => $invoice->reference,
-                    'status' => $payment->status->value,
-                    'amount' => $payment->amount,
-                    'currency' => $payment->currency,
-                ],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $userId,
-                'type' => 'payment.created',
-                'subject_type' => Payment::class,
-                'subject_id' => $payment->id,
-                'company_id' => $payment->company_id,
-                'metadata' => [
-                    'payment_reference' => $payment->reference,
-                    'invoice_reference' => $invoice->reference,
-                    'amount' => $payment->amount,
-                    'currency' => $payment->currency,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Payment',
+            entity: $payment,
+            oldValues: [],
+            newValues: $payment->only([
+                            'id',
+                            'reference',
+                            'invoice_id',
+                            'company_id',
+                            'customer_user_id',
+                            'amount',
+                            'currency',
+                            'status',
+                            'method',
+                            'transaction_reference',
+                            'paid_at',
+                            'recorded_by',
+                        ]),
+            metadata: [
+                            'payment_reference' => $payment->reference,
+                            'invoice_reference' => $invoice->reference,
+                            'company_id' => $payment->company_id,
+                            'amount' => $payment->amount,
+                            'currency' => $payment->currency,
+                        ]
+        );
 
             return $payment->load(['invoice', 'company', 'customerUser', 'recorder', 'reverser']);
         });

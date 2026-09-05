@@ -86,11 +86,11 @@ class ClientOnboardingApiTest extends TestCase
         $this->assertStringStartsWith('LM-ONB-', $data['reference']);
         $this->assertEquals('2026-10-01', $data['kickoff_date']);
         
-        $this->assertDatabaseHas('crm_activities', [
+        $this->assertDatabaseHas('audit_logs', [
             'subject_type' => ClientOnboarding::class,
             'subject_id' => $data['id'] ?? $onboarding->id ?? ClientOnboarding::first()->id,
-            'actor_id' => $user->id,
-            'type' => 'client_onboarding.created',
+            'user_id' => $user->id,
+            'action' => 'client_onboarding.created',
         ]);
     }
 
@@ -185,10 +185,10 @@ class ClientOnboardingApiTest extends TestCase
         $response->assertOk();
         $this->assertEquals(ClientOnboardingStatus::IN_PROGRESS->value, $response->json('data.status'));
         
-        $this->assertDatabaseHas('crm_activities', [
+        $this->assertDatabaseHas('audit_logs', [
             'subject_type' => ClientOnboarding::class,
             'subject_id' => $draft->id,
-            'type' => 'client_onboarding.started',
+            'action' => 'client_onboarding.started',
         ]);
     }
 

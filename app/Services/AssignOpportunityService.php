@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Opportunity;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Employee;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\OpportunityAssignedNotification;
@@ -26,31 +26,19 @@ class AssignOpportunityService
 
             $type = $oldOwnerId ? 'opportunity.reassigned' : 'opportunity.assigned';
 
-            AuditLog::create([
-                'user_id' => $assignedBy,
-                'action' => $type,
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'old_values' => $oldData,
-                'new_values' => $opportunity->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent()
-                ]
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $assignedBy,
-                'type' => $type,
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'company_id' => $opportunity->company_id,
-                'metadata' => [
-                    'opportunity_id' => $opportunity->id,
-                    'old_owner_id' => $oldOwnerId,
-                    'new_owner_id' => $newOwnerId,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: $type,
+            module: 'Opportunity',
+            entity: $opportunity,
+            oldValues: $oldData,
+            newValues: $opportunity->toArray(),
+            metadata: [
+                            'opportunity_id' => $opportunity->id,
+                            'old_owner_id' => $oldOwnerId,
+                            'new_owner_id' => $newOwnerId,
+                        ]
+        );
 
             $newOwner = Employee::find($newOwnerId);
             if ($newOwner && $newOwner->user) {

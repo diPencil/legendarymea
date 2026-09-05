@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignRequestRequest;
 use App\Http\Requests\StoreRequestRequest;
 use App\Http\Requests\UpdateRequestRequest;
 use App\Http\Resources\RequestResource;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Request as BusinessRequest;
 use App\Support\PermissionAccess;
 use App\Services\AssignRequestService;
@@ -141,30 +141,18 @@ class RequestController extends Controller
 
         $businessRequest->delete();
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'request.deleted',
-            'subject_type' => BusinessRequest::class,
-            'subject_id' => $businessRequest->id,
-            'old_values' => $oldData,
-            'new_values' => null,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
-
-        CrmActivity::create([
-            'actor_id' => auth()->id(),
-            'type' => 'request.deleted',
-            'subject_type' => BusinessRequest::class,
-            'subject_id' => $businessRequest->id,
-            'company_id' => $businessRequest->company_id,
-            'metadata' => [
-                'request_id' => $businessRequest->id,
-                'request_reference' => $businessRequest->reference,
-            ],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Request',
+            entity: $businessRequest,
+            oldValues: $oldData,
+            newValues: null,
+            metadata: [
+                        'request_id' => $businessRequest->id,
+                        'request_reference' => $businessRequest->reference,
+                    ]
+        );
 
         return response()->json(['message' => __('request.deleted')]);
     }

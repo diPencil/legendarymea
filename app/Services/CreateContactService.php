@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Contact;
-use App\Models\CrmActivity;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,30 +30,30 @@ class CreateContactService
             $contact = Contact::create($data);
 
             // Log Audit
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'contact.created',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'payload' => [
-                    'contact_id' => $contact->id,
-                    'reference' => $contact->reference,
-                    'company_id' => $contact->company_id,
-                ]
-            ]);
-
-            // Log CRM Activity
-            CrmActivity::create([
-                'company_id' => $contact->company_id, // can be null
-                'actor_id' => Auth::id(),
-                'subject_type' => Contact::class,
-                'subject_id' => $contact->id,
-                'type' => 'contact.created',
-                'metadata' => [
-                    'contact_reference' => $contact->reference,
-                    'contact_name' => trim($contact->first_name . ' ' . $contact->last_name),
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Contact',
+            entity: $contact,
+            oldValues: [],
+            newValues: $contact->only([
+                            'id',
+                            'reference',
+                            'company_id',
+                            'first_name',
+                            'last_name',
+                            'email',
+                            'phone',
+                            'job_title',
+                            'is_primary',
+                            'created_by',
+                        ]),
+            metadata: [
+                            'contact_reference' => $contact->reference,
+                            'contact_name' => trim($contact->first_name . ' ' . $contact->last_name),
+                            'company_id' => $contact->company_id,
+                        ]
+        );
 
             // Handle primary logic if requested and company exists
             if ($contact->is_primary && $contact->company_id) {

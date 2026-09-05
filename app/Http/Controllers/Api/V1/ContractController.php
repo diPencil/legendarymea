@@ -7,11 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreContractRequest;
 use App\Http\Requests\UpdateContractRequest;
 use App\Http\Resources\ContractResource;
-use App\Models\AuditLog;
 use App\Models\Contract;
 use App\Services\ContractLifecycleService;
 use App\Services\CreateContractService;
 use App\Services\ContractPdfGenerator;
+use App\Services\SystemActivityService;
 use App\Services\UpdateContractService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -105,11 +105,14 @@ class ContractController extends Controller
         return new ContractResource($contract->load(['company', 'contact', 'quotation', 'creator']));
     }
 
-    public function show(Contract $contract): ContractResource
+    public function show(Contract $contract)
     {
         $this->authorize('view', $contract);
+        $contract->loadMissing(['company', 'contact', 'quotation', 'creator']);
 
-        return new ContractResource($contract->load(['company', 'contact', 'quotation', 'creator']));
+        \App\Services\SystemActivityService::recordView(auth()->user(), 'Contract', $contract);
+
+        return new ContractResource($contract);
     }
 
     public function downloadPdf(Contract $contract, ContractPdfGenerator $generator): \Illuminate\Http\Response
@@ -118,15 +121,15 @@ class ContractController extends Controller
 
         $pdf = $generator->generate($contract->load(['company', 'contact', 'quotation', 'creator']));
 
-        AuditLog::create([
-            'user_id'         => request()->user()->id,
-            'action'          => 'contract.pdf_downloaded',
-            'subject_type'    => Contract::class,
-            'subject_id'      => $contract->id,
-            'old_values'      => null,
-            'new_values'      => ['filename' => $pdf->filename],
-            'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'pdf_downloaded',
+            module: 'Contract',
+            entity: $contract,
+            oldValues: null,
+            newValues: ['filename' => $pdf->filename],
+            metadata: []
+        );
 
         return response($pdf->contents, 200, [
             'Content-Type' => 'application/pdf',
@@ -155,15 +158,15 @@ class ContractController extends Controller
 
         $contract->delete();
 
-        AuditLog::create([
-            'user_id'         => request()->user()->id,
-            'action'          => 'contract.deleted',
-            'subject_type'    => Contract::class,
-            'subject_id'      => $contract->id,
-            'old_values'      => ['reference' => $contract->reference],
-            'new_values'      => null,
-            'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Contract',
+            entity: $contract,
+            oldValues: ['reference' => $contract->reference],
+            newValues: null,
+            metadata: []
+        );
 
         return response()->noContent();
     }

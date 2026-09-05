@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MediaFileResource;
 use App\Models\MediaFile;
@@ -86,12 +88,18 @@ class MediaFileController extends Controller
 
         // Audit Log
         if (class_exists(\App\Models\AuditLog::class)) {
-            \App\Models\AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => 'media.uploaded',
-                'description' => "Uploaded media {$mediaFile->reference}",
-                'ip_address' => $request->ip(),
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'uploaded',
+            module: 'Media',
+            entity: $mediaFile,
+            oldValues: [],
+            newValues: $this->auditValues($mediaFile),
+            metadata: [
+                            'media_reference' => $mediaFile->reference,
+                            'filename' => $mediaFile->filename,
+                        ]
+        );
         }
 
         return new MediaFileResource($mediaFile->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
@@ -168,12 +176,22 @@ class MediaFileController extends Controller
         }
 
         if (class_exists(\App\Models\AuditLog::class)) {
-            \App\Models\AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => 'media.replaced',
-                'description' => "Replaced media {$mediaFile->reference}",
-                'ip_address' => $request->ip(),
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'replaced',
+            module: 'Media',
+            entity: $mediaFile,
+            oldValues: [
+                            'path' => $oldPath,
+                            'disk' => $oldDisk,
+                        ],
+            newValues: $this->auditValues($mediaFile),
+            metadata: [
+                            'media_reference' => $mediaFile->reference,
+                            'old_path' => $oldPath,
+                            'new_path' => $mediaFile->path,
+                        ]
+        );
         }
 
         return new MediaFileResource($mediaFile->fresh()->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
@@ -190,15 +208,21 @@ class MediaFileController extends Controller
             'caption_ar'  => 'nullable|string',
         ]);
 
+        $oldValues = $this->auditValues($mediaFile);
         $mediaFile->update($validated);
 
         if (class_exists(\App\Models\AuditLog::class)) {
-            \App\Models\AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => 'media.metadata_updated',
-                'description' => "Updated media metadata for {$mediaFile->reference}",
-                'ip_address' => $request->ip(),
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'metadata_updated',
+            module: 'Media',
+            entity: $mediaFile,
+            oldValues: $oldValues,
+            newValues: $this->auditValues($mediaFile),
+            metadata: [
+                            'media_reference' => $mediaFile->reference,
+                        ]
+        );
         }
 
         return new MediaFileResource($mediaFile->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
@@ -221,12 +245,17 @@ class MediaFileController extends Controller
         Storage::disk($mediaFile->disk)->delete($mediaFile->path);
         
         if (class_exists(\App\Models\AuditLog::class)) {
-            \App\Models\AuditLog::create([
-                'user_id' => $request->user()->id,
-                'action' => 'media.deleted',
-                'description' => "Deleted media {$mediaFile->reference}",
-                'ip_address' => $request->ip(),
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Media',
+            entity: $mediaFile,
+            oldValues: $this->auditValues($mediaFile),
+            newValues: [],
+            metadata: [
+                            'media_reference' => $mediaFile->reference,
+                        ]
+        );
         }
 
         $mediaFile->delete();
@@ -284,6 +313,25 @@ class MediaFileController extends Controller
             'width' => $isImage && is_array($imageInfo) ? $imageInfo[0] : null,
             'height' => $isImage && is_array($imageInfo) ? $imageInfo[1] : null,
         ];
+    }
+
+    private function auditValues(MediaFile $mediaFile): array
+    {
+        return $mediaFile->only([
+            'id',
+            'reference',
+            'type',
+            'filename',
+            'original_filename',
+            'mime_type',
+            'size',
+            'width',
+            'height',
+            'path',
+            'disk',
+            'collection_name',
+            'uploaded_by',
+        ]);
     }
 
     private function usageSummary(MediaFile $mediaFile): array

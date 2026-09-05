@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSupplierBalanceFundingRequest;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Http\Resources\SupplierLedgerResource;
 use App\Http\Resources\SupplierResource;
-use App\Models\AuditLog;
 use App\Models\Supplier;
 use App\Services\CreateSupplierService;
 use App\Services\SupplierLedgerService;
@@ -81,13 +82,15 @@ class SupplierController extends Controller
 
         $supplier->delete();
 
-        AuditLog::create([
-            'user_id' => request()->user()->id,
-            'action' => 'supplier.deleted',
-            'subject_type' => Supplier::class,
-            'subject_id' => $supplier->id,
-            'old_values' => ['reference' => $supplier->reference],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Supplier',
+            entity: $supplier,
+            oldValues: ['reference' => $supplier->reference],
+            newValues: [],
+            metadata: []
+        );
 
         return response()->noContent();
     }

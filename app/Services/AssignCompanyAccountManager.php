@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Company;
 use App\Models\Employee;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Notifications\AccountManagerAssignedNotification;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -33,31 +33,18 @@ class AssignCompanyAccountManager
             $company->update(['account_manager_id' => $employeeId]);
 
             // Create Audit
-            AuditLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'company.account_manager_changed',
-                'subject_type' => Company::class,
-                'subject_id' => $company->id,
-                'old_values' => ['account_manager_id' => $oldManagerId],
-                'new_values' => ['account_manager_id' => $employeeId],
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            // Create CRM Activity
-            CrmActivity::create([
-                'actor_id' => auth()->id(),
-                'type' => 'company.account_manager_changed',
-                'subject_type' => Company::class,
-                'subject_id' => $company->id,
-                'company_id' => $company->id,
-                'metadata' => [
-                    'old_manager_id' => $oldManagerId,
-                    'new_manager_id' => $employeeId
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'account_manager_changed',
+            module: 'Company',
+            entity: $company,
+            oldValues: ['account_manager_id' => $oldManagerId],
+            newValues: ['account_manager_id' => $employeeId],
+            metadata: [
+                            'old_manager_id' => $oldManagerId,
+                            'new_manager_id' => $employeeId
+                        ]
+        );
 
             // Notify
             if ($employee && $employee->user) {

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\RequestStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Employee;
 use App\Models\Request;
 use App\Notifications\RequestAssignedNotification;
@@ -33,33 +33,21 @@ class AssignRequestService
 
             $type = $oldAssigneeId ? 'request.reassigned' : 'request.assigned';
 
-            AuditLog::create([
-                'user_id' => $assignedBy,
-                'action' => 'request.assigned',
-                'subject_type' => Request::class,
-                'subject_id' => $request->id,
-                'old_values' => $oldData,
-                'new_values' => $this->auditValues($request),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $assignedBy,
-                'type' => $type,
-                'subject_type' => Request::class,
-                'subject_id' => $request->id,
-                'company_id' => $request->company_id,
-                'metadata' => [
-                    'request_id' => $request->id,
-                    'request_reference' => $request->reference,
-                    'old_assigned_to' => $oldAssigneeId,
-                    'new_assigned_to' => $employeeId,
-                    'status' => $request->status?->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: $type,
+            module: 'Request',
+            entity: $request,
+            oldValues: $oldData,
+            newValues: $this->auditValues($request),
+            metadata: [
+                            'request_id' => $request->id,
+                            'request_reference' => $request->reference,
+                            'old_assigned_to' => $oldAssigneeId,
+                            'new_assigned_to' => $employeeId,
+                            'status' => $request->status?->value,
+                        ]
+        );
 
             $employee = Employee::with('user')->find($employeeId);
             if ($employee?->user) {

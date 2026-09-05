@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
+use App\Services\SystemActivityService;
+
 use App\Models\Employee;
 use App\Models\FollowUp;
 use App\Notifications\FollowUpAssignedNotification;
@@ -28,33 +28,21 @@ class AssignFollowUpService
 
             $type = $employeeId ? ($oldAssigneeId ? 'follow_up.reassigned' : 'follow_up.assigned') : 'follow_up.unassigned';
 
-            AuditLog::create([
-                'user_id' => $assignedBy,
-                'action' => $type,
-                'subject_type' => FollowUp::class,
-                'subject_id' => $followUp->id,
-                'old_values' => $oldData,
-                'new_values' => $this->auditValues($followUp),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $assignedBy,
-                'type' => $type,
-                'subject_type' => FollowUp::class,
-                'subject_id' => $followUp->id,
-                'company_id' => $followUp->company_id,
-                'metadata' => [
-                    'follow_up_id' => $followUp->id,
-                    'follow_up_reference' => $followUp->reference,
-                    'old_assigned_to' => $oldAssigneeId,
-                    'new_assigned_to' => $employeeId,
-                    'status' => $followUp->status?->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'FollowUp',
+            entity: $followUp,
+            oldValues: $oldData,
+            newValues: $this->auditValues($followUp),
+            metadata: [
+                            'follow_up_id' => $followUp->id,
+                            'follow_up_reference' => $followUp->reference,
+                            'old_assigned_to' => $oldAssigneeId,
+                            'new_assigned_to' => $employeeId,
+                            'status' => $followUp->status?->value,
+                        ]
+        );
 
             if ($employeeId) {
                 $employee = Employee::with('user')->find($employeeId);

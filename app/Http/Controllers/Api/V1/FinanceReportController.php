@@ -13,6 +13,8 @@ class FinanceReportController extends Controller
     {
         $this->authorize($request);
 
+        \App\Services\SystemActivityService::recordView($request->user(), 'FinanceReport', null);
+
         return response()->json($service->overview($request->all()));
     }
 

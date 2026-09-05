@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
@@ -131,16 +133,15 @@ class DocumentController extends Controller
         
         $document->delete();
 
-        \App\Models\AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'document.deleted',
-            'subject_type' => Document::class,
-            'subject_id' => $document->id,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
+        \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Document',
+            entity: $document,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
 
         return response()->noContent();
     }
@@ -156,16 +157,15 @@ class DocumentController extends Controller
             return response()->json(['message' => 'File not found on server.'], 404);
         }
 
-        \App\Models\AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'document.downloaded',
-            'subject_type' => Document::class,
-            'subject_id' => $document->id,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
+        \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'downloaded',
+            module: 'Document',
+            entity: $document,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
 
         return Storage::disk($document->disk)->download($document->file_path, $document->original_name);
     }

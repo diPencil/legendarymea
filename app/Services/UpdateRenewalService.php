@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\RenewalStatus;
-use App\Models\AuditLog;
 use App\Models\Renewal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -41,15 +42,15 @@ class UpdateRenewalService
                 'notes' => array_key_exists('notes', $data) ? $data['notes'] : $renewal->notes,
             ]);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'renewal.updated',
-                'subject_type' => Renewal::class,
-                'subject_id' => $renewal->id,
-                'old_values' => $oldValues,
-                'new_values' => $renewal->only(['status', 'renewal_due_date', 'renewal_amount', 'currency', 'assigned_to']),
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Renewal',
+            entity: $renewal,
+            oldValues: $oldValues,
+            newValues: $renewal->only(['status', 'renewal_due_date', 'renewal_amount', 'currency', 'assigned_to']),
+            metadata: []
+        );
 
             return $renewal->load(['company', 'contract', 'activeService', 'assignee', 'renewedContract', 'creator']);
         });

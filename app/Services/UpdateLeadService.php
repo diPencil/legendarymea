@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Lead;
-use App\Models\CrmActivity;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,29 +18,17 @@ class UpdateLeadService
             
             $lead->update($data);
 
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'lead.updated',
-                'subject_type' => Lead::class,
-                'subject_id' => $lead->id,
-                'old_values' => $oldValues,
-                'new_values' => $lead->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ]
-            ]);
-
-            CrmActivity::create([
-                'company_id' => $lead->company_id,
-                'actor_id' => Auth::id(),
-                'subject_type' => Lead::class,
-                'subject_id' => $lead->id,
-                'type' => 'lead.updated',
-                'metadata' => [
-                    'lead_reference' => $lead->reference,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Lead',
+            entity: $lead,
+            oldValues: $oldValues,
+            newValues: $lead->toArray(),
+            metadata: [
+                            'lead_reference' => $lead->reference,
+                        ]
+        );
 
             return $lead->fresh();
         });

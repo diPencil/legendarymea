@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ContractStatus;
 use App\Enums\RenewalStatus;
 use App\Models\ActiveService;
-use App\Models\AuditLog;
 use App\Models\Contract;
-use App\Models\CrmActivity;
 use App\Models\Renewal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -42,23 +42,15 @@ class CreateRenewalService
                 'created_by' => $creatorId,
             ]);
 
-            AuditLog::create([
-                'user_id' => $creatorId,
-                'action' => 'renewal.created',
-                'subject_type' => Renewal::class,
-                'subject_id' => $renewal->id,
-                'new_values' => ['reference' => $renewal->reference, 'status' => $renewal->status->value],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $creatorId,
-                'type' => 'renewal.created',
-                'subject_type' => Renewal::class,
-                'subject_id' => $renewal->id,
-                'company_id' => $renewal->company_id,
-                'metadata' => ['renewal_reference' => $renewal->reference, 'contract_reference' => $contract->reference],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Renewal',
+            entity: $renewal,
+            oldValues: [],
+            newValues: ['reference' => $renewal->reference],
+            metadata: ['renewal_reference' => $renewal->reference, 'contract_reference' => $contract->reference]
+        );
 
             return $renewal->load(['company', 'contract', 'activeService', 'assignee', 'renewedContract', 'creator']);
         });

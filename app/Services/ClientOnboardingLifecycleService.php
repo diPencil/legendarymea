@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ClientOnboardingStatus;
 use App\Enums\ContractStatus;
-use App\Models\AuditLog;
 use App\Models\ClientOnboarding;
-use App\Models\CrmActivity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -55,22 +55,15 @@ class ClientOnboardingLifecycleService
             $onboarding->status = ClientOnboardingStatus::IN_PROGRESS;
             $onboarding->save();
 
-            AuditLog::create([
-                'user_id' => $editor->id,
-                'action' => 'client_onboarding.started',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'old_values' => $original,
-                'new_values' => $onboarding->toArray(),
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $editor->id,
-                'type' => 'client_onboarding.started',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'company_id' => $onboarding->company_id,
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'started',
+            module: 'ClientOnboarding',
+            entity: $onboarding,
+            oldValues: $original,
+            newValues: $onboarding->toArray(),
+            metadata: []
+        );
 
             return $onboarding;
         });
@@ -90,22 +83,15 @@ class ClientOnboardingLifecycleService
             $onboarding->completed_at = now();
             $onboarding->save();
 
-            AuditLog::create([
-                'user_id' => $editor->id,
-                'action' => 'client_onboarding.completed',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'old_values' => $original,
-                'new_values' => $onboarding->toArray(),
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $editor->id,
-                'type' => 'client_onboarding.completed',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'company_id' => $onboarding->company_id,
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'completed',
+            module: 'ClientOnboarding',
+            entity: $onboarding,
+            oldValues: $original,
+            newValues: $onboarding->toArray(),
+            metadata: []
+        );
 
             return $onboarding;
         });
@@ -125,22 +111,15 @@ class ClientOnboardingLifecycleService
             $onboarding->completed_at = null;
             $onboarding->save();
 
-            AuditLog::create([
-                'user_id' => $editor->id,
-                'action' => 'client_onboarding.cancelled',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'old_values' => $original,
-                'new_values' => $onboarding->toArray(),
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $editor->id,
-                'type' => 'client_onboarding.cancelled',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'company_id' => $onboarding->company_id,
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'cancelled',
+            module: 'ClientOnboarding',
+            entity: $onboarding,
+            oldValues: $original,
+            newValues: $onboarding->toArray(),
+            metadata: []
+        );
 
             return $onboarding;
         });

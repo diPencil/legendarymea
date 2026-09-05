@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\SupplierLedgerDirection;
 use App\Enums\SupplierLedgerType;
-use App\Models\AuditLog;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Supplier;
@@ -62,18 +63,15 @@ class SupplierLedgerService
                 'created_by' => $userId,
             ]);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'supplier.balance_funded',
-                'subject_type' => Supplier::class,
-                'subject_id' => $supplier->id,
-                'new_values' => [
-                    'supplier_reference' => $supplier->reference,
-                    'currency' => $entry->currency,
-                    'amount' => $entry->amount,
-                ],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'balance_funded',
+            module: 'Supplier',
+            entity: $supplier,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
 
             return $entry->load(['invoice']);
         });
@@ -145,18 +143,14 @@ class SupplierLedgerService
             'created_by' => $userId,
         ]);
 
-        AuditLog::create([
-            'user_id' => $userId,
-            'action' => 'supplier.balance_used',
-            'subject_type' => Supplier::class,
-            'subject_id' => $item->supplier_id,
-            'new_values' => [
-                'invoice_reference' => $invoice->reference,
-                'invoice_item_id' => $item->id,
-                'currency' => $account->currency,
-                'amount' => number_format($amount, 2, '.', ''),
-            ],
-            'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'balance_used',
+            module: 'Supplier',
+            entity: null,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
     }
 }

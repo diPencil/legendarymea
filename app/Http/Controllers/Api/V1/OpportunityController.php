@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Models\Opportunity;
 use App\Support\PermissionAccess;
@@ -124,27 +126,15 @@ class OpportunityController extends Controller
         $this->authorize('delete', $opportunity);
         $opportunity->delete();
         
-        \App\Models\AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'opportunity.deleted',
-            'subject_type' => Opportunity::class,
-            'subject_id' => $opportunity->id,
-            'old_values' => $opportunity->toArray(),
-            'new_values' => null,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent()
-            ]
-        ]);
-
-        \App\Models\CrmActivity::create([
-            'actor_id' => auth()->id(),
-            'type' => 'opportunity.deleted',
-            'subject_type' => Opportunity::class,
-            'subject_id' => $opportunity->id,
-            'company_id' => $opportunity->company_id,
-            'metadata' => ['opportunity_id' => $opportunity->id],
-        ]);
+        \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Opportunity',
+            entity: $opportunity,
+            oldValues: $opportunity->toArray(),
+            newValues: null,
+            metadata: ['opportunity_id' => $opportunity->id]
+        );
 
         return response()->json(['message' => __('opportunity.deleted')]);
     }

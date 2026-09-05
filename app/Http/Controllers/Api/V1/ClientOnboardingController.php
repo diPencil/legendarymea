@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ClientOnboardingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreClientOnboardingRequest;
 use App\Http\Requests\UpdateClientOnboardingRequest;
 use App\Http\Resources\ClientOnboardingResource;
 use App\Models\ClientOnboarding;
-use App\Models\AuditLog;
 use App\Services\ClientOnboardingLifecycleService;
 use App\Services\CreateClientOnboardingService;
 use App\Services\UpdateClientOnboardingService;
@@ -162,13 +163,15 @@ class ClientOnboardingController extends Controller
 
         $clientOnboarding->delete();
 
-        AuditLog::create([
-            'user_id' => request()->user()->id,
-            'action' => 'client_onboarding.deleted',
-            'subject_type' => ClientOnboarding::class,
-            'subject_id' => $clientOnboarding->id,
-            'old_values' => ['reference' => $clientOnboarding->reference],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'ClientOnboarding',
+            entity: $clientOnboarding,
+            oldValues: ['reference' => $clientOnboarding->reference],
+            newValues: [],
+            metadata: []
+        );
 
         return response()->noContent();
     }

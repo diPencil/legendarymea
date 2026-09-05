@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ActiveServiceStatus;
 use App\Enums\ClientOnboardingStatus;
 use App\Enums\ContractStatus;
 use App\Models\ActiveService;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -111,21 +111,14 @@ class ActiveServiceLifecycleService
         $service->status = $newStatus;
         $service->save();
 
-        AuditLog::create([
-            'user_id' => $actor->id,
-            'action' => "active_service.{$actionName}",
-            'subject_type' => ActiveService::class,
-            'subject_id' => $service->id,
-            'old_values' => $oldValues,
-            'new_values' => $service->toArray(),
-        ]);
-
-        CrmActivity::create([
-            'actor_id' => $actor->id,
-            'type' => "active_service.{$actionName}",
-            'subject_type' => ActiveService::class,
-            'subject_id' => $service->id,
-            'company_id' => $service->company_id,
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: $actionName,
+            module: 'ActiveService',
+            entity: $service,
+            oldValues: $oldValues,
+            newValues: $service->toArray(),
+            metadata: []
+        );
     }
 }

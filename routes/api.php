@@ -194,6 +194,13 @@ Route::prefix('v1')->group(function () {
         // Web Pages
         Route::apiResource('web-pages', \App\Http\Controllers\Api\V1\WebPageController::class);
 
+        // Notifications & Activity
+        Route::get('notifications/unread-count', [\App\Http\Controllers\Api\V1\NotificationController::class, 'unreadCount']);
+        Route::post('notifications/read-all', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAllRead']);
+        Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markRead']);
+        Route::get('notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index']);
+        Route::get('activity', [\App\Http\Controllers\Api\V1\ActivityController::class, 'index']);
+
         // Settings
         Route::get('settings/email', [\App\Http\Controllers\Api\V1\EmailConfigurationController::class, 'show']);
         Route::put('settings/email', [\App\Http\Controllers\Api\V1\EmailConfigurationController::class, 'update']);

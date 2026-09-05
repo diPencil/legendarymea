@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\QuotationStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Quotation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -53,29 +53,20 @@ class QuotationLifecycleService
 
             $action = "quotation.{$toStatus}";
 
-            AuditLog::create([
-                'user_id'         => $actorId,
-                'action'          => $action,
-                'subject_type'    => Quotation::class,
-                'subject_id'      => $quotation->id,
-                'old_values'      => ['status' => $fromStatus],
-                'new_values'      => ['status' => $toStatus],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id'     => $actorId,
-                'type'         => $action,
-                'subject_type' => Quotation::class,
-                'subject_id'   => $quotation->id,
-                'company_id'   => $quotation->company_id,
-                'metadata'     => [
-                    'quotation_id'        => $quotation->id,
-                    'quotation_reference' => $quotation->reference,
-                    'from_status'         => $fromStatus,
-                    'to_status'           => $toStatus,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: $toStatus,
+            module: 'Quotation',
+            entity: $quotation,
+            oldValues: ['status' => $fromStatus],
+            newValues: ['status' => $toStatus],
+            metadata: [
+                            'quotation_id'        => $quotation->id,
+                            'quotation_reference' => $quotation->reference,
+                            'from_status'         => $fromStatus,
+                            'to_status'           => $toStatus,
+                        ]
+        );
 
             return $quotation;
         });

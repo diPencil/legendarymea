@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\FollowUpStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\FollowUp;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -78,34 +78,19 @@ class UpdateFollowUpService
             if ($oldData !== $newValues) {
                 $isStatusChange = isset($data['status']);
 
-                AuditLog::create([
-                    'user_id' => $updatedBy,
-                    'action' => $isStatusChange ? 'follow_up.status_changed' : 'follow_up.updated',
-                    'subject_type' => FollowUp::class,
-                    'subject_id' => $followUp->id,
-                    'old_values' => $oldData,
-                    'new_values' => $newValues,
-                    'request_context' => [
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent(),
-                    ],
-                ]);
-
-                if ($isStatusChange) {
-                    CrmActivity::create([
-                        'actor_id' => $updatedBy,
-                        'type' => 'follow_up.status_changed',
-                        'subject_type' => FollowUp::class,
-                        'subject_id' => $followUp->id,
-                        'company_id' => $followUp->company_id,
-                        'metadata' => [
-                            'follow_up_id' => $followUp->id,
-                            'follow_up_reference' => $followUp->reference,
-                            'old_status' => $oldData['status'],
-                            'new_status' => $newValues['status'],
-                        ],
-                    ]);
-                }
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'status_changed',
+            module: 'FollowUp',
+            entity: $followUp,
+            oldValues: $oldData,
+            newValues: $newValues,
+            metadata: [
+                                    'follow_up_id' => $followUp->id,
+                                    'follow_up_reference' => $followUp->reference,
+                                    'old_status' => $oldData['status']
+                                ]
+        );
             }
 
             return $followUp;

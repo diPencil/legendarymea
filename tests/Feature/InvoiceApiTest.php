@@ -6,10 +6,10 @@ use App\Enums\ActiveServiceStatus;
 use App\Enums\ContractStatus;
 use App\Enums\InvoiceStatus;
 use App\Models\ActiveService;
-use App\Models\AuditLog;
+
 use App\Models\Company;
 use App\Models\Contract;
-use App\Models\CrmActivity;
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -1692,10 +1692,17 @@ class InvoiceApiTest extends TestCase
             ])
             ->assertCreated();
 
-        $this->assertDatabaseHas('crm_activities', [
-            'type' => 'invoice.created',
-            'company_id' => $this->company->id,
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'invoice.created',
         ]);
+
+        $log = AuditLog::where('action', 'invoice.created')
+            ->where('subject_type', Invoice::class)
+            ->latest()
+            ->firstOrFail();
+
+        $this->assertSame($this->company->id, $log->new_values['company_id']);
+        $this->assertSame($this->company->id, $log->request_context['metadata']['company_id']);
     }
 
     // ===========================================================

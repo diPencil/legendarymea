@@ -8,8 +8,8 @@ use App\Models\Contact;
 use App\Models\Lead;
 use App\Models\Employee;
 use App\Models\Opportunity;
+
 use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Enums\LeadStatus;
 use App\Enums\OpportunityStage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -105,7 +105,7 @@ class OpportunityApiTest extends TestCase
         $this->assertDatabaseHas('opportunities', ['id' => $data['id']]);
         
         $this->assertDatabaseHas('audit_logs', ['action' => 'opportunity.created']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'opportunity.created']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'opportunity.created']);
 
         // Verify Lead remained untouched
         $this->assertDatabaseHas('leads', [
@@ -195,7 +195,7 @@ class OpportunityApiTest extends TestCase
         $this->assertEquals($newEmployee->id, $response->json('data.owner.id'));
 
         $this->assertDatabaseHas('audit_logs', ['action' => 'opportunity.reassigned']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'opportunity.reassigned']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'opportunity.reassigned']);
 
         // Check notification
         $this->assertTrue($newEmployee->user->notifications()->count() > 0);

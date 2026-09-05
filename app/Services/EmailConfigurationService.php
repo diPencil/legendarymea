@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\AuditLog;
+use App\Services\SystemActivityService;
+
 use App\Models\EmailMessage;
 use App\Models\Setting;
 use Illuminate\Mail\Message;
@@ -64,17 +65,15 @@ class EmailConfigurationService
             }
         }
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'email_configuration.updated',
-            'subject_type' => Setting::class,
-            'subject_id' => null,
-            'new_values' => [
-                'changed_keys' => array_values(array_diff(array_keys($data), self::SECRET_KEYS)),
-                'smtp_password_changed' => filled($data['smtp_password'] ?? null),
-                'incoming_password_changed' => filled($data['incoming_password'] ?? null),
-            ],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Setting',
+            entity: null,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
 
         return $this->getForApi();
     }

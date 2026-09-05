@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ActiveServiceStatus;
 use App\Models\ActiveService;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -55,14 +55,15 @@ class UpdateActiveServiceService
             if ($service->isDirty()) {
                 $service->save();
 
-                AuditLog::create([
-                    'user_id' => $actor->id,
-                    'action' => 'active_service.updated',
-                    'subject_type' => ActiveService::class,
-                    'subject_id' => $service->id,
-                    'old_values' => $oldValues,
-                    'new_values' => $service->toArray(),
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'ActiveService',
+            entity: $service,
+            oldValues: $oldValues,
+            newValues: $service->toArray(),
+            metadata: []
+        );
 
                 // We don't always need a CRM activity for generic updates to avoid noise,
                 // but the prompt says: "Write useful CRM Activity through Company/Contract context."

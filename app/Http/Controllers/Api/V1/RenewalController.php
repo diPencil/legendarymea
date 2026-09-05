@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\RenewalStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CompleteRenewalRequest;
 use App\Http\Requests\StoreRenewalRequest;
 use App\Http\Requests\UpdateRenewalRequest;
 use App\Http\Resources\RenewalResource;
-use App\Models\AuditLog;
 use App\Models\Renewal;
 use App\Services\CreateRenewalService;
 use App\Services\RenewalLifecycleService;
@@ -90,14 +91,15 @@ class RenewalController extends Controller
 
         $renewal->delete();
 
-        AuditLog::create([
-            'user_id' => request()->user()->id,
-            'action' => 'renewal.deleted',
-            'subject_type' => Renewal::class,
-            'subject_id' => $renewal->id,
-            'old_values' => ['reference' => $renewal->reference, 'status' => $renewal->status->value],
-            'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Renewal',
+            entity: $renewal,
+            oldValues: ['reference' => $renewal->reference],
+            newValues: [],
+            metadata: []
+        );
 
         return response()->noContent();
     }

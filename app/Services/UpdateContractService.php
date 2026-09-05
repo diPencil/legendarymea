@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ContractStatus;
-use App\Models\AuditLog;
 use App\Models\Contact;
 use App\Models\Contract;
-use App\Models\CrmActivity;
 use App\Models\Quotation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -63,15 +63,15 @@ class UpdateContractService
                             if ($contract->isDirty()) {
                                 $contract->save();
 
-                                AuditLog::create([
-                                    'user_id'         => $updatedBy,
-                                    'action'          => 'contract.updated',
-                                    'subject_type'    => Contract::class,
-                                    'subject_id'      => $contract->id,
-                                    'old_values'      => $oldValues,
-                                    'new_values'      => $this->auditValues($contract),
-                                    'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-                                ]);
+                                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Contract',
+            entity: $contract,
+            oldValues: $oldValues,
+            newValues: $this->auditValues($contract),
+            metadata: []
+        );
                             }
 
                             return $lifecycleService->activate($contract, $updatedBy);
@@ -80,15 +80,15 @@ class UpdateContractService
             if ($contract->isDirty()) {
                 $contract->save();
 
-                AuditLog::create([
-                    'user_id'         => $updatedBy,
-                    'action'          => 'contract.updated',
-                    'subject_type'    => Contract::class,
-                    'subject_id'      => $contract->id,
-                    'old_values'      => $oldValues,
-                    'new_values'      => $this->auditValues($contract),
-                    'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Contract',
+            entity: $contract,
+            oldValues: $oldValues,
+            newValues: $this->auditValues($contract),
+            metadata: []
+        );
 
                 // We only create an activity if company changed or something major.
                 // For now, let's just log a generic update if we want, or nothing to avoid noise.
