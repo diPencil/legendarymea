@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Media;
 
+use App\Models\EmailTemplate;
 use App\Models\User;
 use App\Models\MediaFile;
+use App\Models\WebsiteMediaSlot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -63,7 +65,7 @@ class MediaApiTest extends TestCase
         $this->assertEquals(50, $res->json('data.height'));
         $this->assertEquals('image/jpeg', $res->json('data.mime_type'));
         $this->assertNotNull($res->json('data.safe_url'));
-        $this->assertStringStartsWith('http://localhost/storage/media/', $res->json('data.safe_url'));
+        $this->assertSame('/dashboard-api/api/v1/media-files/'.$res->json('data.id').'/content', $res->json('data.safe_url'));
         $this->assertStringNotContainsString(storage_path(), $res->json('data.safe_url'));
         
         unlink($imagePath);
@@ -252,6 +254,117 @@ class MediaApiTest extends TestCase
         $this->assertEquals('document', $res->json('data.0.type'));
     }
 
+    public function test_replace_preserves_media_id_and_removes_old_file()
+    {
+        $admin = $this->getAdmin();
+        $this->actingAs($admin);
+
+        $first = UploadedFile::fake()->image('first.jpg', 120, 80);
+        $created = $this->postJson('/api/v1/media-files', ['file' => $first])->assertCreated();
+        $mediaId = $created->json('data.id');
+        $oldPath = MediaFile::query()->findOrFail($mediaId)->path;
+
+        $second = UploadedFile::fake()->image('second.png', 320, 180);
+        $this->postJson("/api/v1/media-files/{$mediaId}/replace", ['file' => $second])
+            ->assertOk()
+            ->assertJsonPath('data.id', $mediaId)
+            ->assertJsonPath('data.original_name', 'second.png')
+            ->assertJsonPath('data.mime_type', 'image/png')
+            ->assertJsonPath('data.width', 320)
+            ->assertJsonPath('data.height', 180);
+
+        $media = MediaFile::query()->findOrFail($mediaId);
+        Storage::disk('public')->assertMissing($oldPath);
+        Storage::disk('public')->assertExists($media->path);
+    }
+
+    public function test_used_media_reports_usage_and_cannot_be_deleted()
+    {
+        $admin = $this->getAdmin();
+        $this->actingAs($admin);
+
+        $created = $this->postJson('/api/v1/media-files', [
+            'file' => UploadedFile::fake()->image('campaign.jpg', 200, 120),
+        ])->assertCreated();
+        $mediaId = $created->json('data.id');
+
+        EmailTemplate::query()->create([
+            'name' => 'Corporate Travel',
+            'key' => 'corporate-travel',
+            'subject' => 'Corporate Travel',
+            'body' => 'Body',
+            'subject_en' => 'Corporate Travel',
+            'subject_ar' => 'رحلات الشركات',
+            'body_en' => 'Body',
+            'body_ar' => 'النص',
+            'image_media_id' => $mediaId,
+            'is_active' => true,
+        ]);
+
+        WebsiteMediaSlot::query()->create([
+            'key' => 'home_hero_hotel',
+            'label' => 'Home Hero Hotel',
+            'fallback_path' => '/hotel.png',
+            'media_file_id' => $mediaId,
+        ]);
+
+        $this->getJson("/api/v1/media-files/{$mediaId}")
+            ->assertOk()
+            ->assertJsonPath('data.is_in_use', true)
+            ->assertJsonPath('data.usage_count', 2)
+            ->assertJsonFragment(['label' => 'Email Template — Corporate Travel'])
+            ->assertJsonFragment(['label' => 'Website — Home Hero Hotel']);
+
+        $this->deleteJson("/api/v1/media-files/{$mediaId}")
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'This media is currently in use.');
+
+        $this->assertDatabaseHas('media_files', ['id' => $mediaId, 'deleted_at' => null]);
+    }
+
+    public function test_usage_filter_can_return_used_and_unused_media()
+    {
+        $admin = $this->getAdmin();
+        $this->actingAs($admin);
+
+        $used = MediaFile::query()->create([
+            'reference' => 'LM-MED-2026-000010',
+            'type' => 'image',
+            'filename' => 'used.jpg',
+            'original_filename' => 'Used.jpg',
+            'mime_type' => 'image/jpeg',
+            'size' => 100,
+            'disk' => 'public',
+            'path' => 'used.jpg',
+            'uploaded_by' => $admin->id,
+        ]);
+
+        MediaFile::query()->create([
+            'reference' => 'LM-MED-2026-000011',
+            'type' => 'image',
+            'filename' => 'unused.jpg',
+            'original_filename' => 'Unused.jpg',
+            'mime_type' => 'image/jpeg',
+            'size' => 100,
+            'disk' => 'public',
+            'path' => 'unused.jpg',
+            'uploaded_by' => $admin->id,
+        ]);
+
+        WebsiteMediaSlot::query()->create([
+            'key' => 'about_section',
+            'label' => 'About Section',
+            'fallback_path' => '/why-legendary.jpg',
+            'media_file_id' => $used->id,
+        ]);
+
+        $usedResponse = $this->getJson('/api/v1/media-files?usage=used')->assertOk();
+        $this->assertSame(['Used.jpg'], array_column($usedResponse->json('data'), 'original_name'));
+
+        $unusedResponse = $this->getJson('/api/v1/media-files?usage=unused')->assertOk();
+        $this->assertSame(['Unused.jpg'], array_column($unusedResponse->json('data'), 'original_name'));
+    }
+
     public function test_can_soft_delete_media()
     {
         $admin = $this->getAdmin();
@@ -260,11 +373,13 @@ class MediaApiTest extends TestCase
         $file = UploadedFile::fake()->create('doc.pdf', 10, 'application/pdf');
         $res = $this->postJson('/api/v1/media-files', ['file' => $file])->assertCreated();
         $mediaId = $res->json('data.id');
+        $path = MediaFile::query()->findOrFail($mediaId)->path;
 
         $this->deleteJson("/api/v1/media-files/{$mediaId}")->assertNoContent();
 
         $this->assertSoftDeleted('media_files', [
             'id' => $mediaId,
         ]);
+        Storage::disk('public')->assertMissing($path);
     }
 }
