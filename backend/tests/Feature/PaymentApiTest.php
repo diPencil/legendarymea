@@ -5,9 +5,9 @@ namespace Tests\Feature;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-use App\Models\AuditLog;
+
 use App\Models\Company;
-use App\Models\CrmActivity;
+use App\Models\AuditLog;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
@@ -279,16 +279,17 @@ class PaymentApiTest extends TestCase
             'action' => 'payment.created',
             'subject_type' => Payment::class,
             'subject_id' => $paymentId,
-        ]);
-        $this->assertDatabaseHas('crm_activities', [
-            'type' => 'payment.created',
-            'subject_type' => Payment::class,
-            'subject_id' => $paymentId,
-            'company_id' => $invoice->company_id,
+            'user_id' => $this->admin->id,
         ]);
 
-        $this->assertTrue(AuditLog::where('subject_id', $paymentId)->exists());
-        $this->assertTrue(CrmActivity::where('subject_id', $paymentId)->exists());
+        $log = AuditLog::where('action', 'payment.created')
+            ->where('subject_type', Payment::class)
+            ->where('subject_id', $paymentId)
+            ->firstOrFail();
+
+        $this->assertSame($invoice->company_id, $log->new_values['company_id']);
+        $this->assertSame('100.00', $log->new_values['amount']);
+        $this->assertSame($invoice->reference, $log->request_context['metadata']['invoice_reference']);
     }
 
     public function test_delete_route_is_not_available(): void

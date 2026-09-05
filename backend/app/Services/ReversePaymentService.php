@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\PaymentStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -33,30 +33,18 @@ class ReversePaymentService
 
             $this->invoiceSettlementService->recalculate($payment->invoice()->firstOrFail());
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'payment.reversed',
-                'subject_type' => Payment::class,
-                'subject_id' => $payment->id,
-                'old_values' => ['status' => PaymentStatus::POSTED->value],
-                'new_values' => [
-                    'status' => PaymentStatus::REVERSED->value,
-                    'reversal_reason' => $reason,
-                ],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $userId,
-                'type' => 'payment.reversed',
-                'subject_type' => Payment::class,
-                'subject_id' => $payment->id,
-                'company_id' => $payment->company_id,
-                'metadata' => [
-                    'payment_reference' => $payment->reference,
-                    'invoice_reference' => $payment->invoice->reference,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'reversed',
+            module: 'Payment',
+            entity: $payment,
+            oldValues: ['status' => PaymentStatus::POSTED->value],
+            newValues: [],
+            metadata: [
+                            'payment_reference' => $payment->reference,
+                            'invoice_reference' => $payment->invoice->reference,
+                        ]
+        );
 
             return $payment->load(['invoice', 'company', 'customerUser', 'recorder', 'reverser']);
         });

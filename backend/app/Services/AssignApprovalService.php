@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Approval;
 use App\Models\User;
 use App\Enums\ApprovalStatus;
-use App\Models\AuditLog;
 use App\Notifications\ApprovalAssignedNotification;
 use Illuminate\Validation\ValidationException;
 
@@ -32,13 +33,15 @@ class AssignApprovalService
         $approval->save();
 
         if ($newAssigneeId) {
-            AuditLog::create([
-                'user_id'         => $actor->id,
-                'action'          => 'approval.assigned',
-                'subject_type'    => Approval::class,
-                'subject_id'      => $approval->id,
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'assigned',
+            module: 'Approval',
+            entity: $approval,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
 
             // Notify the new assignee only when the assignee actually changed
             if ($newAssigneeId !== $prevAssigneeId) {
@@ -49,13 +52,15 @@ class AssignApprovalService
                 }
             }
         } else {
-            AuditLog::create([
-                'user_id'         => $actor->id,
-                'action'          => 'approval.unassigned',
-                'subject_type'    => Approval::class,
-                'subject_id'      => $approval->id,
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'unassigned',
+            module: 'Approval',
+            entity: $approval,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
             // No notification on unassign (null target)
         }
 

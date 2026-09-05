@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
+use App\Services\SystemActivityService;
+
 use App\Models\Note;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -31,33 +31,31 @@ class CreateNoteService
             $note = Note::create($data);
             $note->refresh();
 
-            AuditLog::create([
-                'user_id' => $createdBy,
-                'action' => 'note.created',
-                'subject_type' => Note::class,
-                'subject_id' => $note->id,
-                'old_values' => null,
-                'new_values' => $this->auditValues($note),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Note',
+            entity: $note,
+            oldValues: null,
+            newValues: $this->auditValues($note),
+            metadata: []
+        );
 
             // Create CRM Activity for meaningful business context
             if ($note->company_id || $note->contact_id || $note->lead_id || $note->opportunity_id || $note->request_id || $note->task_id || $note->follow_up_id) {
-                CrmActivity::create([
-                    'actor_id' => $createdBy,
-                    'type' => 'note.created',
-                    'subject_type' => Note::class,
-                    'subject_id' => $note->id,
-                    'company_id' => $note->company_id,
-                    'metadata' => [
-                        'note_id' => $note->id,
-                        'note_reference' => $note->reference,
-                        'title' => $note->title,
-                    ],
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Note',
+            entity: $note,
+            oldValues: [],
+            newValues: [],
+            metadata: [
+                                'note_id' => $note->id,
+                                'note_reference' => $note->reference,
+                                'title' => $note->title,
+                            ]
+        );
             }
 
             return $note;

@@ -6,6 +6,7 @@ use App\Enums\ActiveServiceStatus;
 use App\Enums\ClientOnboardingStatus;
 use App\Enums\ContractStatus;
 use App\Models\ActiveService;
+use App\Models\AuditLog;
 use App\Models\ClientOnboarding;
 use App\Models\Company;
 use App\Models\Contract;
@@ -105,11 +106,17 @@ class ActiveServiceApiTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $this->assertDatabaseHas('crm_activities', [
-            'type' => 'active_service.created',
-            'actor_id' => $user->id,
-            'company_id' => $company->id,
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'active_service.created',
+            'user_id' => $user->id,
+            'subject_type' => ActiveService::class,
         ]);
+
+        $log = AuditLog::where('action', 'active_service.created')
+            ->where('subject_type', ActiveService::class)
+            ->latest()
+            ->firstOrFail();
+        $this->assertSame($company->id, $log->new_values['company_id']);
     }
 
     public function test_non_active_contract_rejected()

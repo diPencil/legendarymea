@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\InvoiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
-use App\Models\AuditLog;
 use App\Models\Invoice;
 use App\Services\CreateInvoiceService;
 use App\Services\InvoiceLifecycleService;
@@ -70,6 +71,9 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         Gate::authorize('view', $invoice);
+
+        \App\Services\SystemActivityService::recordView(auth()->user(), 'Invoice', $invoice);
+
         return new InvoiceResource($invoice->load(['company', 'customerUser', 'soldByEmployee.user', 'contract', 'activeService', 'creator', 'items.supplier', 'items.serviceCatalog', 'payments.recorder', 'payments.reverser']));
     }
 
@@ -95,13 +99,15 @@ class InvoiceController extends Controller
 
         $invoice->delete();
 
-        AuditLog::create([
-            'user_id' => request()->user()->id,
-            'action' => 'invoice.deleted',
-            'subject_type' => Invoice::class,
-            'subject_id' => $invoice->id,
-            'old_values' => ['reference' => $invoice->reference, 'status' => $invoice->status->value],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: ['reference' => $invoice->reference],
+            newValues: [],
+            metadata: []
+        );
 
         return response()->noContent();
     }

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignFollowUpRequest;
 use App\Http\Requests\StoreFollowUpRequest;
 use App\Http\Requests\UpdateFollowUpRequest;
 use App\Http\Resources\FollowUpResource;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\FollowUp;
 use App\Support\PermissionAccess;
 use App\Services\AssignFollowUpService;
@@ -149,30 +149,18 @@ class FollowUpController extends Controller
 
         $followUp->delete();
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'follow_up.deleted',
-            'subject_type' => FollowUp::class,
-            'subject_id' => $followUp->id,
-            'old_values' => $oldData,
-            'new_values' => null,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
-
-        CrmActivity::create([
-            'actor_id' => auth()->id(),
-            'type' => 'follow_up.deleted',
-            'subject_type' => FollowUp::class,
-            'subject_id' => $followUp->id,
-            'company_id' => $followUp->company_id,
-            'metadata' => [
-                'follow_up_id' => $followUp->id,
-                'follow_up_reference' => $followUp->reference,
-            ],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'FollowUp',
+            entity: $followUp,
+            oldValues: $oldData,
+            newValues: null,
+            metadata: [
+                        'follow_up_id' => $followUp->id,
+                        'follow_up_reference' => $followUp->reference,
+                    ]
+        );
 
         return response()->json(['message' => 'Follow-up deleted']);
     }

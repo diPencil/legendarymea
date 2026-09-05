@@ -3,6 +3,7 @@
 namespace Tests\Feature\Quotations;
 
 use App\Enums\QuotationStatus;
+use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Opportunity;
@@ -870,12 +871,17 @@ class QuotationApiTest extends TestCase
         $response = $this->actingAs($manager)->postJson('/api/v1/quotations', $this->validPayload($company));
         $response->assertCreated();
 
-        $this->assertDatabaseHas('crm_activities', [
-            'actor_id'     => $manager->id,
-            'type'         => 'quotation.created',
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id'      => $manager->id,
+            'action' => 'quotation.created',
             'subject_type' => Quotation::class,
-            'company_id'   => $company->id,
         ]);
+
+        $log = AuditLog::where('action', 'quotation.created')
+            ->where('subject_type', Quotation::class)
+            ->latest()
+            ->firstOrFail();
+        $this->assertSame($company->id, $log->new_values['company_id']);
     }
 
     public function test_audit_created_on_lifecycle_send()

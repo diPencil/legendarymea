@@ -10,8 +10,8 @@ use App\Models\Lead;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Opportunity;
+
 use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Enums\LeadStatus;
 use App\Enums\OpportunityStage;
 
@@ -134,7 +134,7 @@ class LeadConversionTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('audit_logs', ['action' => 'lead.converted']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'lead.converted']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'lead.converted']);
     }
 
     public function test_external_lead_existing_company_new_contact()

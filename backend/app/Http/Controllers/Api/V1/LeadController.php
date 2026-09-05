@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
@@ -15,8 +17,6 @@ use App\Services\ConvertLeadService;
 use App\Http\Requests\ConvertLeadRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class LeadController extends Controller
@@ -119,29 +119,17 @@ class LeadController extends Controller
         $oldValues = $lead->toArray();
         $lead->delete();
 
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'lead.deleted',
-            'subject_type' => Lead::class,
-            'subject_id' => $lead->id,
-            'old_values' => $oldValues,
-            'new_values' => null,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
-
-        CrmActivity::create([
-            'company_id' => $lead->company_id,
-            'actor_id' => Auth::id(),
-            'subject_type' => Lead::class,
-            'subject_id' => $lead->id,
-            'type' => 'lead.deleted',
-            'metadata' => [
-                'lead_reference' => $lead->reference,
-            ],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Lead',
+            entity: $lead,
+            oldValues: $oldValues,
+            newValues: null,
+            metadata: [
+                        'lead_reference' => $lead->reference,
+                    ]
+        );
 
         return response()->noContent();
     }

@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\SupplierStatus;
 use App\Enums\SupplierType;
-use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\Supplier;
 use App\Models\User;
@@ -46,14 +47,15 @@ class CreateSupplierService
                 'updated_by' => $userId,
             ]);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'supplier.created',
-                'subject_type' => Supplier::class,
-                'subject_id' => $supplier->id,
-                'new_values' => ['reference' => $supplier->reference, 'type' => $supplier->type->value],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Supplier',
+            entity: $supplier,
+            oldValues: [],
+            newValues: ['reference' => $supplier->reference],
+            metadata: []
+        );
 
             return $supplier->load(['linkedUser', 'linkedCompany', 'balanceAccounts.ledgerEntries']);
         });

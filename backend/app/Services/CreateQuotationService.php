@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\QuotationStatus;
-use App\Models\AuditLog;
 use App\Models\Contact;
-use App\Models\CrmActivity;
 use App\Models\Opportunity;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
@@ -77,30 +77,21 @@ class CreateQuotationService
                 QuotationItem::create(array_merge($item, ['quotation_id' => $quotation->id]));
             }
 
-            AuditLog::create([
-                'user_id'         => $createdBy,
-                'action'          => 'quotation.created',
-                'subject_type'    => Quotation::class,
-                'subject_id'      => $quotation->id,
-                'old_values'      => null,
-                'new_values'      => $this->auditValues($quotation),
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id'     => $createdBy,
-                'type'         => 'quotation.created',
-                'subject_type' => Quotation::class,
-                'subject_id'   => $quotation->id,
-                'company_id'   => $quotation->company_id,
-                'metadata'     => [
-                    'quotation_id'        => $quotation->id,
-                    'quotation_reference' => $quotation->reference,
-                    'status'              => $quotation->status->value,
-                    'total_amount'        => $totalAmount,
-                    'currency'            => $quotation->currency,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Quotation',
+            entity: $quotation,
+            oldValues: null,
+            newValues: $this->auditValues($quotation),
+            metadata: [
+                            'quotation_id'        => $quotation->id,
+                            'quotation_reference' => $quotation->reference,
+                            'status'              => $quotation->status->value,
+                            'total_amount'        => $totalAmount,
+                            'currency'            => $quotation->currency,
+                        ]
+        );
 
             return $quotation;
         });

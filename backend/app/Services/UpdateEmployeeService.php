@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Employee;
 use Illuminate\Validation\ValidationException;
 
@@ -94,18 +96,15 @@ class UpdateEmployeeService
         $newValues = $employee->getChanges();
 
         if (!empty($newValues)) {
-            \App\Models\AuditLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'employee.updated',
-                'subject_type' => Employee::class,
-                'subject_id' => $employee->id,
-                'old_values' => collect($oldValues)->only(array_keys($newValues))->toArray(),
-                'new_values' => $newValues,
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Employee',
+            entity: $employee,
+            oldValues: collect($oldValues)->only(array_keys($newValues))->toArray(),
+            newValues: $newValues,
+            metadata: []
+        );
         }
 
         return $employee;

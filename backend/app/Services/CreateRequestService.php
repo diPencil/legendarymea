@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\RequestStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,31 +24,19 @@ class CreateRequestService
             $request = Request::create($data);
             $request->refresh();
 
-            AuditLog::create([
-                'user_id' => $createdBy,
-                'action' => 'request.created',
-                'subject_type' => Request::class,
-                'subject_id' => $request->id,
-                'old_values' => null,
-                'new_values' => $this->auditValues($request),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $createdBy,
-                'type' => 'request.created',
-                'subject_type' => Request::class,
-                'subject_id' => $request->id,
-                'company_id' => $request->company_id,
-                'metadata' => [
-                    'request_id' => $request->id,
-                    'request_reference' => $request->reference,
-                    'status' => $request->status?->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Request',
+            entity: $request,
+            oldValues: null,
+            newValues: $this->auditValues($request),
+            metadata: [
+                            'request_id' => $request->id,
+                            'request_reference' => $request->reference,
+                            'status' => $request->status?->value,
+                        ]
+        );
 
             return $request;
         });

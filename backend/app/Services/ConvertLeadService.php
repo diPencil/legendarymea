@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Lead;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Opportunity;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Enums\LeadStatus;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -127,32 +127,20 @@ class ConvertLeadService
             }
             $lead->save();
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'lead.converted',
-                'subject_type' => Lead::class,
-                'subject_id' => $lead->id,
-                'old_values' => $oldLeadData,
-                'new_values' => $lead->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent()
-                ]
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $userId,
-                'type' => 'lead.converted',
-                'subject_type' => Lead::class,
-                'subject_id' => $lead->id,
-                'company_id' => $companyId,
-                'metadata' => [
-                    'lead_reference' => $lead->reference,
-                    'company_reference' => $company->reference ?? null,
-                    'contact_reference' => $contact->reference ?? null,
-                    'opportunity_reference' => $opportunity->reference,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'converted',
+            module: 'Lead',
+            entity: $lead,
+            oldValues: $oldLeadData,
+            newValues: $lead->toArray(),
+            metadata: [
+                            'lead_reference' => $lead->reference,
+                            'company_reference' => $company->reference ?? null,
+                            'contact_reference' => $contact->reference ?? null,
+                            'opportunity_reference' => $opportunity->reference,
+                        ]
+        );
 
             return [
                 'lead' => $lead,

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Document;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -73,18 +75,15 @@ class UpdateDocumentService
             if ($document->isDirty()) {
                 $document->save();
 
-                \App\Models\AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'action' => 'document.updated',
-                    'subject_type' => Document::class,
-                    'subject_id' => $document->id,
-                    'old_values' => collect($oldValues)->only(array_keys($document->getChanges()))->toArray(),
-                    'new_values' => $document->getChanges(),
-                    'request_context' => [
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent(),
-                    ],
-                ]);
+                \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Document',
+            entity: $document,
+            oldValues: collect($oldValues)->only(array_keys($document->getChanges()))->toArray(),
+            newValues: $document->getChanges(),
+            metadata: []
+        );
             }
 
             return $document;

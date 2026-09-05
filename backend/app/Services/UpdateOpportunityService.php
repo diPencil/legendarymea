@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Opportunity;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Contact;
 use App\Models\Lead;
 use Illuminate\Support\Facades\DB;
@@ -38,30 +38,18 @@ class UpdateOpportunityService
 
             $opportunity->update($data);
 
-            AuditLog::create([
-                'user_id' => $updatedBy,
-                'action' => 'opportunity.updated',
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'old_values' => $oldData,
-                'new_values' => $opportunity->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent()
-                ]
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $updatedBy,
-                'type' => 'opportunity.updated',
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'company_id' => $opportunity->company_id,
-                'metadata' => [
-                    'opportunity_id' => $opportunity->id,
-                    'updated_fields' => array_keys($data)
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Opportunity',
+            entity: $opportunity,
+            oldValues: $oldData,
+            newValues: $opportunity->toArray(),
+            metadata: [
+                            'opportunity_id' => $opportunity->id,
+                            'updated_fields' => array_keys($data)
+                        ]
+        );
 
             return $opportunity;
         });

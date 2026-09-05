@@ -21,6 +21,8 @@ class ProfileController extends Controller
         // 1. Genuinely use the URL username as the canonical identifier.
         // 2. unauthorized other-user profile access blocked
         if ($request->user()->username !== $username) {
+            \App\Services\SystemActivityService::recordView(auth()->user(), 'User', $request->user());
+
             return $this->errorResponse('Unauthorized profile access.', [], 403);
         }
 
@@ -29,6 +31,8 @@ class ProfileController extends Controller
         if (!$user) {
             return $this->errorResponse('Profile not found.', [], 404);
         }
+
+        \App\Services\SystemActivityService::recordView(auth()->user(), 'User', $user);
 
         return $this->successResponse([
             'profile' => $this->profilePayload($user),

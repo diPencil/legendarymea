@@ -2,19 +2,22 @@
 
 namespace App\Listeners;
 
+use App\Services\SystemActivityService;
+
 use App\Events\UserLoggedIn;
-use App\Models\AuditLog;
 
 class LogUserLoginAudit
 {
     public function handle(UserLoggedIn $event): void
     {
-        AuditLog::create([
-            'user_id' => $event->user->id,
-            'action' => 'login',
-            'subject_type' => get_class($event->user),
-            'subject_id' => $event->user->id,
-            'request_context' => $event->requestContext,
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'login',
+            module: 'System',
+            entity: null,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
     }
 }

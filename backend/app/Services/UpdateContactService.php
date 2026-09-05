@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Contact;
-use App\Models\CrmActivity;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,6 +25,17 @@ class UpdateContactService
 
             $newCompanyId = array_key_exists('company_id', $data) ? $data['company_id'] : $contact->company_id;
             $companyChanged = $oldCompanyId !== $newCompanyId;
+            $oldValues = $contact->only([
+                'id',
+                'reference',
+                'company_id',
+                'first_name',
+                'last_name',
+                'email',
+                'phone',
+                'job_title',
+                'is_primary',
+            ]);
 
             // If company changed and it was primary, it loses primary status automatically
             if ($companyChanged && $contact->is_primary) {
@@ -45,57 +56,55 @@ class UpdateContactService
             }
 
             // Log Audit
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'contact.updated',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'payload' => [
-                    'contact_id' => $contact->id,
-                    'reference' => $contact->reference,
-                    'company_id' => $contact->company_id,
-                ]
-            ]);
-
-            // Log CRM Activity
-            CrmActivity::create([
-                'company_id' => $contact->company_id,
-                'actor_id' => Auth::id(),
-                'subject_type' => Contact::class,
-                'subject_id' => $contact->id,
-                'type' => 'contact.updated',
-                'metadata' => [
-                    'contact_reference' => $contact->reference,
-                    'company_changed' => $companyChanged,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Contact',
+            entity: $contact,
+            oldValues: $oldValues,
+            newValues: $contact->only([
+                            'id',
+                            'reference',
+                            'company_id',
+                            'first_name',
+                            'last_name',
+                            'email',
+                            'phone',
+                            'job_title',
+                            'is_primary',
+                        ]),
+            metadata: [
+                            'contact_reference' => $contact->reference,
+                            'company_changed' => $companyChanged,
+                            'company_id' => $contact->company_id,
+                        ]
+        );
 
             if ($companyChanged) {
                 // Additional explicit CRM activity for company changed
-                CrmActivity::create([
-                    'company_id' => $contact->company_id,
-                    'actor_id' => Auth::id(),
-                    'subject_type' => Contact::class,
-                    'subject_id' => $contact->id,
-                    'type' => 'contact.company_changed',
-                    'metadata' => [
-                        'contact_reference' => $contact->reference,
-                        'old_company_id' => $oldCompanyId,
-                        'new_company_id' => $newCompanyId,
-                    ],
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'company_changed',
+            module: 'Contact',
+            entity: $contact,
+            oldValues: [],
+            newValues: [],
+            metadata: [
+                                'contact_reference' => $contact->reference,
+                                'old_company_id' => $oldCompanyId,
+                                'new_company_id' => $newCompanyId,
+                            ]
+        );
                 
-                AuditLog::create([
-                    'user_id' => Auth::id(),
-                    'action' => 'contact.company_changed',
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                    'payload' => [
-                        'contact_id' => $contact->id,
-                        'old_company_id' => $oldCompanyId,
-                        'new_company_id' => $newCompanyId,
-                    ]
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'company_changed',
+            module: 'Contact',
+            entity: null,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
             }
 
             return $contact->fresh();

@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ClientOnboardingStatus;
-use App\Models\AuditLog;
 use App\Models\ClientOnboarding;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -40,14 +41,15 @@ class UpdateClientOnboardingService
             if ($onboarding->isDirty()) {
                 $onboarding->save();
 
-                AuditLog::create([
-                    'user_id' => $editor->id,
-                    'action' => 'client_onboarding.updated',
-                    'subject_type' => ClientOnboarding::class,
-                    'subject_id' => $onboarding->id,
-                    'old_values' => $original,
-                    'new_values' => $onboarding->getChanges(),
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'ClientOnboarding',
+            entity: $onboarding,
+            oldValues: $original,
+            newValues: $onboarding->getChanges(),
+            metadata: []
+        );
             }
 
             return $onboarding;

@@ -2,21 +2,24 @@
 
 namespace App\Listeners;
 
+use App\Services\SystemActivityService;
+
 use App\Events\UserLoggedOut;
-use App\Models\AuditLog;
 
 class LogUserLogoutAudit
 {
     public function handle(UserLoggedOut $event): void
     {
         if ($event->user) {
-            AuditLog::create([
-                'user_id' => $event->user->id,
-                'action' => 'logout',
-                'subject_type' => get_class($event->user),
-                'subject_id' => $event->user->id,
-                'request_context' => $event->requestContext,
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'logout',
+            module: 'System',
+            entity: null,
+            oldValues: [],
+            newValues: [],
+            metadata: []
+        );
         }
     }
 }

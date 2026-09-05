@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\InvoiceStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -60,29 +60,20 @@ class InvoiceLifecycleService
                 'sales_employee_name_snapshot' => $invoice->sales_employee_name_snapshot ?? $invoice->soldByEmployee?->user?->name,
             ]);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'invoice.issued',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'old_values' => ['status' => 'draft'],
-                'new_values' => ['status' => 'issued', 'issue_date' => $issueDate],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $userId,
-                'type' => 'invoice.issued',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'company_id' => $invoice->company_id,
-                'metadata' => [
-                    'invoice_reference' => $invoice->reference,
-                    'issue_date' => $issueDate,
-                    'total_amount' => $invoice->total_amount,
-                    'currency' => $invoice->currency,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'issued',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: ['status' => 'draft'],
+            newValues: ['status' => 'issued'],
+            metadata: [
+                            'invoice_reference' => $invoice->reference,
+                            'issue_date' => $issueDate,
+                            'total_amount' => $invoice->total_amount,
+                            'currency' => $invoice->currency,
+                        ]
+        );
 
             return $invoice->fresh(['company', 'customerUser', 'soldByEmployee.user', 'contract', 'activeService', 'creator', 'items.supplier', 'payments']);
         });
@@ -101,26 +92,17 @@ class InvoiceLifecycleService
                 'status' => InvoiceStatus::CANCELLED,
             ]);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'invoice.cancelled',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'old_values' => ['status' => 'draft'],
-                'new_values' => ['status' => 'cancelled'],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $userId,
-                'type' => 'invoice.cancelled',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'company_id' => $invoice->company_id,
-                'metadata' => [
-                    'invoice_reference' => $invoice->reference,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'cancelled',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: ['status' => 'draft'],
+            newValues: ['status' => 'cancelled'],
+            metadata: [
+                            'invoice_reference' => $invoice->reference,
+                        ]
+        );
 
             return $invoice;
         });
@@ -151,27 +133,18 @@ class InvoiceLifecycleService
                 'status' => InvoiceStatus::OVERDUE,
             ]);
 
-            AuditLog::create([
-                'user_id' => $userId,
-                'action' => 'invoice.overdue',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'old_values' => ['status' => $invoice->getOriginal('status')],
-                'new_values' => ['status' => 'overdue'],
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $userId,
-                'type' => 'invoice.overdue',
-                'subject_type' => Invoice::class,
-                'subject_id' => $invoice->id,
-                'company_id' => $invoice->company_id,
-                'metadata' => [
-                    'invoice_reference' => $invoice->reference,
-                    'due_date' => $invoice->due_date->format('Y-m-d'),
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'overdue',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: ['status' => $invoice->getOriginal('status')],
+            newValues: ['status' => 'overdue'],
+            metadata: [
+                            'invoice_reference' => $invoice->reference,
+                            'due_date' => $invoice->due_date->format('Y-m-d'),
+                        ]
+        );
 
             return $invoice;
         });

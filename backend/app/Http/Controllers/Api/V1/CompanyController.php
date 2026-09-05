@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Company;
-use App\Models\AuditLog;
 use App\Http\Resources\CompanyResource;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
@@ -40,15 +41,15 @@ class CompanyController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
-        
+
         if ($request->filled('country_code')) {
             $query->where('country_code', $request->input('country_code'));
         }
-        
+
         if ($request->filled('account_manager_id')) {
             $query->where('account_manager_id', $request->input('account_manager_id'));
         }
-        
+
         if ($request->filled('relationship')) {
             $query->whereHas('companyRelationships', function ($q) use ($request) {
                 $q->where('type', $request->input('relationship'));
@@ -85,6 +86,9 @@ class CompanyController extends Controller
     {
         Gate::authorize('view', $company);
 
+
+        \App\Services\SystemActivityService::recordView(auth()->user(), 'Company', $company);
+
         return new CompanyResource($this->loadCompanyDetail($company));
     }
 
@@ -102,29 +106,18 @@ class CompanyController extends Controller
     {
         Gate::authorize('delete', $company);
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'company.deleted',
-            'subject_type' => Company::class,
-            'subject_id' => $company->id,
-            'old_values' => $company->toArray(),
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
-        
-        \App\Models\CrmActivity::create([
-            'actor_id' => auth()->id(),
-            'type' => 'company.deleted',
-            'subject_type' => Company::class,
-            'subject_id' => $company->id,
-            'company_id' => $company->id,
-            'metadata' => [],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Company',
+            entity: $company,
+            oldValues: $company->toArray(),
+            newValues: [],
+            metadata: []
+        );
 
         $company->delete();
-        
+
         return response()->json([
             'message' => __('Company deleted successfully.')
         ]);

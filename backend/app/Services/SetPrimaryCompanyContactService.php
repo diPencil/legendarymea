@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Contact;
 use App\Models\Company;
-use App\Models\CrmActivity;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,51 +35,38 @@ class SetPrimaryCompanyContactService
                 $oldPrimary->save();
 
                 // Log audit for old primary
-                AuditLog::create([
-                    'user_id' => Auth::id(),
-                    'action' => 'contact.primary_changed',
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                    'payload' => [
-                        'contact_id' => $oldPrimary->id,
-                        'contact_reference' => $oldPrimary->reference,
-                        'company_id' => $company->id,
-                        'is_primary' => false,
-                    ]
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'primary_changed',
+            module: 'Contact',
+            entity: $newPrimaryContact,
+            oldValues: [],
+            newValues: [],
+            metadata: [
+                            'contact_reference' => $newPrimaryContact->reference,
+                            'contact_name' => trim($newPrimaryContact->first_name . ' ' . $newPrimaryContact->last_name),
+                            'notes' => $notes
+                        ]
+        );
             }
 
-            // Set new primary
+            // Log audit for new primary
             $newPrimaryContact->is_primary = true;
             $newPrimaryContact->save();
 
-            // Log activity for new primary
-            CrmActivity::create([
-                'company_id' => $company->id,
-                'actor_id' => Auth::id(),
-                'subject_type' => Contact::class,
-                'subject_id' => $newPrimaryContact->id,
-                'type' => 'contact.primary_changed',
-                'metadata' => [
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'primary_changed',
+                module: 'Contact',
+                entity: $newPrimaryContact,
+                oldValues: ['old_primary_contact_id' => $oldPrimary?->id],
+                newValues: ['new_primary_contact_id' => $newPrimaryContact->id],
+                metadata: [
+                    'company_reference' => $company->reference,
                     'contact_reference' => $newPrimaryContact->reference,
-                    'contact_name' => trim($newPrimaryContact->first_name . ' ' . $newPrimaryContact->last_name),
-                    'notes' => $notes
-                ],
-            ]);
-
-            // Log audit for new primary
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'contact.primary_changed',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'payload' => [
-                    'contact_id' => $newPrimaryContact->id,
-                    'contact_reference' => $newPrimaryContact->reference,
-                    'company_id' => $company->id,
-                    'is_primary' => true,
+                    'notes' => $notes,
                 ]
-            ]);
+        );
 
             return $newPrimaryContact;
         });

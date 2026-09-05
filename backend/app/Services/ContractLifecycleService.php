@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ContractStatus;
-use App\Models\AuditLog;
 use App\Models\Contract;
-use App\Models\CrmActivity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -100,28 +100,19 @@ class ContractLifecycleService
             $contract->status = $newStatus;
             $contract->save();
 
-            AuditLog::create([
-                'user_id'         => $userId,
-                'action'          => $actionName,
-                'subject_type'    => Contract::class,
-                'subject_id'      => $contract->id,
-                'old_values'      => $oldValues,
-                'new_values'      => $this->auditValues($contract),
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id'     => $userId,
-                'type'         => $actionName,
-                'subject_type' => Contract::class,
-                'subject_id'   => $contract->id,
-                'company_id'   => $contract->company_id,
-                'metadata'     => [
-                    'contract_id'        => $contract->id,
-                    'contract_reference' => $contract->reference,
-                    'status'             => $contract->status->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Contract',
+            entity: $contract,
+            oldValues: $oldValues,
+            newValues: $this->auditValues($contract),
+            metadata: [
+                            'contract_id'        => $contract->id,
+                            'contract_reference' => $contract->reference,
+                            'status'             => $contract->status->value,
+                        ]
+        );
 
             return $contract;
         });

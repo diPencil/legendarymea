@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Company;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use Illuminate\Support\Facades\DB;
 
 class UpdateCompanyService
@@ -32,68 +32,65 @@ class UpdateCompanyService
 
                 if (!empty($toRemove)) {
                     $company->companyRelationships()->whereIn('type', $toRemove)->delete();
-                    CrmActivity::create([
-                        'actor_id' => auth()->id(),
-                        'type' => 'company.relationship_removed',
-                        'subject_type' => Company::class,
-                        'subject_id' => $company->id,
-                        'company_id' => $company->id,
-                        'metadata' => ['removed' => $toRemove],
-                    ]);
+                    SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'relationship_removed',
+            module: 'Company',
+            entity: $company,
+            oldValues: [],
+            newValues: [],
+            metadata: ['removed' => $toRemove]
+        );
                 }
                 
                 if (!empty($toAdd)) {
                     foreach ($toAdd as $type) {
                         $company->companyRelationships()->create(['type' => $type]);
                     }
-                    CrmActivity::create([
-                        'actor_id' => auth()->id(),
-                        'type' => 'company.relationship_added',
-                        'subject_type' => Company::class,
-                        'subject_id' => $company->id,
-                        'company_id' => $company->id,
-                        'metadata' => ['added' => $toAdd],
-                    ]);
+                    SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'relationship_added',
+            module: 'Company',
+            entity: $company,
+            oldValues: [],
+            newValues: [],
+            metadata: ['added' => $toAdd]
+        );
                 }
                 
                 if (!empty($toAdd) || !empty($toRemove)) {
-                    AuditLog::create([
-                        'user_id' => auth()->id(),
-                        'action' => 'company.relationship_changed',
-                        'subject_type' => Company::class,
-                        'subject_id' => $company->id,
-                        'old_values' => ['relationships' => $existingTypes],
-                        'new_values' => ['relationships' => $relationships],
-                        'request_context' => [
-                            'ip' => request()->ip(),
-                            'user_agent' => request()->userAgent(),
-                        ],
-                    ]);
+                    SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'relationship_changed',
+            module: 'Company',
+            entity: $company,
+            oldValues: ['relationships' => $existingTypes],
+            newValues: ['relationships' => $relationships],
+            metadata: []
+        );
                 }
             }
 
             if ($company->wasChanged()) {
-                AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'action' => 'company.updated',
-                    'subject_type' => Company::class,
-                    'subject_id' => $company->id,
-                    'old_values' => $oldValues,
-                    'new_values' => $company->toArray(),
-                    'request_context' => [
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent(),
-                    ],
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Company',
+            entity: $company,
+            oldValues: $oldValues,
+            newValues: $company->toArray(),
+            metadata: []
+        );
 
-                CrmActivity::create([
-                    'actor_id' => auth()->id(),
-                    'type' => 'company.updated',
-                    'subject_type' => Company::class,
-                    'subject_id' => $company->id,
-                    'company_id' => $company->id,
-                    'metadata' => ['changes' => $company->getChanges()],
-                ]);
+                SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'Company',
+            entity: $company,
+            oldValues: [],
+            newValues: [],
+            metadata: ['changes' => $company->getChanges()]
+        );
             }
             
             // Reassign account manager if provided explicitly

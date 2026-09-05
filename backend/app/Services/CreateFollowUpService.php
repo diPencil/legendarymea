@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\FollowUpStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\FollowUp;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -31,31 +31,19 @@ class CreateFollowUpService
             $followUp = FollowUp::create($data);
             $followUp->refresh();
 
-            AuditLog::create([
-                'user_id' => $createdBy,
-                'action' => 'follow_up.created',
-                'subject_type' => FollowUp::class,
-                'subject_id' => $followUp->id,
-                'old_values' => null,
-                'new_values' => $this->auditValues($followUp),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $createdBy,
-                'type' => 'follow_up.created',
-                'subject_type' => FollowUp::class,
-                'subject_id' => $followUp->id,
-                'company_id' => $followUp->company_id,
-                'metadata' => [
-                    'follow_up_id' => $followUp->id,
-                    'follow_up_reference' => $followUp->reference,
-                    'status' => $followUp->status?->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'FollowUp',
+            entity: $followUp,
+            oldValues: null,
+            newValues: $this->auditValues($followUp),
+            metadata: [
+                            'follow_up_id' => $followUp->id,
+                            'follow_up_reference' => $followUp->reference,
+                            'status' => $followUp->status?->value,
+                        ]
+        );
 
             return $followUp;
         });

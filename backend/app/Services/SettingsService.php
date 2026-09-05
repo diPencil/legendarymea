@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Setting;
 use App\Enums\CurrencyCode;
 use Illuminate\Support\Facades\Cache;
@@ -135,6 +137,7 @@ class SettingsService
 
         foreach ($validatedData as $key => $value) {
             $definition = self::WHITELIST[$group][$key];
+            $previousValue = Setting::where('group', $group)->where('key', $key)->value('value');
             
             if ($definition['type'] === 'json' && is_array($value)) {
                 $value = json_encode($value);
@@ -145,17 +148,18 @@ class SettingsService
                 ['value' => $value, 'type' => $definition['type']]
             );
 
-            \App\Models\AuditLog::create([
-                'user_id' => auth()->id() ?? 1,
-                'action' => 'updated',
-                'description' => "Updated setting: {$key}",
-                'auditable_type' => Setting::class,
-                'auditable_id' => $setting->id,
-                'metadata' => [
-                    'group' => $group,
-                    'key' => $key,
-                ],
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'updated',
+            module: 'System',
+            entity: null,
+            oldValues: [$key => $previousValue],
+            newValues: [$key => $value],
+            metadata: [
+                            'group' => $group,
+                            'key' => $key,
+                        ]
+        );
         }
 
         $this->invalidateCache($group);

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Contact;
@@ -103,29 +105,17 @@ class ContactController extends Controller
             }
 
             // Log Audit
-            \App\Models\AuditLog::create([
-                'user_id' => \Illuminate\Support\Facades\Auth::id(),
-                'action' => 'contact.deleted',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'payload' => [
-                    'contact_id' => $contact->id,
-                    'reference' => $contact->reference,
-                    'company_id' => $contact->company_id,
-                ]
-            ]);
-
-            // Log CRM Activity
-            \App\Models\CrmActivity::create([
-                'company_id' => $contact->company_id,
-                'actor_id' => \Illuminate\Support\Facades\Auth::id(),
-                'subject_type' => Contact::class,
-                'subject_id' => $contact->id,
-                'type' => 'contact.deleted',
-                'metadata' => [
-                    'contact_reference' => $contact->reference,
-                ],
-            ]);
+            \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Contact',
+            entity: $contact,
+            oldValues: [],
+            newValues: [],
+            metadata: [
+                            'contact_reference' => $contact->reference,
+                        ]
+        );
 
             $contact->delete();
         });

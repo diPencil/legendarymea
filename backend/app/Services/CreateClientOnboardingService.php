@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ClientOnboardingStatus;
 use App\Enums\ContractStatus;
-use App\Models\AuditLog;
 use App\Models\ClientOnboarding;
 use App\Models\Company;
 use App\Models\Contract;
-use App\Models\CrmActivity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -64,21 +64,15 @@ class CreateClientOnboardingService
                 'created_by' => $creator->id,
             ]);
 
-            AuditLog::create([
-                'user_id' => $creator->id,
-                'action' => 'client_onboarding.created',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'new_values' => $onboarding->toArray(),
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $creator->id,
-                'type' => 'client_onboarding.created',
-                'subject_type' => ClientOnboarding::class,
-                'subject_id' => $onboarding->id,
-                'company_id' => $onboarding->company_id,
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'ClientOnboarding',
+            entity: $onboarding,
+            oldValues: [],
+            newValues: $onboarding->toArray(),
+            metadata: []
+        );
 
             return $onboarding;
         });

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Notes;
 
+
 use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Note;
@@ -161,13 +161,15 @@ class NoteApiTest extends TestCase
 
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'note.created',
+            'user_id' => $user->id,
+            'subject_type' => Note::class,
             'subject_id' => $noteId,
         ]);
-        $this->assertDatabaseHas('crm_activities', [
-            'type' => 'note.created',
-            'subject_id' => $noteId,
-            'company_id' => $company->id,
-        ]);
+        $createdLog = AuditLog::where('action', 'note.created')
+            ->where('subject_type', Note::class)
+            ->where('subject_id', $noteId)
+            ->firstOrFail();
+        $this->assertSame($company->id, $createdLog->new_values['company_id']);
 
         // UPDATE
         $this->actingAs($user)->patchJson("/api/v1/notes/{$noteId}", [
@@ -175,25 +177,30 @@ class NoteApiTest extends TestCase
         ]);
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'note.updated',
+            'user_id' => $user->id,
+            'subject_type' => Note::class,
             'subject_id' => $noteId,
         ]);
-        $this->assertDatabaseHas('crm_activities', [
-            'type' => 'note.updated',
-            'subject_id' => $noteId,
-            'company_id' => $company->id,
-        ]);
+        $updatedLog = AuditLog::where('action', 'note.updated')
+            ->where('subject_type', Note::class)
+            ->where('subject_id', $noteId)
+            ->firstOrFail();
+        $this->assertSame('Audit test', $updatedLog->old_values['body']);
+        $this->assertSame('Audit test updated', $updatedLog->new_values['body']);
 
         // DELETE
         $this->actingAs($user)->deleteJson("/api/v1/notes/{$noteId}");
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'note.deleted',
+            'user_id' => $user->id,
+            'subject_type' => Note::class,
             'subject_id' => $noteId,
         ]);
-        $this->assertDatabaseHas('crm_activities', [
-            'type' => 'note.deleted',
-            'subject_id' => $noteId,
-            'company_id' => $company->id,
-        ]);
+        $deletedLog = AuditLog::where('action', 'note.deleted')
+            ->where('subject_type', Note::class)
+            ->where('subject_id', $noteId)
+            ->firstOrFail();
+        $this->assertSame($company->id, $deletedLog->old_values['company_id']);
     }
 
     public function test_list_pagination_and_search()

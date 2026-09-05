@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Document;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -91,17 +93,15 @@ class CreateDocumentService
                     'note_id' => $data['note_id'] ?? null,
                 ]);
 
-                \App\Models\AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'action' => 'document.created',
-                    'subject_type' => Document::class,
-                    'subject_id' => $document->id,
-                    'new_values' => $document->toArray(),
-                    'request_context' => [
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent(),
-                    ],
-                ]);
+                \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Document',
+            entity: $document,
+            oldValues: [],
+            newValues: $document->toArray(),
+            metadata: []
+        );
 
                 return $document;
             } catch (\Exception $e) {

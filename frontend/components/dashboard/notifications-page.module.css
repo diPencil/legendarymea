@@ -1,0 +1,200 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.tab {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  color: #081d60;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  background: #fbfaf7;
+  border-color: rgba(8, 29, 96, .12);
+}
+
+.tabActive {
+  color: #fff;
+  background: #081d60;
+  border-color: #081d60;
+}
+
+.tabActive:hover {
+  background: #081d60;
+  color: #fff;
+}
+
+.content {
+  position: relative;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid rgba(8, 29, 96, .1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #667085;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  background: #fbfaf7;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 14px 16px;
+  text-align: start;
+  border-bottom: 1px solid rgba(8, 29, 96, .08);
+  vertical-align: middle;
+}
+
+.table th {
+  color: #59605f;
+  background: #fbfaf7;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: #17202a;
+  font-size: 13px;
+}
+
+.rowContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rowUnread .titleText {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rowTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actorBadge {
+  background: rgba(0, 31, 63, 0.05);
+  color: var(--primary-main, #001f3f);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.titleText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.unreadBadge {
+  background: var(--danger, #ef4444);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.descText {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.moduleBadge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background: var(--bg-hover);
+}
+
+.markAllBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--primary-main, #001f3f);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.markAllBtn:hover {
+  background: var(--bg-hover);
+}

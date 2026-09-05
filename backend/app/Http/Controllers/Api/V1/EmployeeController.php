@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Employee;
@@ -91,17 +93,15 @@ class EmployeeController extends Controller
     {
         Gate::authorize('delete', $employee);
 
-        \App\Models\AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'employee.deleted',
-            'subject_type' => Employee::class,
-            'subject_id' => $employee->id,
-            'old_values' => $employee->toArray(),
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
+        \App\Services\SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Employee',
+            entity: $employee,
+            oldValues: $employee->toArray(),
+            newValues: [],
+            metadata: []
+        );
 
         $employee->delete();
         return response()->json([

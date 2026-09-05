@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\TaskStatus;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Task;
 use App\Models\Company;
 use App\Models\Contact;
@@ -32,31 +32,19 @@ class CreateTaskService
             $task = Task::create($data);
             $task->refresh();
 
-            AuditLog::create([
-                'user_id' => $createdBy,
-                'action' => 'task.created',
-                'subject_type' => Task::class,
-                'subject_id' => $task->id,
-                'old_values' => null,
-                'new_values' => $this->auditValues($task),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ],
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $createdBy,
-                'type' => 'task.created',
-                'subject_type' => Task::class,
-                'subject_id' => $task->id,
-                'company_id' => $task->company_id,
-                'metadata' => [
-                    'task_id' => $task->id,
-                    'task_reference' => $task->reference,
-                    'status' => $task->status?->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Task',
+            entity: $task,
+            oldValues: null,
+            newValues: $this->auditValues($task),
+            metadata: [
+                            'task_id' => $task->id,
+                            'task_reference' => $task->reference,
+                            'status' => $task->status?->value,
+                        ]
+        );
 
             return $task;
         });

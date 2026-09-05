@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Opportunity;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use Illuminate\Support\Facades\DB;
 use App\Enums\OpportunityStage;
 use Illuminate\Support\Facades\Auth;
@@ -24,30 +24,18 @@ class CreateOpportunityService
 
             $opportunity = Opportunity::create($data);
 
-            AuditLog::create([
-                'user_id' => $createdBy,
-                'action' => 'opportunity.created',
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'old_values' => null,
-                'new_values' => $opportunity->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent()
-                ]
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $createdBy,
-                'type' => 'opportunity.created',
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'company_id' => $opportunity->company_id,
-                'metadata' => [
-                    'opportunity_id' => $opportunity->id,
-                    'stage' => $opportunity->stage->value,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Opportunity',
+            entity: $opportunity,
+            oldValues: null,
+            newValues: $opportunity->toArray(),
+            metadata: [
+                            'opportunity_id' => $opportunity->id,
+                            'stage' => $opportunity->stage->value,
+                        ]
+        );
 
             return $opportunity;
         });

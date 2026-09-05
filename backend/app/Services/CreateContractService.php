@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Enums\ContractStatus;
-use App\Models\AuditLog;
 use App\Models\Contact;
 use App\Models\Contract;
-use App\Models\CrmActivity;
 use App\Models\Quotation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -53,29 +53,20 @@ class CreateContractService
                 'created_by'     => $createdBy,
             ]);
 
-            AuditLog::create([
-                'user_id'         => $createdBy,
-                'action'          => 'contract.created',
-                'subject_type'    => Contract::class,
-                'subject_id'      => $contract->id,
-                'old_values'      => null,
-                'new_values'      => $this->auditValues($contract),
-                'request_context' => ['ip' => request()->ip(), 'user_agent' => request()->userAgent()],
-            ]);
-
-            CrmActivity::create([
-                'actor_id'     => $createdBy,
-                'type'         => 'contract.created',
-                'subject_type' => Contract::class,
-                'subject_id'   => $contract->id,
-                'company_id'   => $contract->company_id,
-                'metadata'     => [
-                    'contract_id'        => $contract->id,
-                    'contract_reference' => $contract->reference,
-                    'status'             => $contract->status->value,
-                    'title'              => $contract->title,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'created',
+            module: 'Contract',
+            entity: $contract,
+            oldValues: null,
+            newValues: $this->auditValues($contract),
+            metadata: [
+                            'contract_id'        => $contract->id,
+                            'contract_reference' => $contract->reference,
+                            'status'             => $contract->status->value,
+                            'title'              => $contract->title,
+                        ]
+        );
 
             return $contract;
         });

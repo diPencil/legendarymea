@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreNoteRequest;
 use App\Http\Requests\UpdateNoteRequest;
 use App\Http\Resources\NoteResource;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Note;
 use App\Services\CreateNoteService;
 use App\Services\UpdateNoteService;
@@ -118,33 +118,19 @@ class NoteController extends Controller
 
         $note->delete();
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'note.deleted',
-            'subject_type' => Note::class,
-            'subject_id' => $note->id,
-            'old_values' => $oldData,
-            'new_values' => null,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
-
-        if ($note->company_id || $note->contact_id || $note->lead_id || $note->opportunity_id || $note->request_id || $note->task_id || $note->follow_up_id) {
-            CrmActivity::create([
-                'actor_id' => auth()->id(),
-                'type' => 'note.deleted',
-                'subject_type' => Note::class,
-                'subject_id' => $note->id,
-                'company_id' => $note->company_id,
-                'metadata' => [
-                    'note_id' => $note->id,
-                    'note_reference' => $note->reference,
-                    'title' => $note->title,
-                ],
-            ]);
-        }
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Note',
+            entity: $note,
+            oldValues: $oldData,
+            newValues: null,
+            metadata: [
+                            'note_id' => $note->id,
+                            'note_reference' => $note->reference,
+                            'title' => $note->title,
+                        ]
+        );
 
         return response()->json(['message' => 'Note deleted']);
     }

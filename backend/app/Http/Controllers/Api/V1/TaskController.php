@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Services\SystemActivityService;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignTaskRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use App\Models\Task;
 use App\Support\PermissionAccess;
 use App\Services\AssignTaskService;
@@ -143,30 +143,18 @@ class TaskController extends Controller
 
         $task->delete();
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'task.deleted',
-            'subject_type' => Task::class,
-            'subject_id' => $task->id,
-            'old_values' => $oldData,
-            'new_values' => null,
-            'request_context' => [
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ],
-        ]);
-
-        CrmActivity::create([
-            'actor_id' => auth()->id(),
-            'type' => 'task.deleted',
-            'subject_type' => Task::class,
-            'subject_id' => $task->id,
-            'company_id' => $task->company_id,
-            'metadata' => [
-                'task_id' => $task->id,
-                'task_reference' => $task->reference,
-            ],
-        ]);
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'deleted',
+            module: 'Task',
+            entity: $task,
+            oldValues: $oldData,
+            newValues: null,
+            metadata: [
+                        'task_id' => $task->id,
+                        'task_reference' => $task->reference,
+                    ]
+        );
 
         return response()->json(['message' => 'Task deleted']);
     }

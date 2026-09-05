@@ -62,9 +62,10 @@ class CompanyApiTest extends TestCase
         
         $company = Company::where('name', 'Test Company')->first();
         $this->assertEquals(2, $company->companyRelationships()->count());
-        $this->assertDatabaseHas('crm_activities', [
-            'company_id' => $company->id,
-            'type' => 'company.created'
+        $this->assertDatabaseHas('audit_logs', [
+            'subject_type' => Company::class,
+            'subject_id' => $company->id,
+            'action' => 'company.created'
         ]);
         $this->assertDatabaseHas('audit_logs', [
             'subject_id' => $company->id,
@@ -98,14 +99,16 @@ class CompanyApiTest extends TestCase
             'type' => 'client'
         ]);
         
-        $this->assertDatabaseHas('crm_activities', [
-            'company_id' => $company->id,
-            'type' => 'company.relationship_removed'
+        $this->assertDatabaseHas('audit_logs', [
+            'subject_type' => Company::class,
+            'subject_id' => $company->id,
+            'action' => 'company.relationship_removed'
         ]);
         
-        $this->assertDatabaseHas('crm_activities', [
-            'company_id' => $company->id,
-            'type' => 'company.relationship_added'
+        $this->assertDatabaseHas('audit_logs', [
+            'subject_type' => Company::class,
+            'subject_id' => $company->id,
+            'action' => 'company.relationship_added'
         ]);
     }
 
@@ -128,9 +131,10 @@ class CompanyApiTest extends TestCase
             'account_manager_id' => $employee->id
         ]);
         
-        $this->assertDatabaseHas('crm_activities', [
-            'company_id' => $company->id,
-            'type' => 'company.account_manager_changed'
+        $this->assertDatabaseHas('audit_logs', [
+            'subject_type' => Company::class,
+            'subject_id' => $company->id,
+            'action' => 'company.account_manager_changed'
         ]);
     }
 

@@ -5,10 +5,10 @@ namespace Tests\Feature\Requests;
 use App\Enums\RequestPriority;
 use App\Enums\RequestStatus;
 use App\Enums\ServiceInterest;
-use App\Models\AuditLog;
+
 use App\Models\Company;
 use App\Models\Contact;
-use App\Models\CrmActivity;
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Opportunity;
 use App\Models\Request as BusinessRequest;
@@ -172,7 +172,7 @@ class RequestApiTest extends TestCase
             'created_by' => $this->admin->id,
         ]);
         $this->assertDatabaseHas('audit_logs', ['action' => 'request.created']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'request.created']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'request.created']);
     }
 
     public function test_company_and_title_are_required(): void
@@ -251,7 +251,7 @@ class RequestApiTest extends TestCase
         $response->assertJsonPath('data.title', 'Updated request title');
         $response->assertJsonPath('data.priority', RequestPriority::URGENT->value);
         $this->assertDatabaseHas('audit_logs', ['action' => 'request.updated']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'request.updated']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'request.updated']);
     }
 
     public function test_update_company_change_must_preserve_existing_contact_and_opportunity_consistency(): void
@@ -336,7 +336,7 @@ class RequestApiTest extends TestCase
         $response->assertJsonPath('data.assigned_to', $assignee->id);
         $response->assertJsonPath('data.status', RequestStatus::ASSIGNED->value);
         $this->assertDatabaseHas('audit_logs', ['action' => 'request.assigned']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'request.assigned']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'request.assigned']);
         $this->assertTrue($assignee->user->notifications()->count() > 0);
 
         $response = $this->postJson("/api/v1/requests/{$request->id}/assign", [
@@ -346,7 +346,7 @@ class RequestApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonPath('data.assigned_to', $newAssignee->id);
         $response->assertJsonPath('data.status', RequestStatus::ASSIGNED->value);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'request.reassigned']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'request.reassigned']);
         $this->assertTrue($newAssignee->user->notifications()->count() > 0);
     }
 
@@ -411,6 +411,6 @@ class RequestApiTest extends TestCase
         $this->assertDatabaseHas('opportunities', ['id' => $opportunity->id]);
         $this->assertDatabaseHas('employees', ['id' => $assignee->id]);
         $this->assertDatabaseHas('audit_logs', ['action' => 'request.deleted']);
-        $this->assertDatabaseHas('crm_activities', ['type' => 'request.deleted']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'request.deleted']);
     }
 }

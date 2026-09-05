@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\SystemActivityService;
+
 use App\Models\Opportunity;
-use App\Models\AuditLog;
-use App\Models\CrmActivity;
 use Illuminate\Support\Facades\DB;
 use App\Enums\OpportunityStage;
 use Carbon\Carbon;
@@ -48,32 +48,20 @@ class ChangeOpportunityStageService
 
             $opportunity->update($data);
 
-            AuditLog::create([
-                'user_id' => $updatedBy,
-                'action' => $type,
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'old_values' => $oldData,
-                'new_values' => $opportunity->toArray(),
-                'request_context' => [
-                    'ip' => request()->ip(),
-                    'user_agent' => request()->userAgent()
-                ]
-            ]);
-
-            CrmActivity::create([
-                'actor_id' => $updatedBy,
-                'type' => $type,
-                'subject_type' => Opportunity::class,
-                'subject_id' => $opportunity->id,
-                'company_id' => $opportunity->company_id,
-                'metadata' => [
-                    'opportunity_id' => $opportunity->id,
-                    'old_stage' => $oldStage,
-                    'new_stage' => $newStage,
-                    'lost_reason' => $lostReason,
-                ],
-            ]);
+            SystemActivityService::record(
+            actor: auth()->user(),
+            action: $type,
+            module: 'Opportunity',
+            entity: $opportunity,
+            oldValues: $oldData,
+            newValues: $opportunity->toArray(),
+            metadata: [
+                            'opportunity_id' => $opportunity->id,
+                            'old_stage' => $oldStage,
+                            'new_stage' => $newStage,
+                            'lost_reason' => $lostReason,
+                        ]
+        );
 
             return $opportunity;
         });
