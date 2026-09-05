@@ -44,11 +44,6 @@ export interface MediaListParams {
   direction?: 'asc' | 'desc'
 }
 
-type MediaCollectionEnvelope = {
-  data?: MediaFile[]
-  meta?: Partial<PaginationMeta>
-}
-
 export async function listMediaFiles(params: MediaListParams = {}): Promise<{ data: MediaFile[]; meta: PaginationMeta }> {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
@@ -57,23 +52,26 @@ export async function listMediaFiles(params: MediaListParams = {}): Promise<{ da
     }
   }
 
-  const payload = (await dashboardFetchEnvelope<MediaCollectionEnvelope>(`/api/v1/media-files?${query.toString()}`))?.data ?? {}
+  const payload = (await dashboardFetchEnvelope<MediaFile[]>(`/api/v1/media-files?${query.toString()}`)) ?? {}
+  const media = Array.isArray(payload.data) ? payload.data : []
+  const meta = (payload.meta ?? {}) as Partial<PaginationMeta>
 
   return {
-    data: payload.data ?? [],
+    data: media,
     meta: {
-      current_page: payload.meta?.current_page ?? 1,
-      last_page: payload.meta?.last_page ?? 1,
-      per_page: payload.meta?.per_page ?? 24,
-      total: payload.meta?.total ?? 0,
-      from: payload.meta?.from ?? null,
-      to: payload.meta?.to ?? null,
+      current_page: meta.current_page ?? 1,
+      last_page: meta.last_page ?? 1,
+      per_page: meta.per_page ?? 24,
+      total: meta.total ?? media.length,
+      from: meta.from ?? null,
+      to: meta.to ?? null,
     },
   }
 }
 
 export async function getMediaFile(id: number): Promise<{ data: MediaFile }> {
-  return dashboardFetch<{ data: MediaFile }>(`/api/v1/media-files/${id}`)
+  const mediaFile = await dashboardFetch<MediaFile>(`/api/v1/media-files/${id}`)
+  return { data: mediaFile }
 }
 
 export async function uploadMediaFile(file: File): Promise<{ data: MediaFile }> {
@@ -102,11 +100,12 @@ export interface UpdateMediaInput {
 }
 
 export async function updateMediaFile(id: number, payload: UpdateMediaInput): Promise<{ data: MediaFile }> {
-  return dashboardFetch<{ data: MediaFile }>(`/api/v1/media-files/${id}`, {
+  const mediaFile = await dashboardFetch<MediaFile>(`/api/v1/media-files/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
+  return { data: mediaFile }
 }
 
 export async function deleteMediaFile(id: number): Promise<void> {
