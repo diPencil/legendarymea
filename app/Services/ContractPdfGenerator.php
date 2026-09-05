@@ -28,6 +28,11 @@ class ContractPdfGenerator
             ]);
             $mpdf->autoScriptToLang = true;
             $mpdf->autoLangToFont = true;
+            $watermark = base_path('../frontend/public/contract.png');
+            if (is_file($watermark)) {
+                $mpdf->SetWatermarkImage($watermark, 0.06, [135, 135], [-45, 68]);
+                $mpdf->showWatermarkImage = true;
+            }
 
             $mpdf->WriteHTML($html);
 
