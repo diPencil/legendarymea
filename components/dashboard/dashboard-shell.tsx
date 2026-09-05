@@ -42,6 +42,7 @@ import { LanguageToggle } from '@/components/ui/language-toggle'
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
+import { NotificationsDropdown } from '@/components/dashboard/notifications-dropdown'
 import { DashboardApiError } from '@/lib/dashboard/api'
 import { displayRole, isDashboardRouteActive, visibleDashboardNav, visibleDashboardNavigationGroups } from '@/lib/dashboard/permissions'
 import { cn } from '@/lib/utils'
@@ -92,7 +93,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(initialExpandedGroups)
   const [logoutError, setLogoutError] = useState('')
-  
+
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [tooltip, setTooltip] = useState<{ text: string, top: number } | null>(null)
@@ -160,9 +161,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <aside className={cn(styles.sidebar, isNavOpen && styles.sidebarOpen)} aria-label={copy.navigation}>
         <div className={styles.sidebarBrand}>
           <div className={mounted && isDesktopCollapsed ? styles.brandCollapsedWrapper : styles.brandFull}>
-            <img 
-              src={mounted && isDesktopCollapsed ? "/favicon.png" : "/legendary-management.png"} 
-              alt="Legendary Management MEA" 
+            <img
+              src={mounted && isDesktopCollapsed ? "/favicon.png" : "/legendary-management.png"}
+              alt="Legendary Management MEA"
               className={mounted && isDesktopCollapsed ? styles.brandCollapsed : undefined}
             />
             {!(mounted && isDesktopCollapsed) && <span>{copy.area}</span>}
@@ -301,25 +302,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </Link>
 
             <div className={styles.menuWrap}>
-              <button
-                type="button"
-                className={cn(styles.iconButton, styles.mobileLabelBtn)}
-                aria-label={copy.notifications}
-                aria-expanded={isNotificationsOpen}
-                onClick={() => {
+              <NotificationsDropdown
+                isOpen={isNotificationsOpen}
+                onToggle={() => {
                   setIsNotificationsOpen((open) => !open)
                   setIsUserOpen(false)
                 }}
-              >
-                <Bell aria-hidden="true" />
-                <span className={styles.mobileActionLabel}>{locale === 'ar' ? 'الإشعارات' : 'Notifications'}</span>
-              </button>
-              {isNotificationsOpen ? (
-                <div className={styles.dropdown} role="menu">
-                  <strong>{copy.notifications}</strong>
-                  <p>{copy.notificationsEmpty}</p>
-                </div>
-              ) : null}
+                onClose={() => setIsNotificationsOpen(false)}
+              />
             </div>
 
             <div className={styles.menuWrap}>
@@ -351,14 +341,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   <strong>{user?.name}</strong>
                   <p className={styles.ltrText}>@{user?.username}</p>
                   <p className={styles.ltrText}>{user?.email}</p>
-                  
+
                   {user?.username ? (
                     <Link href={`/profile/${user.username}`} className={styles.menuItem}>
                       <UserRound aria-hidden="true" />
                       {locale === 'ar' ? 'الملف الشخصي' : 'Profile'}
                     </Link>
                   ) : null}
-                  
+
                   <div className={styles.mobileMenuLang}>
                     <span className={styles.mobileMenuLangLabel}>{locale === 'ar' ? 'تغيير اللغة' : 'Change Language'}</span>
                     <LanguageToggle />
@@ -377,10 +367,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
         <section className={styles.content}>{children}</section>
       </main>
-      
+
       {tooltip && mounted && isDesktopCollapsed && (
-        <div 
-          className={styles.floatingTooltip} 
+        <div
+          className={styles.floatingTooltip}
           style={{ top: tooltip.top }}
           role="tooltip"
         >
