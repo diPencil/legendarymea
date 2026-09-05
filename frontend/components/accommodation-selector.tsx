@@ -5,12 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ArrowUpLeft, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLocale, useContent } from "@/components/i18n";
+import { useWebsiteImage } from "@/lib/website-media";
 
 export function AccommodationSelector() {
   const { locale } = useLocale();
   const c = useContent();
   const isAr = locale === "ar";
   const [activeIndex, setActiveIndex] = useState(0);
+  const optionImages = [
+    useWebsiteImage("accommodation_city_hotels", c.accommodation.options[0].image),
+    useWebsiteImage("accommodation_resorts", c.accommodation.options[1].image),
+    useWebsiteImage("accommodation_apartments", c.accommodation.options[2].image),
+    useWebsiteImage("accommodation_groups", c.accommodation.options[3].image),
+  ];
 
   const CtaArrow = isAr ? ArrowUpLeft : ArrowUpRight;
   const RowArrow = isAr ? ArrowLeft : ArrowRight;
@@ -65,7 +72,7 @@ export function AccommodationSelector() {
               className={`acc-image-wrapper ${i === activeIndex ? "active" : ""}`}
             >
               <Image
-                src={opt.image}
+                src={optionImages[i]}
                 alt={opt.title}
                 fill
                 className="acc-image"

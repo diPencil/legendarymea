@@ -6,14 +6,15 @@ import { useLocale } from '@/components/i18n'
 import { experienceCopy } from '@/components/experience-content'
 import { Globe } from '@/registry/magicui/globe'
 import { BentoCard, BentoGrid } from '@/registry/magicui/bento-grid'
+import { useWebsiteImage } from '@/lib/website-media'
 
 const thinkingIcons=[Clock3,Route,BadgeDollarSign,MessageSquareText]
 const capabilityIcons=[Plane,Handshake,Workflow,MonitorCog,Compass,MessagesSquare]
 const valueIcons=[BrainCircuit,ShieldCheck,Handshake,Gauge,Lightbulb,CheckCircle2,MapPinned,Sprout,ListChecks,ClipboardCheck]
 
-export default function AboutPage(){const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].about;const Arrow=ar?ArrowLeft:ArrowRight;return <PageShell>
-  <section className="about-hero" dir={ar?'rtl':'ltr'}><div className="about-hero-image-layer"><img src={images.travel} alt=""/><div className="about-hero-overlay"/></div><div className="internal-hero-layout section-shell"><div className="internal-hero-title-col"><div className="section-kicker light">{c.heroKicker}</div><h1>{c.heroTitle}</h1></div><div className="internal-hero-desc-col"><p>{c.heroBody}</p></div></div></section>
-  <section className="xp-about-identity section-shell" dir={ar?'rtl':'ltr'}><img className="xp-about-identity-art" src="/real%20requests.png" alt="" aria-hidden="true"/><div className="section-kicker">01 / IDENTITY</div><div><h2>{c.identityTitle}</h2><p>{c.identityBody}</p></div></section>
+export default function AboutPage(){const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].about;const Arrow=ar?ArrowLeft:ArrowRight;const heroImage=useWebsiteImage('about_hero',images.travel);const identityImage=useWebsiteImage('about_identity','/real%20requests.png');return <PageShell>
+  <section className="about-hero" dir={ar?'rtl':'ltr'}><div className="about-hero-image-layer"><img src={heroImage} alt=""/><div className="about-hero-overlay"/></div><div className="internal-hero-layout section-shell"><div className="internal-hero-title-col"><div className="section-kicker light">{c.heroKicker}</div><h1>{c.heroTitle}</h1></div><div className="internal-hero-desc-col"><p>{c.heroBody}</p></div></div></section>
+  <section className="xp-about-identity section-shell" dir={ar?'rtl':'ltr'}><img className="xp-about-identity-art" src={identityImage} alt="" aria-hidden="true"/><div className="section-kicker">01 / IDENTITY</div><div><h2>{c.identityTitle}</h2><p>{c.identityBody}</p></div></section>
   <div className="editorial-band editorial-band-navy"><section className="xp-thinking section-shell" dir={ar?'rtl':'ltr'}><div className="xp-thinking-intro"><div className="section-kicker light">{ar?'٠٢ / منطق التشغيل':'02 / OPERATING LOGIC'}</div><h2>{c.thinkingTitle}</h2><p>{c.thinkingBody}</p></div><div className="xp-thinking-system"><div className="xp-thinking-core"><span>{c.thinkingSystemLabel}</span><strong>04</strong><small>{c.thinkingSystemMeta}</small></div><ol>{c.principles.map((x,i)=>{const Icon=thinkingIcons[i];return <li key={x}><span>{ar?['٠١','٠٢','٠٣','٠٤'][i]:`0${i+1}`}</span><Icon aria-hidden="true"/><b>{x}</b><i aria-hidden="true"/></li>})}</ol></div></section></div>
   <section className="xp-capability-map section-shell" dir={ar?'rtl':'ltr'}>
     <header className="xp-capability-map-head"><div className="section-kicker">{ar?'٠٣ / مجالات العمل':'03 / CAPABILITIES'}</div><h2>{c.capabilitiesTitle}</h2><p>{ar?'ستة مجالات تعمل ضمن هيكل واحد، من ترتيبات السفر اليومية إلى التقنية والإدارة.':'Six disciplines working as one structure, from daily travel arrangements to technology and management.'}</p></header>

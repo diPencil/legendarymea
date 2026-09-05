@@ -49,6 +49,21 @@ class MediaFile extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    public function emailTemplates()
+    {
+        return $this->hasMany(EmailTemplate::class, 'image_media_id');
+    }
+
+    public function websiteMediaSlots()
+    {
+        return $this->hasMany(WebsiteMediaSlot::class);
+    }
+
+    public function avatarUsers()
+    {
+        return $this->hasMany(User::class, 'avatar_media_id');
+    }
+
     public static function generateReference()
     {
         $year = date('Y');

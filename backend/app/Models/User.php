@@ -30,6 +30,8 @@ class User extends Authenticatable
         'preferred_locale',
         'timezone',
         'last_login_at',
+        'avatar_path',
+        'avatar_media_id',
     ];
 
     /**
@@ -60,5 +62,10 @@ class User extends Authenticatable
     public function employee()
     {
         return $this->hasOne(Employee::class);
+    }
+
+    public function avatarMedia()
+    {
+        return $this->belongsTo(MediaFile::class, 'avatar_media_id');
     }
 }

@@ -15,6 +15,7 @@ use App\Enums\UserStatus;
 use App\Events\UserLoggedIn;
 use App\Events\UserLoggedOut;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 
@@ -49,15 +50,7 @@ class AuthController extends Controller
         event(new UserLoggedIn($user, $request));
 
         return $this->successResponse([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
-                'status' => $user->status->value,
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-            ]
+            'user' => $this->userPayload($user),
         ], 'Logged in successfully.');
     }
 
@@ -91,15 +84,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
         return $this->successResponse([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
-                'status' => $user->status->value,
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-            ]
+            'user' => $this->userPayload($user),
         ], 'User data retrieved.');
     }
 
@@ -131,5 +116,21 @@ class AuthController extends Controller
         return $status === Password::PASSWORD_RESET
                     ? $this->successResponse(null, __($status))
                     : $this->errorResponse(__($status), [], 400);
+    }
+
+    private function userPayload(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'status' => $user->status->value,
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'avatar_url' => $user->avatar_media_id
+                ? "/dashboard-api/api/v1/media-files/{$user->avatar_media_id}/content"
+                : ($user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null),
+        ];
     }
 }

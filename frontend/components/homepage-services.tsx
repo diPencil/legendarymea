@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpLeft, ArrowUpRight } from "lucide-react";
 
 import { useContent, useLocale } from "@/components/i18n";
+import { useWebsiteImage } from "@/lib/website-media";
 
 const serviceHrefs = [
   "/solutions/hotels-accommodation",
@@ -47,6 +48,15 @@ export function HomepageServices() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const services = isAr ? c.services : oldApprovedServices;
+  const hotelsImage = useWebsiteImage("solutions_hotels_accommodation", serviceImages[0]);
+  const flightsImage = useWebsiteImage("solutions_flights", serviceImages[1]);
+  const transfersImage = useWebsiteImage("solutions_transfers", serviceImages[2]);
+  const carRentalImage = useWebsiteImage("solutions_car_rental", serviceImages[3]);
+  const toursImage = useWebsiteImage("solutions_tours_experiences", serviceImages[4]);
+  const groupsImage = useWebsiteImage("solutions_groups", serviceImages[5]);
+  const corporateImage = useWebsiteImage("solutions_corporate_travel", serviceImages[6]);
+  const hospitalityImage = useWebsiteImage("solutions_hospitality", serviceImages[7]);
+  const managedServiceImages = [hotelsImage, flightsImage, transfersImage, carRentalImage, toursImage, groupsImage, corporateImage, hospitalityImage];
 
   return (
     <section id="solutions" className="homepage-services section-shell" dir={isAr ? "rtl" : "ltr"}>
@@ -71,7 +81,7 @@ export function HomepageServices() {
             </div>
             <div className="homepage-service-image">
               <Image
-                src={serviceImages[index]}
+                src={managedServiceImages[index]}
                 alt=""
                 fill
                 sizes="(max-width: 700px) calc(100vw - 72px), (max-width: 1100px) 45vw, 23vw"

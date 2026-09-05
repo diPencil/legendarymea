@@ -102,7 +102,7 @@ function SupportingObject({ kind, slot, title, body, icon: Icon, image, imageAlt
   );
 }
 
-export function HighlightCentralPhoneHero({ page, copy }: { page: HeroDetail; copy: HeroDetailLocale }) {
+export function HighlightCentralPhoneHero({ page, copy, imageSrc }: { page: HeroDetail; copy: HeroDetailLocale; imageSrc?: string }) {
   const { locale } = useLocale();
   const reduced = useReducedMotion();
   const card = heroMarqueeCards[locale].find((item) => item.id === page.slug);
@@ -150,7 +150,7 @@ export function HighlightCentralPhoneHero({ page, copy }: { page: HeroDetail; co
               title={item.title}
               body={item.body}
               icon={icons[index]}
-              image={page.image}
+              image={imageSrc ?? page.image}
               imageAlt={copy.title}
               index={index}
               reduced={reduced}

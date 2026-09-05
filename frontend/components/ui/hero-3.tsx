@@ -10,6 +10,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/i18n";
 import { KineticGrid } from "@/components/ui/kinetic-grid";
+import { useWebsiteImage } from "@/lib/website-media";
 import { useState, useEffect, useRef } from "react";
 import styles from "./hero-marquee-card.module.css";
 import flightArrangementsImage from "../../public/hero-marquee/Flight-Arrangements.jpg";
@@ -102,9 +103,26 @@ export const heroMarqueeCards: Record<"en" | "ar", readonly HeroMarqueeCard[]> =
   ],
 };
 
+const heroMarqueeSlotKeys: Record<string, string> = {
+  b2b: "hero_marquee_b2b_travel_solutions",
+  flights: "hero_marquee_flight_arrangements",
+  accommodation: "hero_marquee_hotels_accommodation",
+  bookings: "hero_marquee_booking_desk",
+  groups: "hero_marquee_group_travel",
+  mea: "hero_marquee_middle_east_africa",
+  accounts: "hero_marquee_customers_agents",
+  commercial: "hero_marquee_suppliers_pricing",
+  platform: "hero_marquee_taxidia",
+  hospitality: "hero_marquee_hospitality",
+  partnership: "hero_marquee_become_partner",
+  reporting: "hero_marquee_reports_control",
+};
+
 export function EditorialMarqueeCard({ card, tabIndex = 0, linked = true, className }: { card: HeroMarqueeCard; tabIndex?: number; linked?: boolean; className?: string }) {
   const Icon = card.icon;
   const showIcon = card.treatment === "icon" && Icon;
+  const fallbackSrc = typeof card.image?.src === "string" ? card.image.src : card.image?.src.src ?? "";
+  const imageSrc = useWebsiteImage(heroMarqueeSlotKeys[card.id] ?? `hero_marquee_${card.id}`, fallbackSrc);
 
   const visual = (
     <article
@@ -126,7 +144,7 @@ export function EditorialMarqueeCard({ card, tabIndex = 0, linked = true, classN
       {card.image && card.layout !== "splitPanel" && (
         <>
           <Image
-            src={card.image.src}
+            src={imageSrc || card.image.src}
             alt={card.image.alt}
             fill
             className={styles.image}
@@ -139,7 +157,7 @@ export function EditorialMarqueeCard({ card, tabIndex = 0, linked = true, classN
         <div className={styles.mediaField} aria-hidden="true">
           {card.image ? (
             <Image
-              src={card.image.src}
+              src={imageSrc || card.image.src}
               alt=""
               fill
               className={styles.image}

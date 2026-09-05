@@ -5,12 +5,12 @@ import { X, Loader2 } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { dashboardCopy } from '@/components/dashboard/copy'
-import { uploadMediaFile, updateMediaFile } from '@/lib/dashboard/media'
+import { replaceMediaFile, uploadMediaFile, updateMediaFile } from '@/lib/dashboard/media'
 import type { MediaFile, UpdateMediaInput } from '@/lib/dashboard/media'
 import styles from '@/components/dashboard/dashboard.module.css'
 
 interface MediaFormProps {
-  mode: 'upload' | 'edit'
+  mode: 'upload' | 'edit' | 'replace'
   mediaFile?: MediaFile
   onClose: () => void
   onSuccess: () => void
@@ -43,7 +43,7 @@ export function MediaForm({ mode, mediaFile, onClose, onSuccess }: MediaFormProp
     e.preventDefault()
     setErrors({})
 
-    if (mode === 'upload' && !file) {
+    if ((mode === 'upload' || mode === 'replace') && !file) {
       setErrors({ general: [copy.fileRequiredMessage || 'A file is required.'] })
       return
     }
@@ -53,6 +53,8 @@ export function MediaForm({ mode, mediaFile, onClose, onSuccess }: MediaFormProp
     try {
       if (mode === 'upload') {
         await uploadMediaFile(file!)
+      } else if (mode === 'replace' && mediaFile) {
+        await replaceMediaFile(mediaFile.id, file!)
       } else if (mode === 'edit' && mediaFile) {
         const payload: UpdateMediaInput = {
           alt_text_en: altTextEn || undefined,
@@ -80,7 +82,7 @@ export function MediaForm({ mode, mediaFile, onClose, onSuccess }: MediaFormProp
     <div className={styles.modalLayer} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={`${styles.employeeDialog} ${styles.companyDialog}`} role="dialog" aria-modal="true">
         <header className={styles.dialogHeader}>
-          <h2>{mode === 'upload' ? copy.uploadMediaTitle : copy.editMediaTitle}</h2>
+          <h2>{mode === 'upload' ? copy.uploadMediaTitle : mode === 'replace' ? 'Replace media' : copy.editMediaTitle}</h2>
           <button type="button" onClick={onClose} aria-label={copy.close} className={styles.iconButton}>
             <X aria-hidden="true" />
           </button>
@@ -96,16 +98,20 @@ export function MediaForm({ mode, mediaFile, onClose, onSuccess }: MediaFormProp
           <fieldset className={styles.formSection}>
             <legend>{copy.mediaDetails.toUpperCase()}</legend>
             <div className={styles.formGrid}>
-              {mode === 'upload' && (
+              {(mode === 'upload' || mode === 'replace') && (
                 <div className={styles.formField} style={{ gridColumn: '1 / -1' }}>
                   <label htmlFor="media_file">
-                    {copy.file} <span className={styles.required}>*</span>
+                    {mode === 'replace' ? 'Replacement image/file' : copy.file} <span className={styles.required}>*</span>
                   </label>
                   <input
                     type="file"
                     id="media_file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,application/pdf"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                   />
+                  {mode === 'replace' && mediaFile?.is_in_use ? (
+                    <p className={styles.formHelp}>This keeps {mediaFile.reference} and updates every existing usage automatically.</p>
+                  ) : null}
                   {errors.file && <p className={styles.fieldError}>{errors.file[0]}</p>}
                 </div>
               )}

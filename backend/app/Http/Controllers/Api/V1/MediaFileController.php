@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MediaFileResource;
 use App\Models\MediaFile;
+use App\Models\WebsiteMediaSlot;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,7 +18,7 @@ class MediaFileController extends Controller
     {
         Gate::authorize('viewAny', MediaFile::class);
 
-        $query = MediaFile::with('uploader');
+        $query = MediaFile::with(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -30,6 +31,17 @@ class MediaFileController extends Controller
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
+        }
+
+        if ($request->filled('usage')) {
+            $usage = $request->input('usage');
+            $query->when($usage === 'used', function ($q) {
+                $q->where(function ($used) {
+                    $used->whereHas('emailTemplates')->orWhereHas('websiteMediaSlots')->orWhereHas('avatarUsers');
+                });
+            })->when($usage === 'unused', function ($q) {
+                $q->whereDoesntHave('emailTemplates')->whereDoesntHave('websiteMediaSlots')->whereDoesntHave('avatarUsers');
+            });
         }
 
         $sort = $request->input('sort', 'created_at');
@@ -50,72 +62,23 @@ class MediaFileController extends Controller
     {
         Gate::authorize('create', MediaFile::class);
 
-        // Security validation
         $request->validate([
             'file' => 'required|file',
             'collection_name' => 'nullable|string|max:255',
         ]);
 
-        $file = $request->file('file');
-        $mimeType = $file->getMimeType();
-        $size = $file->getSize();
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension());
-        $imageInfo = @getimagesize($file->getRealPath()) ?: null;
-        $detectedImageMime = is_array($imageInfo) ? ($imageInfo['mime'] ?? null) : null;
-        $looksLikeSvg = $extension === 'svg' || $mimeType === 'image/svg+xml' || $this->looksLikeSvg($file->getRealPath());
-        $effectiveImageMime = $detectedImageMime ?: $mimeType;
-        
-        $isImage = $looksLikeSvg || $detectedImageMime !== null || str_starts_with($mimeType, 'image/');
-        $type = $isImage ? 'image' : 'document';
-        $sanitizedSvg = null;
-        
-        if ($isImage) {
-            $request->validate(['file' => 'max:10240']); // 10MB
-            if ($looksLikeSvg) {
-                $sanitizedSvg = $this->sanitizeSvg($file->getRealPath());
-                $effectiveImageMime = 'image/svg+xml';
-                $imageInfo = $this->svgDimensions($sanitizedSvg);
-            } elseif (!in_array($effectiveImageMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
-                abort(422, 'Only JPG, PNG, WEBP, GIF, or SVG images are supported.');
-            }
-        } else {
-            $request->validate(['file' => 'max:20480']); // 20MB
-            if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'jfif', 'heic', 'heif', 'avif'], true)) {
-                abort(422, 'Only JPG, PNG, WEBP, GIF, or SVG images are supported.');
-            }
-            if ($mimeType !== 'application/pdf') {
-                abort(422, 'Unsupported document type.');
-            }
-        }
-
-        $originalFilename = $file->getClientOriginalName();
-        $safeName = Str::random(40) . '.' . ($isImage ? $this->imageExtension($effectiveImageMime) : $file->extension());
-        $path = 'media/' . $safeName;
-
-        if ($sanitizedSvg !== null) {
-            Storage::disk('public')->put($path, $sanitizedSvg);
-        } else {
-            $path = $file->storeAs('media', $safeName, 'public');
-        }
-
-        $width = null;
-        $height = null;
-
-        if ($isImage && is_array($imageInfo)) {
-            $width = $imageInfo[0];
-            $height = $imageInfo[1];
-        }
+        $data = $this->storeUploadedFile($request, 'file');
 
         $mediaFile = MediaFile::create([
             'reference' => MediaFile::generateReference(),
-            'type' => $type,
-            'filename' => basename($path),
-            'original_filename' => $originalFilename,
-            'mime_type' => $isImage ? $effectiveImageMime : $mimeType,
-            'size' => $size,
-            'width' => $width,
-            'height' => $height,
-            'path' => $path,
+            'type' => $data['type'],
+            'filename' => basename($data['path']),
+            'original_filename' => $data['original_filename'],
+            'mime_type' => $data['mime_type'],
+            'size' => $data['size'],
+            'width' => $data['width'],
+            'height' => $data['height'],
+            'path' => $data['path'],
             'disk' => 'public',
             'collection_name' => $request->collection_name,
             'uploaded_by' => $request->user()->id,
@@ -131,13 +94,13 @@ class MediaFileController extends Controller
             ]);
         }
 
-        return new MediaFileResource($mediaFile->load('uploader'));
+        return new MediaFileResource($mediaFile->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
     }
 
     public function show(MediaFile $mediaFile)
     {
         Gate::authorize('view', $mediaFile);
-        return new MediaFileResource($mediaFile->load('uploader'));
+        return new MediaFileResource($mediaFile->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
     }
 
     public function content(MediaFile $mediaFile)
@@ -151,6 +114,69 @@ class MediaFileController extends Controller
         return Storage::disk($mediaFile->disk)->response($mediaFile->path, $mediaFile->filename, [
             'Content-Type' => $mediaFile->mime_type,
         ]);
+    }
+
+    public function download(MediaFile $mediaFile)
+    {
+        Gate::authorize('view', $mediaFile);
+
+        if (!Storage::disk($mediaFile->disk)->exists($mediaFile->path)) {
+            abort(404, 'Media file not found.');
+        }
+
+        return Storage::disk($mediaFile->disk)->download(
+            $mediaFile->path,
+            $mediaFile->original_filename ?: $mediaFile->filename,
+            ['Content-Type' => $mediaFile->mime_type]
+        );
+    }
+
+    public function replace(Request $request, MediaFile $mediaFile)
+    {
+        Gate::authorize('update', $mediaFile);
+
+        $request->validate(['file' => 'required|file']);
+
+        $oldPath = $mediaFile->path;
+        $oldDisk = $mediaFile->disk;
+        $data = $this->storeUploadedFile($request, 'file');
+
+        if (($mediaFile->emailTemplates()->exists() || $mediaFile->websiteMediaSlots()->exists() || $mediaFile->avatarUsers()->exists()) && $data['type'] !== 'image') {
+            Storage::disk('public')->delete($data['path']);
+            abort(422, 'Media currently used as an image must be replaced with another image.');
+        }
+
+        try {
+            $mediaFile->forceFill([
+                'type' => $data['type'],
+                'filename' => basename($data['path']),
+                'original_filename' => $data['original_filename'],
+                'mime_type' => $data['mime_type'],
+                'size' => $data['size'],
+                'width' => $data['width'],
+                'height' => $data['height'],
+                'path' => $data['path'],
+                'disk' => 'public',
+            ])->save();
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($data['path']);
+            throw $exception;
+        }
+
+        if ($oldPath && Storage::disk($oldDisk)->exists($oldPath)) {
+            Storage::disk($oldDisk)->delete($oldPath);
+        }
+
+        if (class_exists(\App\Models\AuditLog::class)) {
+            \App\Models\AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'media.replaced',
+                'description' => "Replaced media {$mediaFile->reference}",
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        return new MediaFileResource($mediaFile->fresh()->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
     }
 
     public function update(Request $request, MediaFile $mediaFile)
@@ -175,14 +201,22 @@ class MediaFileController extends Controller
             ]);
         }
 
-        return new MediaFileResource($mediaFile->load('uploader'));
+        return new MediaFileResource($mediaFile->load(['uploader', 'emailTemplates', 'websiteMediaSlots', 'avatarUsers']));
     }
 
     public function destroy(Request $request, MediaFile $mediaFile)
     {
         Gate::authorize('delete', $mediaFile);
 
-        // TODO: Enforce WebPage usage block here when Website module is built.
+        $mediaFile->load(['emailTemplates', 'websiteMediaSlots', 'avatarUsers']);
+
+        if ($mediaFile->emailTemplates->isNotEmpty() || $mediaFile->websiteMediaSlots->isNotEmpty() || $mediaFile->avatarUsers->isNotEmpty()) {
+            return response()->json([
+                'message' => 'This media is currently in use.',
+                'errors' => ['media' => ['This media is currently in use. Replace it instead or remove its references first.']],
+                'usage' => $this->usageSummary($mediaFile),
+            ], 409);
+        }
 
         Storage::disk($mediaFile->disk)->delete($mediaFile->path);
         
@@ -198,6 +232,81 @@ class MediaFileController extends Controller
         $mediaFile->delete();
 
         return response()->noContent();
+    }
+
+    private function storeUploadedFile(Request $request, string $field): array
+    {
+        $file = $request->file($field);
+        $mimeType = $file->getMimeType();
+        $size = $file->getSize();
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension());
+        $imageInfo = @getimagesize($file->getRealPath()) ?: null;
+        $detectedImageMime = is_array($imageInfo) ? ($imageInfo['mime'] ?? null) : null;
+        $looksLikeSvg = $extension === 'svg' || $mimeType === 'image/svg+xml' || $this->looksLikeSvg($file->getRealPath());
+        $effectiveImageMime = $detectedImageMime ?: $mimeType;
+        $isImage = $looksLikeSvg || $detectedImageMime !== null || str_starts_with($mimeType, 'image/');
+        $sanitizedSvg = null;
+
+        if ($isImage) {
+            $request->validate([$field => 'max:10240']);
+            if ($looksLikeSvg) {
+                $sanitizedSvg = $this->sanitizeSvg($file->getRealPath());
+                $effectiveImageMime = 'image/svg+xml';
+                $imageInfo = $this->svgDimensions($sanitizedSvg);
+            } elseif (!in_array($effectiveImageMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+                abort(422, 'Only JPG, PNG, WEBP, GIF, or SVG images are supported.');
+            }
+        } else {
+            $request->validate([$field => 'max:20480']);
+            if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'jfif', 'heic', 'heif', 'avif'], true)) {
+                abort(422, 'Only JPG, PNG, WEBP, GIF, or SVG images are supported.');
+            }
+            if ($mimeType !== 'application/pdf') {
+                abort(422, 'Unsupported document type.');
+            }
+        }
+
+        $safeName = Str::random(40) . '.' . ($isImage ? $this->imageExtension($effectiveImageMime) : $file->extension());
+        $path = 'media/' . $safeName;
+
+        if ($sanitizedSvg !== null) {
+            Storage::disk('public')->put($path, $sanitizedSvg);
+        } else {
+            $path = $file->storeAs('media', $safeName, 'public');
+        }
+
+        return [
+            'type' => $isImage ? 'image' : 'document',
+            'path' => $path,
+            'original_filename' => $file->getClientOriginalName(),
+            'mime_type' => $isImage ? $effectiveImageMime : $mimeType,
+            'size' => $size,
+            'width' => $isImage && is_array($imageInfo) ? $imageInfo[0] : null,
+            'height' => $isImage && is_array($imageInfo) ? $imageInfo[1] : null,
+        ];
+    }
+
+    private function usageSummary(MediaFile $mediaFile): array
+    {
+        $mediaFile->loadMissing(['emailTemplates', 'websiteMediaSlots', 'avatarUsers']);
+
+        return [
+            ...$mediaFile->emailTemplates->map(fn ($template) => [
+                'type' => 'email_template',
+                'label' => 'Email Template — ' . $template->name,
+                'reference' => $template->key,
+            ])->values()->all(),
+            ...$mediaFile->websiteMediaSlots->map(fn (WebsiteMediaSlot $slot) => [
+                'type' => 'website',
+                'label' => 'Website — ' . $slot->label,
+                'reference' => $slot->key,
+            ])->values()->all(),
+            ...$mediaFile->avatarUsers->map(fn ($user) => [
+                'type' => 'user_avatar',
+                'label' => 'User Avatar — ' . $user->name,
+                'reference' => $user->username,
+            ])->values()->all(),
+        ];
     }
 
     private function imageExtension(string $mimeType): string

@@ -19,6 +19,7 @@ import {
 import { PageShell } from '@/components/site'
 import { useContent, useLocale } from '@/components/i18n'
 import { experienceCopy, solutionSlugs } from '@/components/experience-content'
+import { useWebsiteImage } from '@/lib/website-media'
 
 const serviceImages = [
   '/solutions/Hotels-Accommodation.jpg',
@@ -41,6 +42,15 @@ export default function SolutionsPage() {
   const Arrow = ar ? ArrowLeft : ArrowRight
   const [activeService, setActiveService] = useState(0)
   const serviceCount = 5
+  const hotelsImage = useWebsiteImage('solutions_hotels_accommodation', serviceImages[0])
+  const flightsImage = useWebsiteImage('solutions_flights', serviceImages[1])
+  const transfersImage = useWebsiteImage('solutions_transfers', serviceImages[2])
+  const carRentalImage = useWebsiteImage('solutions_car_rental', serviceImages[3])
+  const toursImage = useWebsiteImage('solutions_tours_experiences', serviceImages[4])
+  const groupsImage = useWebsiteImage('solutions_groups', serviceImages[5])
+  const corporateImage = useWebsiteImage('solutions_corporate_travel', serviceImages[6])
+  const hospitalityImage = useWebsiteImage('solutions_hospitality', serviceImages[7])
+  const managedServiceImages = [hotelsImage, flightsImage, transfersImage, carRentalImage, toursImage, groupsImage, corporateImage, hospitalityImage]
 
   const moveService = (direction: number) => {
     setActiveService((current) => (current + direction + serviceCount) % serviceCount)
@@ -50,7 +60,7 @@ export default function SolutionsPage() {
     <PageShell>
       <section className="sol-hero" dir={ar ? 'rtl' : 'ltr'}>
         <div className="sol-hero-image" aria-hidden="true">
-          <img src="/solutions/Corporate-Travel.jpg" alt="" />
+          <img src={corporateImage} alt="" />
         </div>
         <div className="sol-hero-shade" />
         <div className="internal-hero-layout section-shell">
@@ -74,7 +84,7 @@ export default function SolutionsPage() {
             const Icon = ServiceIcons[index]
             return (
               <Link href={`#${solutionSlugs[index]}`} className="sol-marquee-card" key={`${name}-${i}`}>
-                <img src={serviceImages[index]} alt="" />
+                <img src={managedServiceImages[index]} alt="" />
                 <span>0{index + 1}</span>
                 <div><Icon size={20} /><strong>{name}</strong></div>
               </Link>
@@ -102,7 +112,7 @@ export default function SolutionsPage() {
           </div>
 
           <div className="sol-showcase-visual">
-            {solutionSlugs.slice(0, serviceCount).map((slug, i) => <img key={slug} className={activeService === i ? 'active' : ''} src={serviceImages[i]} alt={common.services[i][0]} />)}
+            {solutionSlugs.slice(0, serviceCount).map((slug, i) => <img key={slug} className={activeService === i ? 'active' : ''} src={managedServiceImages[i]} alt={common.services[i][0]} />)}
             <div className="sol-showcase-caption"><span>{ar ? 'الخدمة المختارة' : 'SELECTED SERVICE'}</span><strong>{common.services[activeService][0]}</strong></div>
           </div>
 
@@ -118,7 +128,7 @@ export default function SolutionsPage() {
       </section>
 
       <section id="groups-special-requests" className="sol-groups" dir={ar ? 'rtl' : 'ltr'}>
-        <div className="sol-groups-image"><img src="/solutions/Groups.jpg" alt="" /></div>
+        <div className="sol-groups-image"><img src={groupsImage} alt="" /></div>
         <div className="sol-groups-shade" />
         <div className="sol-groups-inner section-shell">
           <div className="sol-groups-copy">
@@ -134,7 +144,7 @@ export default function SolutionsPage() {
       </section>
 
       <section id="corporate-travel" className="sol-corporate section-shell" dir={ar ? 'rtl' : 'ltr'}>
-        <div className="sol-corporate-image"><img src="/solutions/Corporate-Travel.jpg" alt="" /><span>07 / CORPORATE</span></div>
+        <div className="sol-corporate-image"><img src={corporateImage} alt="" /><span>07 / CORPORATE</span></div>
         <article className="sol-corporate-panel">
           <div className="section-kicker">{ar ? 'سفر الأعمال' : 'BUSINESS TRAVEL'}</div>
           <h2>{c.corporateTitle}</h2>
@@ -152,7 +162,7 @@ export default function SolutionsPage() {
             <p>{c.hospitalityBody}</p>
             <Link href="/solutions/hospitality-solutions">{ar ? 'ناقش تعاون الضيافة' : 'Discuss hospitality cooperation'} <Arrow size={17} /></Link>
           </div>
-          <div className="sol-hospitality-arch"><img src="/solutions/Hospitality.jpg" alt="" /><div><span>{ar ? 'منشأة' : 'PROPERTY'}</span><i /><span>{ar ? 'سوق' : 'MARKET'}</span><i /><span>{ar ? 'علاقة' : 'RELATIONSHIP'}</span></div></div>
+          <div className="sol-hospitality-arch"><img src={hospitalityImage} alt="" /><div><span>{ar ? 'منشأة' : 'PROPERTY'}</span><i /><span>{ar ? 'سوق' : 'MARKET'}</span><i /><span>{ar ? 'علاقة' : 'RELATIONSHIP'}</span></div></div>
         </div>
       </section>
 

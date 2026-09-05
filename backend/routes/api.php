@@ -42,11 +42,14 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:5,1');
 
     Route::get('public/pages/{slug}', [\App\Http\Controllers\Api\V1\PublicWebPageController::class, 'show']);
+    Route::get('public/media-slots', [\App\Http\Controllers\Api\V1\PublicWebsiteMediaController::class, 'index']);
+    Route::get('public/media-files/{mediaFile}/content', [\App\Http\Controllers\Api\V1\PublicMediaFileController::class, 'content']);
     Route::get('public/settings', [\App\Http\Controllers\Api\V1\SettingController::class, 'publicSettings']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('dashboard/overview', DashboardOverviewController::class);
         Route::get('profiles/{username}', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show'])->name('profiles.show');
+        Route::post('profiles/{username}', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update'])->name('profiles.update');
         Route::apiResource('employees', \App\Http\Controllers\Api\V1\EmployeeController::class);
         
         // Companies
@@ -184,6 +187,8 @@ Route::prefix('v1')->group(function () {
 
         // Media
         Route::get('media-files/{media_file}/content', [\App\Http\Controllers\Api\V1\MediaFileController::class, 'content']);
+        Route::get('media-files/{media_file}/download', [\App\Http\Controllers\Api\V1\MediaFileController::class, 'download']);
+        Route::post('media-files/{media_file}/replace', [\App\Http\Controllers\Api\V1\MediaFileController::class, 'replace']);
         Route::apiResource('media-files', \App\Http\Controllers\Api\V1\MediaFileController::class);
 
         // Web Pages

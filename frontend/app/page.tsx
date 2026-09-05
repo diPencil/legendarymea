@@ -9,17 +9,18 @@ import { HomepageRequestJourney } from '@/components/homepage-request-journey'
 import { HomepageCoordination } from '@/components/homepage-coordination'
 import { experienceCopy } from '@/components/experience-content'
 import { OpeningExperience } from '@/components/opening-experience'
+import { useWebsiteImage } from '@/lib/website-media'
 
-export default function Home(){const common=useContent();const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].home;const Arrow=ar?ArrowLeft:ArrowRight;return <>
+export default function Home(){const common=useContent();const{locale}=useLocale();const ar=locale==='ar';const c=experienceCopy[locale].home;const Arrow=ar?ArrowLeft:ArrowRight;const homeHotel=useWebsiteImage('home_hero_hotel','/hotel.png');const homeMeeting=useWebsiteImage('home_hero_meeting','/meeting.png');const homeTravel=useWebsiteImage('home_hero_travel','/travel.png');const homeRequests=useWebsiteImage('home_real_requests','/real%20requests.png');const homeWhy=useWebsiteImage('home_why_legendary','/why-legendary.jpg');return <>
  <OpeningExperience/>
  <PageShell>
- <Hero3 className="homepage-hero" kicker={common.hero.kicker} title={common.hero.title} accent={common.hero.accent} body={common.hero.body} primaryCta={{label:common.hero.primary,href:'/solutions'}} secondaryCta={{label:common.hero.secondary,href:'/request'}} images={[{src:'/hotel.png',alt:''},{src:'/meeting.png',alt:''},{src:'/travel.png',alt:''}]}/>
+ <Hero3 className="homepage-hero" kicker={common.hero.kicker} title={common.hero.title} accent={common.hero.accent} body={common.hero.body} primaryCta={{label:common.hero.primary,href:'/solutions'}} secondaryCta={{label:common.hero.secondary,href:'/request'}} images={[{src:homeHotel,alt:''},{src:homeMeeting,alt:''},{src:homeTravel,alt:''}]}/>
  <AudienceStrip/>
  <HomepageServices/>
  <HomepageCoordination/>
  <HomepageRequestJourney/>
- <section className="xp-home-scenarios xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-home-scenarios-inner section-shell"><img className="xp-home-scenarios-art" src="/real%20requests.png" alt="" aria-hidden="true"/><div className="xp-section-heading"><div className="section-kicker light">05 / REAL REQUESTS</div><h2>{c.scenariosTitle}</h2><p>{c.scenariosBody}</p></div><div className="xp-home-scenario-grid">{c.scenarios.map(([t,b],i)=><article key={t}><span>0{i+1}</span><h3>{t}</h3><p>{b}</p></article>)}</div></div></section>
- <section className="xp-home-why section-shell" dir={ar?'rtl':'ltr'}><div><div className="section-kicker">06 / {ar?'طريقة العمل':'WHY LEGENDARY'}</div><h2>{ar?'التنسيق أهم من كثرة الخيارات.':'Coordination matters more than a long option list.'}</h2><p>{common.whyBody}</p><img src="/why-legendary.jpg" alt=""/></div><ol>{common.why.map(([t,b],i)=><li key={t}><span>0{i+1}</span><div><h3>{t}</h3><p>{b}</p></div></li>)}</ol></section>
+ <section className="xp-home-scenarios xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-home-scenarios-inner section-shell"><img className="xp-home-scenarios-art" src={homeRequests} alt="" aria-hidden="true"/><div className="xp-section-heading"><div className="section-kicker light">05 / REAL REQUESTS</div><h2>{c.scenariosTitle}</h2><p>{c.scenariosBody}</p></div><div className="xp-home-scenario-grid">{c.scenarios.map(([t,b],i)=><article key={t}><span>0{i+1}</span><h3>{t}</h3><p>{b}</p></article>)}</div></div></section>
+ <section className="xp-home-why section-shell" dir={ar?'rtl':'ltr'}><div><div className="section-kicker">06 / {ar?'طريقة العمل':'WHY LEGENDARY'}</div><h2>{ar?'التنسيق أهم من كثرة الخيارات.':'Coordination matters more than a long option list.'}</h2><p>{common.whyBody}</p><img src={homeWhy} alt=""/></div><ol>{common.why.map(([t,b],i)=><li key={t}><span>0{i+1}</span><div><h3>{t}</h3><p>{b}</p></div></li>)}</ol></section>
  <section className="xp-platform-preview xp-full-bleed-navy" dir={ar?'rtl':'ltr'}><div className="xp-platform-preview-inner section-shell"><div><div className="section-kicker light">07 / PLATFORM</div><h2>{c.platformTitle}</h2><p>{c.platformBody}</p></div><Link href="/platform" className="button button-gold">{c.platformCta}<Arrow size={17}/></Link></div></section>
  <RegionalPerspective/>
  <FAQ/>

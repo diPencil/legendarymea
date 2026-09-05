@@ -4,6 +4,7 @@ import * as LucideIcons from 'lucide-react'
 import { Check, ChevronLeft, ChevronRight, Clock3, type LucideIcon } from 'lucide-react'
 import { PageShell } from '@/components/site'
 import { solutionDetailCopy } from '@/components/experience-content'
+import { useWebsiteImage } from '@/lib/website-media'
 
 const detailImages: Record<string, string> = {
   'hotels-accommodation': '/solutions/Hotels-Accommodation.jpg',
@@ -14,6 +15,17 @@ const detailImages: Record<string, string> = {
   'groups-special-requests': '/solutions/Groups.jpg',
   'corporate-travel': '/solutions/Corporate-Travel.jpg',
   'hospitality-solutions': '/solutions/Hospitality.jpg',
+}
+
+const detailImageSlots: Record<string, string> = {
+  'hotels-accommodation': 'solutions_hotels_accommodation',
+  flights: 'solutions_flights',
+  transfers: 'solutions_transfers',
+  'car-rental': 'solutions_car_rental',
+  'tours-experiences': 'solutions_tours_experiences',
+  'groups-special-requests': 'solutions_groups',
+  'corporate-travel': 'solutions_corporate_travel',
+  'hospitality-solutions': 'solutions_hospitality',
 }
 
 const phaseIconNames = ['CalendarDays', 'Hotel', 'Check']
@@ -36,6 +48,8 @@ export function ServiceDetailTemplate({
 }) {
   const Arrow = ar ? LucideIcons.ArrowLeft : LucideIcons.ArrowRight
   const [activePhase, setActivePhase] = useState(0)
+  const serviceImage = useWebsiteImage(detailImageSlots[slug] ?? slug, detailImages[slug])
+  const relatedImage = useWebsiteImage(detailImageSlots[c.related] ?? c.related, detailImages[c.related])
 
   const phases = [c.need, c.handle, c.receive]
   const phaseTitles = c.phaseTitles
@@ -54,7 +68,7 @@ export function ServiceDetailTemplate({
           <Link href="#service-process" className="sd-hero-link">{ar ? 'كيف نرتّب الطلب' : 'How the request is handled'} <Arrow size={18} /></Link>
         </div>
         <div className="sd-hero-visual">
-          <img src={detailImages[slug]} alt={c.title} />
+          <img src={serviceImage} alt={c.title} />
           <div className="sd-hero-card"><span>{ar ? 'نقطة البداية' : 'START WITH'}</span><strong>{c.need[0]}</strong><small>01 / 04</small></div>
           <div className="sd-hero-index"><b>LEGENDARY</b><i /><span>{c.title}</span></div>
         </div>
@@ -79,7 +93,7 @@ export function ServiceDetailTemplate({
               return <button key={title} role="tab" aria-selected={activePhase === i} className={activePhase === i ? 'active' : ''} onClick={() => setActivePhase(i)}><span>0{i + 1}</span><Icon /><strong>{title}</strong><i /></button>
             })}
           </div>
-          <div className="sd-process-image"><img src={detailImages[slug]} alt="" /><div><span>0{activePhase + 1}</span><strong>{phaseTitles[activePhase]}</strong></div></div>
+          <div className="sd-process-image"><img src={serviceImage} alt="" /><div><span>0{activePhase + 1}</span><strong>{phaseTitles[activePhase]}</strong></div></div>
           <article className="sd-process-detail">
             <div className="sd-process-count">0{activePhase + 1}</div>
             <div className="section-kicker">{ar ? 'تفاصيل المرحلة' : 'STAGE DETAILS'}</div>
@@ -101,7 +115,7 @@ export function ServiceDetailTemplate({
       <section className="sd-use section-shell" dir={ar ? 'rtl' : 'ltr'}>
         <header><div className="section-kicker">04 / {ar ? 'حالات عملية' : 'REAL REQUESTS'}</div><h2>{ar ? 'طلبات مختلفة تحتاج ترتيبًا مختلفًا.' : 'Different requests need different operating decisions.'}</h2></header>
         <div className="sd-use-grid">
-          {c.uses.map((item, i) => <article key={item} className={i === 0 ? 'featured' : ''}>{i === 0 && <img src={detailImages[slug]} alt="" />}<div><span>0{i + 1}</span><small>{c.useLabels[i]}</small><h3>{item}</h3><p>{c.useDescriptions[i]}</p></div></article>)}
+          {c.uses.map((item, i) => <article key={item} className={i === 0 ? 'featured' : ''}>{i === 0 && <img src={serviceImage} alt="" />}<div><span>0{i + 1}</span><small>{c.useLabels[i]}</small><h3>{item}</h3><p>{c.useDescriptions[i]}</p></div></article>)}
           <article className="sd-use-note"><Clock3 /><span>{ar ? 'عند وجود تعديل' : 'WHEN PLANS CHANGE'}</span><p>{ar ? 'نراجع التوفر والشروط وتأثير التعديل على بقية برنامج الرحلة قبل التأكيد.' : 'We review availability, terms and the effect on the wider itinerary before reconfirming.'}</p></article>
         </div>
       </section>
@@ -115,7 +129,7 @@ export function ServiceDetailTemplate({
 
       <section className="sd-related section-shell" dir={ar ? 'rtl' : 'ltr'}>
         <div className="sd-related-copy"><div className="section-kicker">06 / {ar ? 'خدمة مرتبطة' : 'CONNECTED SERVICE'}</div><h2>{related.title}</h2><p>{related.lead}</p><Link href={`/solutions/${c.related}`}>{ar ? 'استعرض الخدمة' : 'Explore the related service'} <Arrow size={17} /></Link></div>
-        <Link className="sd-related-image" href={`/solutions/${c.related}`}><img src={detailImages[c.related]} alt={related.title} /><span>{ar ? 'التالي' : 'NEXT'} <Arrow size={18} /></span></Link>
+        <Link className="sd-related-image" href={`/solutions/${c.related}`}><img src={relatedImage} alt={related.title} /><span>{ar ? 'التالي' : 'NEXT'} <Arrow size={18} /></span></Link>
       </section>
 
       <section className="sd-final section-shell" dir={ar ? 'rtl' : 'ltr'}>
