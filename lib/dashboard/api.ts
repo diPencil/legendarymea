@@ -48,12 +48,28 @@ export type DashboardFinanceTrend = {
   points: DashboardFinancePoint[]
 }
 
+export type DashboardRecentActivity = {
+  id: number
+  actor_name?: string
+  module?: string
+  title?: {
+    en?: string
+    ar?: string
+  }
+  description?: {
+    en?: string
+    ar?: string
+  }
+  created_at: string
+}
+
 export type DashboardOverviewResponse = {
   period?: DashboardOverviewPeriod
   totals: DashboardTotal[]
   lead_snapshot: DashboardBreakdownItem[]
   pipeline_snapshot: DashboardBreakdownItem[]
   activity_report?: DashboardBreakdownItem[]
+  recent_activity?: DashboardRecentActivity[]
   email_snapshot?: DashboardBreakdownItem[]
   contract_snapshot?: DashboardBreakdownItem[]
   finance_trend?: DashboardFinanceTrend | null
@@ -314,6 +330,7 @@ export async function getDashboardOverview(period: DashboardOverviewPeriod = 'mo
         lead_snapshot: [],
         pipeline_snapshot: [],
         activity_report: [],
+        recent_activity: [],
       }
 
       dashboardOverviewCache[period] = {

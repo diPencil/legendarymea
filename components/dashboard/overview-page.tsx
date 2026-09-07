@@ -15,6 +15,7 @@ import {
   type DashboardFinanceTrend,
   type DashboardMetricKey,
   type DashboardOverviewPeriod,
+  type DashboardRecentActivity,
   type DashboardTotal,
 } from '@/lib/dashboard/api'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
@@ -33,6 +34,7 @@ type OverviewData = {
   leadSnapshot: BreakdownItem[]
   pipelineSnapshot: BreakdownItem[]
   activityReport: BreakdownItem[]
+  recentActivity: DashboardRecentActivity[]
   emailSnapshot: BreakdownItem[]
   contractSnapshot: BreakdownItem[]
   financeTrend: DashboardFinanceTrend | null
@@ -84,6 +86,7 @@ export function DashboardOverviewPage() {
       const activityReport = (response.activity_report ?? [])
         .filter((item) => item.status !== 'denied')
         .map((item) => ({ ...item, label: reportLabel(item.key, copy) }))
+      const recentActivity = response.recent_activity ?? []
       const emailSnapshot = (response.email_snapshot ?? [])
         .filter((item) => item.status !== 'denied')
         .map((item) => ({ ...item, label: emailStatusLabel(item.key, copy) }))
@@ -103,7 +106,7 @@ export function DashboardOverviewPage() {
         .filter((item) => item.status !== 'denied')
         .map((item) => ({ ...item, label: requestStatusLabel(item.key, copy) }))
 
-      setData({ totals, leadSnapshot, pipelineSnapshot, activityReport, emailSnapshot, contractSnapshot, financeTrend, quotationSnapshot, requestSnapshot })
+      setData({ totals, leadSnapshot, pipelineSnapshot, activityReport, recentActivity, emailSnapshot, contractSnapshot, financeTrend, quotationSnapshot, requestSnapshot })
       hasLoadedRef.current = true
     } catch (requestError) {
       if (requestError instanceof DashboardApiError && requestError.code === 401) {
@@ -229,10 +232,7 @@ export function DashboardOverviewPage() {
             <Activity aria-hidden="true" />
             <h2>{copy.recentActivity}</h2>
           </div>
-          <div className={styles.emptyBlock}>
-            <strong>{copy.recentActivityEmpty}</strong>
-            <p>{copy.recentActivityNeed}</p>
-          </div>
+          <RecentActivityList items={data?.recentActivity ?? []} emptyTitle={copy.recentActivityEmpty} emptyBody={copy.recentActivityNeed} locale={locale} />
         </article>
       </section>
 
@@ -254,6 +254,60 @@ export function DashboardOverviewPage() {
         ) : null}
     </div>
   )
+}
+
+function RecentActivityList({
+  items,
+  emptyTitle,
+  emptyBody,
+  locale,
+}: {
+  items: DashboardRecentActivity[]
+  emptyTitle: string
+  emptyBody: string
+  locale: 'en' | 'ar'
+}) {
+  if (!items.length) {
+    return (
+      <div className={styles.emptyBlock}>
+        <strong>{emptyTitle}</strong>
+        <p>{emptyBody}</p>
+      </div>
+    )
+  }
+
+  return (
+    <ul className={styles.recentActivityList}>
+      {items.map((item) => {
+        const title = localizedActivityText(item.title, locale, locale === 'ar' ? 'نشاط جديد' : 'New activity')
+        const description = localizedActivityText(item.description, locale)
+        return (
+          <li key={item.id}>
+            <span>{item.module || (locale === 'ar' ? 'النظام' : 'System')}</span>
+            <strong>{title}</strong>
+            {description ? <p>{description}</p> : null}
+            <time dateTime={item.created_at}>{formatActivityDate(item.created_at, locale)}</time>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function localizedActivityText(value: DashboardRecentActivity['title'], locale: 'en' | 'ar', fallback = '') {
+  if (!value) return fallback
+  return value[locale] || value.en || value.ar || fallback
+}
+
+function formatActivityDate(value: string, locale: 'en' | 'ar') {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
 }
 
 const EMAIL_SEGMENT_COLORS: Record<string, string> = {
