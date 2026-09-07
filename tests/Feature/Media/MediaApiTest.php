@@ -71,6 +71,39 @@ class MediaApiTest extends TestCase
         unlink($imagePath);
     }
 
+    public function test_public_image_content_falls_back_when_storage_file_is_missing()
+    {
+        $admin = $this->getAdmin();
+        $media = MediaFile::query()->create([
+            'reference' => MediaFile::generateReference(),
+            'type' => 'image',
+            'filename' => 'missing-hotel.png',
+            'original_filename' => 'hotel.png',
+            'mime_type' => 'image/png',
+            'size' => 2048,
+            'width' => 1024,
+            'height' => 1024,
+            'path' => 'media/missing-hotel.png',
+            'disk' => 'public',
+            'uploaded_by' => $admin->id,
+        ]);
+
+        WebsiteMediaSlot::query()->create([
+            'key' => 'about_hero',
+            'label' => 'About Hero',
+            'fallback_path' => '/hotel.png',
+            'media_file_id' => $media->id,
+        ]);
+
+        $this->get("/api/v1/public/media-files/{$media->id}/content")
+            ->assertRedirect('/hotel.png');
+
+        $this->actingAs($admin)
+            ->getJson("/api/v1/media-files/{$media->id}")
+            ->assertOk()
+            ->assertJsonPath('data.safe_url', '/hotel.png');
+    }
+
     public function test_can_upload_valid_pdf()
     {
         $admin = $this->getAdmin();

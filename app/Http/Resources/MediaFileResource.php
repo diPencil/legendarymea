@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class MediaFileResource extends JsonResource
 {
@@ -11,9 +12,7 @@ class MediaFileResource extends JsonResource
     {
         $usage = $this->usage();
 
-        $previewUrl = $this->type === 'image'
-            ? "/dashboard-api/api/v1/public/media-files/{$this->id}/content"
-            : "/dashboard-api/api/v1/media-files/{$this->id}/content";
+        $previewUrl = $this->previewUrl();
 
         return [
             'id' => $this->id,
@@ -43,6 +42,25 @@ class MediaFileResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function previewUrl(): string
+    {
+        if ($this->type !== 'image') {
+            return "/dashboard-api/api/v1/media-files/{$this->id}/content";
+        }
+
+        if (Storage::disk($this->disk)->exists($this->path)) {
+            return "/dashboard-api/api/v1/public/media-files/{$this->id}/content";
+        }
+
+        $fallbackPath = $this->websiteMediaSlots->first()?->fallback_path;
+
+        if (is_string($fallbackPath) && str_starts_with($fallbackPath, '/') && !str_starts_with($fallbackPath, '//')) {
+            return $fallbackPath;
+        }
+
+        return '/placeholder.jpg';
     }
 
     private function usage(): array

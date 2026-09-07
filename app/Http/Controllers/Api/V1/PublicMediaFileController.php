@@ -15,6 +15,14 @@ class PublicMediaFileController extends Controller
         }
 
         if (!Storage::disk($mediaFile->disk)->exists($mediaFile->path)) {
+            $fallbackPath = $mediaFile->websiteMediaSlots()
+                ->whereNotNull('fallback_path')
+                ->value('fallback_path');
+
+            if (is_string($fallbackPath) && str_starts_with($fallbackPath, '/') && !str_starts_with($fallbackPath, '//')) {
+                return redirect($fallbackPath);
+            }
+
             abort(404, 'Media file not found.');
         }
 

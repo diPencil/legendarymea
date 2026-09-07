@@ -178,10 +178,17 @@ class AuthController extends Controller
             'must_change_password' => (bool) $user->must_change_password,
             'roles' => $this->normalizedRoleNames($user),
             'permissions' => $user->getAllPermissions()->pluck('name')->values(),
-            'avatar_url' => $user->avatar_media_id
-                ? "/dashboard-api/api/v1/public/media-files/{$user->avatar_media_id}/content"
-                : ($user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null),
+            'avatar_url' => $this->avatarUrl($user),
         ];
+    }
+
+    private function avatarUrl(User $user): ?string
+    {
+        if ($user->avatar_media_id && $user->avatarMedia && Storage::disk($user->avatarMedia->disk)->exists($user->avatarMedia->path)) {
+            return "/dashboard-api/api/v1/public/media-files/{$user->avatar_media_id}/content";
+        }
+
+        return $user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null;
     }
 
     private function normalizedRoleNames(User $user)
