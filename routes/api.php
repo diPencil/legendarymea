@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
             Route::get('me', [AuthController::class, 'me'])->name('auth.me');
+            Route::post('change-password', [AuthController::class, 'changePassword'])->name('auth.change-password');
         });
     });
 
@@ -47,14 +48,55 @@ Route::prefix('v1')->group(function () {
     Route::get('public/settings', [\App\Http\Controllers\Api\V1\SettingController::class, 'publicSettings']);
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::prefix('portal')->group(function () {
+            Route::get('overview', [\App\Http\Controllers\Api\V1\PortalController::class, 'overview']);
+            Route::get('company', [\App\Http\Controllers\Api\V1\PortalController::class, 'company']);
+            Route::get('contracts', [\App\Http\Controllers\Api\V1\PortalController::class, 'contracts']);
+            Route::get('contracts/{contract}', [\App\Http\Controllers\Api\V1\PortalController::class, 'contract']);
+            Route::get('contracts/{contract}/download-pdf', [\App\Http\Controllers\Api\V1\PortalController::class, 'downloadContractPdf']);
+            Route::put('contracts/{contract}/signature', [\App\Http\Controllers\Api\V1\PortalController::class, 'updateContractSignature']);
+            Route::get('quotations', [\App\Http\Controllers\Api\V1\PortalController::class, 'quotations']);
+            Route::get('quotations/{quotation}', [\App\Http\Controllers\Api\V1\PortalController::class, 'quotation']);
+            Route::get('invoices', [\App\Http\Controllers\Api\V1\PortalController::class, 'invoices']);
+            Route::get('invoices/{invoice}', [\App\Http\Controllers\Api\V1\PortalController::class, 'invoice']);
+            Route::get('payments', [\App\Http\Controllers\Api\V1\PortalController::class, 'payments']);
+            Route::get('payments/{payment}', [\App\Http\Controllers\Api\V1\PortalController::class, 'payment']);
+            Route::get('services', [\App\Http\Controllers\Api\V1\PortalController::class, 'services']);
+            Route::get('services/{active_service}', [\App\Http\Controllers\Api\V1\PortalController::class, 'service']);
+            Route::get('requests', [\App\Http\Controllers\Api\V1\PortalController::class, 'requests']);
+            Route::get('requests/{businessRequest}', [\App\Http\Controllers\Api\V1\PortalController::class, 'businessRequest']);
+            Route::get('documents', [\App\Http\Controllers\Api\V1\PortalController::class, 'documents']);
+            Route::get('documents/{document}', [\App\Http\Controllers\Api\V1\PortalController::class, 'document']);
+            Route::get('documents/{document}/download', [\App\Http\Controllers\Api\V1\PortalController::class, 'downloadDocument']);
+            Route::get('notifications', [\App\Http\Controllers\Api\V1\PortalController::class, 'notifications']);
+            Route::post('change-password', [\App\Http\Controllers\Api\V1\PortalController::class, 'changePassword']);
+        });
+
         Route::get('dashboard/overview', DashboardOverviewController::class);
+        Route::get('dashboard/finance-trend', [DashboardOverviewController::class, 'financeTrendEndpoint']);
         Route::get('profiles/{username}', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show'])->name('profiles.show');
         Route::post('profiles/{username}', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update'])->name('profiles.update');
+        Route::post('employees/{employee}/identity-document', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'uploadIdentityDocument']);
+        Route::get('employees/{employee}/identity-document', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'viewIdentityDocument']);
+        Route::get('employees/{employee}/identity-document/download', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'downloadIdentityDocument']);
+        Route::post('employees/{employee}/documents', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'storeDocument']);
+        Route::post('employees/{employee}/documents/{document}', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'replaceDocument']);
+        Route::get('employees/{employee}/documents/{document}', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'viewDocument']);
+        Route::get('employees/{employee}/documents/{document}/download', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'downloadDocument']);
+        Route::delete('employees/{employee}/documents/{document}', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'destroyDocument']);
+        Route::post('employees/{employee}/account/resend-invite', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'resendAccountInvite']);
+        Route::post('employees/{employee}/account/reset-password', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'resetTemporaryPassword']);
+        Route::post('employees/{employee}/account/disable', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'disableAccount']);
+        Route::post('employees/{employee}/account/enable', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'enableAccount']);
+        Route::get('employees/managers', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'managers']);
         Route::apiResource('employees', \App\Http\Controllers\Api\V1\EmployeeController::class);
         
         // Companies
         Route::apiResource('companies', CompanyController::class);
         Route::post('companies/{company}/account-manager', [CompanyController::class, 'accountManager']);
+        Route::post('companies/{company}/portal/resend-invite', [CompanyController::class, 'resendPortalInvite']);
+        Route::post('companies/{company}/portal/reset-password', [CompanyController::class, 'resetPortalPassword']);
+        Route::post('companies/{company}/portal/disable', [CompanyController::class, 'disablePortal']);
         
         // Contacts
         Route::apiResource('contacts', ContactController::class);

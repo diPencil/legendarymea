@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateClientOnboardingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_client_onboardings');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'update_client_onboardings', 'manage_client_onboardings');
     }
 
     public function rules(): array

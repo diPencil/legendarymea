@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\SupplierType;
+use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,7 +11,9 @@ class StoreSupplierRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_suppliers');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'create_suppliers', 'manage_suppliers');
     }
 
     public function rules(): array

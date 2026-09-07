@@ -83,7 +83,7 @@ class EmailConfigurationService
         $config = $this->outgoingMailerConfig();
         $this->applyOutgoingConfiguration($config);
 
-        $this->deliverHtml($email->body, function ($message) use ($email, $config): void {
+        $this->deliverHtml(\App\Services\EmailLayoutWrapper::wrap($email->body, $email->locale ?? 'en'), function ($message) use ($email, $config): void {
             $message
                 ->from($config['from_email'], $config['from_name'])
                 ->to($email->to_address, $email->to_name ?? null)
@@ -105,7 +105,7 @@ class EmailConfigurationService
         $this->applyOutgoingConfiguration($config);
 
         $this->deliverHtml(
-            '<p>This is a test email confirming that the Legendary Management MEA outgoing email configuration is working correctly.</p>',
+            \App\Services\EmailLayoutWrapper::wrap('<p style="margin:0 0 16px 0;">This is a test email confirming that the Legendary Management MEA outgoing email configuration is working correctly.</p>'),
             function ($message) use ($recipient, $config): void {
                 $message
                     ->from($config['from_email'], $config['from_name'])

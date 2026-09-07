@@ -17,7 +17,7 @@ class CreateLeadService
     public function execute(array $data): Lead
     {
         return DB::transaction(function () use ($data) {
-            $data['reference'] = $this->referenceGeneratorService->generate('LM-LEAD-' . date('Y'), 'leads', 'reference', 6);
+            $data['reference'] = $this->referenceGeneratorService->generate('LM-LEAD-' . date('Y') . '-', 'leads', 'reference', 6);
             $data['created_by'] = Auth::id();
             
             $lead = Lead::create($data);

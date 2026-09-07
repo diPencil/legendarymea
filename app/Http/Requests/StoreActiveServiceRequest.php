@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,7 +10,9 @@ class StoreActiveServiceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_active_services');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'create_active_services', 'manage_active_services');
     }
 
     public function rules(): array

@@ -31,6 +31,12 @@ class ContractResource extends JsonResource
             'scope_of_work_ar' => $this->scope_of_work_ar,
             'payment_terms_en' => $this->payment_terms_en,
             'payment_terms_ar' => $this->payment_terms_ar,
+            'first_party_name_en' => $this->first_party_name_en,
+            'first_party_name_ar' => $this->first_party_name_ar,
+            'first_party_date' => $this->first_party_date?->format('Y-m-d'),
+            'second_party_name_en' => $this->second_party_name_en,
+            'second_party_name_ar' => $this->second_party_name_ar,
+            'second_party_date' => $this->second_party_date?->format('Y-m-d'),
 
             'company' => $this->whenLoaded('company', function () {
                 return [

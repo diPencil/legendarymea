@@ -23,13 +23,20 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'company_id',
         'username',
         'email',
         'password',
+        'must_change_password',
+        'account_invite_status',
+        'account_invited_at',
+        'account_invite_failed_at',
         'status',
         'preferred_locale',
         'timezone',
         'last_login_at',
+        'portal_invited_at',
+        'portal_disabled_at',
         'avatar_path',
         'avatar_media_id',
     ];
@@ -54,8 +61,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
             'status' => UserStatus::class,
+            'account_invited_at' => 'datetime',
+            'account_invite_failed_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'portal_invited_at' => 'datetime',
+            'portal_disabled_at' => 'datetime',
         ];
     }
 
@@ -67,5 +79,10 @@ class User extends Authenticatable
     public function avatarMedia()
     {
         return $this->belongsTo(MediaFile::class, 'avatar_media_id');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

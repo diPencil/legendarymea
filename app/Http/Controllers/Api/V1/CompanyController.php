@@ -12,6 +12,7 @@ use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Requests\AssignCompanyAccountManagerRequest;
 use App\Services\CreateCompanyService;
+use App\Services\ClientPortalAccessService;
 use App\Services\UpdateCompanyService;
 use App\Services\AssignCompanyAccountManager;
 use Illuminate\Support\Facades\Gate;
@@ -76,7 +77,7 @@ class CompanyController extends Controller
 
         $company = $service->execute($request->validated());
 
-        return (new CompanyResource($company->load(['companyRelationships', 'accountManager.user'])))
+        return (new CompanyResource($company->load(['companyRelationships', 'accountManager.user', 'clientUsers.roles'])))
             ->additional(['message' => __('Company created successfully.')])
             ->response()
             ->setStatusCode(201);
@@ -136,7 +137,33 @@ class CompanyController extends Controller
     private function loadCompanyDetail(Company $company): Company
     {
         return $company
-            ->load(['companyRelationships', 'accountManager.user', 'primaryContact'])
+            ->load(['companyRelationships', 'accountManager.user', 'primaryContact', 'clientUsers.roles'])
             ->loadCount('contacts');
+    }
+
+    public function resendPortalInvite(Company $company, ClientPortalAccessService $service)
+    {
+        Gate::authorize('update', $company);
+
+        $clientUser = $company->clientUsers()->with('roles')->firstOrFail();
+        $service->resendInvite($company, $clientUser, auth()->user());
+
+        return (new CompanyResource($this->loadCompanyDetail($company)))
+            ->additional(['message' => __('Client portal invite sent successfully.')]);
+    }
+
+    public function resetPortalPassword(Company $company, ClientPortalAccessService $service)
+    {
+        return $this->resendPortalInvite($company, $service);
+    }
+
+    public function disablePortal(Company $company, ClientPortalAccessService $service)
+    {
+        Gate::authorize('update', $company);
+
+        $service->disable($company, auth()->user());
+
+        return (new CompanyResource($this->loadCompanyDetail($company)))
+            ->additional(['message' => __('Client portal access disabled successfully.')]);
     }
 }

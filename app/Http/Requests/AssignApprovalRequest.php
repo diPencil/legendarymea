@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AssignApprovalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_approvals');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'update_approvals', 'manage_approvals');
     }
 
     public function rules(): array

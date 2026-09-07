@@ -18,7 +18,7 @@ class CreateContactService
     public function execute(array $data): Contact
     {
         return DB::transaction(function () use ($data) {
-            $data['reference'] = $this->referenceGenerator->generate('LM-CNT-' . date('Y'), 'contacts', 'reference', 6);
+            $data['reference'] = $this->referenceGenerator->generate('LM-CNT-' . date('Y') . '-', 'contacts', 'reference', 6);
             $data['created_by'] = Auth::id();
             $data['is_primary'] = $data['is_primary'] ?? false;
             

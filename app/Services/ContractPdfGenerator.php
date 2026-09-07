@@ -15,19 +15,40 @@ class ContractPdfGenerator
         $html = $this->renderer->render($contract);
 
         try {
+            $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+            $fontDirs = $defaultConfig['fontDir'];
+            $fontDirs[] = storage_path('fonts');
+
+            $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+            $fontData = $defaultFontConfig['fontdata'];
+
+            $fontData['montserrat'] = [
+                'R' => 'Montserrat-Regular.ttf',
+                'B' => 'Montserrat-Bold.ttf',
+            ];
+
+            $fontData['montserratarabic'] = [
+                'R' => 'MontserratArabic-Regular.ttf',
+                'B' => 'MontserratArabic-Bold.ttf',
+                'useOTL' => 0xFF,
+                'useKashida' => 75,
+            ];
+
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => 'A4',
+                'fontDir' => $fontDirs,
+                'fontdata' => $fontData,
                 'margin_left' => 14,
                 'margin_right' => 14,
                 'margin_top' => 10,
                 'margin_bottom' => 9,
                 'margin_header' => 0,
                 'margin_footer' => 7,
-                'default_font' => 'xbriyaz',
+                'default_font' => 'montserrat',
             ]);
-            $mpdf->autoScriptToLang = true;
-            $mpdf->autoLangToFont = true;
+            $mpdf->autoScriptToLang = false;
+            $mpdf->autoLangToFont = false;
             $watermark = base_path('../frontend/public/contract.png');
             if (is_file($watermark)) {
                 $mpdf->SetWatermarkImage($watermark, 0.06, [135, 135], [-45, 68]);

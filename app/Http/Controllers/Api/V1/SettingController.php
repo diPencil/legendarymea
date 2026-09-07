@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\SettingsService;
+use App\Support\PermissionAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -30,7 +31,7 @@ class SettingController extends Controller
 
     public function updateGroup(Request $request, string $group)
     {
-        Gate::authorize('manage_settings');
+        abort_unless(PermissionAccess::can($request->user(), 'update_settings', 'manage_settings'), 403);
 
         $validated = $request->validate([
             'settings' => 'required|array',

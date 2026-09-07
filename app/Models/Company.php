@@ -99,4 +99,11 @@ class Company extends Model
     {
         return $this->hasMany(Renewal::class);
     }
+
+    public function clientUsers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(User::class)->whereHas('roles', function ($query) {
+            $query->where('name', 'client');
+        });
+    }
 }

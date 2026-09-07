@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\InvoiceCustomerType;
 use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
+use App\Support\PermissionAccess;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -15,7 +16,7 @@ class UpdateInvoiceRequest extends FormRequest
         $user = $this->user();
         $invoice = $this->route('invoice');
 
-        if (!$user || !$user->can('manage_invoices')) {
+        if (!$user || ! PermissionAccess::can($user, 'update_invoices', 'manage_invoices')) {
             return false;
         }
 

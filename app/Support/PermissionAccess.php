@@ -12,6 +12,10 @@ final class PermissionAccess
             return true;
         }
 
+        if ($user->hasRole('client') && ! $user->hasAnyRole(['admin', 'employee'])) {
+            return false;
+        }
+
         return $user->hasAnyPermission($permissions);
     }
 

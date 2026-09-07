@@ -75,7 +75,7 @@ class SystemActivityService
                     'description_en' => $descriptionEn,
                     'description_ar' => $descriptionAr,
                     'metadata' => $metadata,
-                    'actor_name' => $actor ? trim($actor->first_name . ' ' . $actor->last_name) : 'System',
+                    'actor_name' => self::actorDisplayName($actor),
                     'module' => $module,
                     'action_type' => $action,
                     'entity_reference' => $entity->reference ?? ($entity->name ?? ($entity->title ?? null)),
@@ -122,6 +122,19 @@ class SystemActivityService
             elseif (isset($entity->account_manager_id)) $recipients->push($entity->account_manager_id);
             elseif (isset($entity->sales_agent_id)) $recipients->push($entity->sales_agent_id);
             elseif (isset($entity->employee_id)) $recipients->push($entity->employee_id);
+
+            // Notify client portal users of the related company
+            $companyId = $entity->company_id ?? ($entity->companyId ?? null);
+            if (!$companyId && $entity instanceof \App\Models\Company) {
+                $companyId = $entity->id;
+            }
+            if ($companyId) {
+                $clientIds = User::where('company_id', $companyId)
+                    ->whereHas('roles', fn($q) => $q->where('name', 'client'))
+                    ->where('status', '!=', \App\Enums\UserStatus::INACTIVE->value)
+                    ->pluck('id');
+                $recipients = $recipients->merge($clientIds);
+            }
         }
         
         if ($actor) {
@@ -142,7 +155,7 @@ class SystemActivityService
     {
         if ($data === null) return null;
         
-        $sensitiveKeys = ['password', 'password_confirmation', 'token', 'secret', 'smtp_password', 'imap_password', 'api_key', 'app_key', 'db_password', 'access_token', 'refresh_token', 'webhook_secret', 'signing_secret'];
+        $sensitiveKeys = ['password', 'password_confirmation', 'token', 'secret', 'smtp_password', 'imap_password', 'api_key', 'app_key', 'db_password', 'access_token', 'refresh_token', 'webhook_secret', 'signing_secret', 'bank_account_number', 'national_address', 'identity_document_path', 'path', 'file_path'];
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $data[$key] = self::redactSensitiveData($value);
@@ -153,9 +166,18 @@ class SystemActivityService
         return $data;
     }
 
+    private static function actorDisplayName(?User $actor): string
+    {
+        if (!$actor) return 'System';
+        $name = trim((string) ($actor->name ?? ''));
+        if ($name !== '') return $name;
+        $fallback = trim(trim((string) ($actor->first_name ?? '')) . ' ' . trim((string) ($actor->last_name ?? '')));
+        return $fallback !== '' ? $fallback : 'Legendary Management MEA';
+    }
+
     private static function generateTitle(?User $actor, string $action, string $module, ?Model $entity, string $lang): string
     {
-        $actorName = $actor ? trim($actor->first_name . ' ' . $actor->last_name) : 'System';
+        $actorName = self::actorDisplayName($actor);
         $entityRef = $entity->reference ?? ($entity->name ?? ($entity->title ?? ''));
         
         if ($lang === 'en') {

@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureActiveUser::class,
+            \App\Http\Middleware\RequirePasswordChange::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

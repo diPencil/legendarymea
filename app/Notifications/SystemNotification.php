@@ -25,24 +25,36 @@ class SystemNotification extends Notification
         $module = (string) ($context['module'] ?? 'System');
         $entityRef = (string) ($context['entity_reference'] ?? '');
         $action = (string) ($context['action_type'] ?? 'updated');
-        
-        // Define paths based on module
+
+        $isClient = false;
+        try {
+            if (method_exists($notifiable, 'hasRole') && $notifiable->hasRole('client')) {
+                $isClient = true;
+            }
+        } catch (\Throwable) {}
+
+        $prefix = $isClient ? '/portal' : '/dashboard';
+        // For portal, use tab-based paths; for dashboard keep existing
         $actionPath = match(strtolower($module)) {
-            'company' => "/dashboard/companies/{$this->auditLog->subject_id}",
-            'contract' => "/dashboard/contracts/{$this->auditLog->subject_id}",
-            'invoice' => "/dashboard/invoices/{$this->auditLog->subject_id}",
-            'quotation' => "/dashboard/quotations/{$this->auditLog->subject_id}",
-            'opportunity' => "/dashboard/opportunities/{$this->auditLog->subject_id}",
-            'lead' => "/dashboard/leads/{$this->auditLog->subject_id}",
-            'task' => "/dashboard/tasks/{$this->auditLog->subject_id}",
-            'request' => "/dashboard/requests/{$this->auditLog->subject_id}",
-            'contact' => "/dashboard/contacts/{$this->auditLog->subject_id}",
-            'employee' => "/dashboard/employees/{$this->auditLog->subject_id}",
-            default => "/dashboard/notifications" // Fallback to Activity page
+            'company' => $isClient ? "/portal" : "/dashboard/companies/{$this->auditLog->subject_id}",
+            'contract' => $isClient ? "/portal" : "/dashboard/contracts/{$this->auditLog->subject_id}",
+            'invoice' => $isClient ? "/portal" : "/dashboard/invoices/{$this->auditLog->subject_id}",
+            'quotation' => $isClient ? "/portal" : "/dashboard/quotations/{$this->auditLog->subject_id}",
+            'opportunity' => $isClient ? "/portal" : "/dashboard/opportunities/{$this->auditLog->subject_id}",
+            'lead' => $isClient ? "/portal" : "/dashboard/leads/{$this->auditLog->subject_id}",
+            'task' => $isClient ? "/portal" : "/dashboard/tasks/{$this->auditLog->subject_id}",
+            'request' => $isClient ? "/portal" : "/dashboard/requests/{$this->auditLog->subject_id}",
+            'contact' => $isClient ? "/portal" : "/dashboard/contacts/{$this->auditLog->subject_id}",
+            'employee' => $isClient ? "/portal" : "/dashboard/employees/{$this->auditLog->subject_id}",
+            'document' => $isClient ? "/portal" : "/dashboard/documents/{$this->auditLog->subject_id}",
+            'active_service', 'service' => $isClient ? "/portal" : "/dashboard/active-services/{$this->auditLog->subject_id}",
+            default => $isClient ? "/portal" : "/dashboard/notifications"
         };
 
         return [
             'audit_log_id' => $this->auditLog->id,
+            'subject_id' => $this->auditLog->subject_id,
+            'subject_type' => $this->auditLog->subject_type,
             'module' => $module,
             'action_type' => $action,
             'entity_reference' => $entityRef,

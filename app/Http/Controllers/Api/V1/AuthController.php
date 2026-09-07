@@ -43,8 +43,17 @@ class AuthController extends Controller
             return $this->errorResponse('Account is not active.', [], 403);
         }
 
-        auth()->login($user);
-        $user->update(['last_login_at' => now()]);
+        Auth::guard('web')->login($user);
+
+        $loginUpdates = ['last_login_at' => now()];
+        $roleNames = $user->getRoleNames()
+            ->map(fn (string $role) => strtolower($role));
+
+        if ($user->status === UserStatus::INVITED && $roleNames->intersect(['client', 'employee', 'manager', 'admin', 'super_admin'])->isNotEmpty()) {
+            $loginUpdates['status'] = UserStatus::ACTIVE->value;
+        }
+        $user->update($loginUpdates);
+        $user->refresh();
         $request->session()->regenerate();
         
         event(new UserLoggedIn($user, $request));
@@ -88,6 +97,45 @@ class AuthController extends Controller
         ], 'User data retrieved.');
     }
 
+    public function changePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return $this->errorResponse('The current password is incorrect.', [], 422);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($validated['password']),
+            'must_change_password' => false,
+        ])->setRememberToken(Str::random(60));
+
+        if ($user->status === UserStatus::INVITED) {
+            $user->status = UserStatus::ACTIVE->value;
+        }
+
+        $user->save();
+
+        \App\Services\SystemActivityService::record(
+            actor: $user,
+            action: 'password_changed',
+            module: 'User',
+            entity: $user,
+            oldValues: [],
+            newValues: ['must_change_password' => false],
+            metadata: []
+        );
+
+        return $this->successResponse([
+            'user' => $this->userPayload($user->fresh()),
+        ], 'Password changed successfully.');
+    }
+
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         $status = Password::broker()->sendResetLink(
@@ -126,11 +174,20 @@ class AuthController extends Controller
             'username' => $user->username,
             'email' => $user->email,
             'status' => $user->status->value,
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'company_id' => $user->company_id,
+            'must_change_password' => (bool) $user->must_change_password,
+            'roles' => $this->normalizedRoleNames($user),
+            'permissions' => $user->getAllPermissions()->pluck('name')->values(),
             'avatar_url' => $user->avatar_media_id
                 ? "/dashboard-api/api/v1/media-files/{$user->avatar_media_id}/content"
                 : ($user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null),
         ];
+    }
+
+    private function normalizedRoleNames(User $user)
+    {
+        return $user->getRoleNames()
+            ->map(fn (string $role) => strtolower($role))
+            ->values();
     }
 }
