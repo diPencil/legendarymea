@@ -159,7 +159,7 @@ class EmailTemplateController extends Controller
 
     private function withTemplateImage(?string $body, MediaFile $imageMedia, ?string $alt, string $locale): string
     {
-        $proxyUrl = '/dashboard-api/api/v1/media-files/' . $imageMedia->id . '/content';
+        $proxyUrl = '/dashboard-api/api/v1/public/media-files/' . $imageMedia->id . '/content';
         
         $imageHtml = sprintf(
             '<img src="%s" alt="%s" style="display:block;width:auto;max-width:100%%;height:auto;margin:0 auto;border:0;outline:none;text-decoration:none;" />',

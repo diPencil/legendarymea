@@ -119,7 +119,7 @@ class ProfileController extends Controller
             'status' => $user->status->value,
             'roles' => $user->getRoleNames(),
             'avatar_url' => $user->avatar_media_id
-                ? "/dashboard-api/api/v1/media-files/{$user->avatar_media_id}/content"
+                ? "/dashboard-api/api/v1/public/media-files/{$user->avatar_media_id}/content"
                 : $this->avatarUrl($user->avatar_path),
         ];
     }
