@@ -59,6 +59,12 @@ export interface ContractRecord {
   scope_of_work_ar: string | null
   payment_terms_en: string | null
   payment_terms_ar: string | null
+  first_party_name_en: string | null
+  first_party_name_ar: string | null
+  first_party_date: string | null
+  second_party_name_en: string | null
+  second_party_name_ar: string | null
+  second_party_date: string | null
 
   
   creator: {

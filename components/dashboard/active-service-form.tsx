@@ -61,11 +61,11 @@ export function ActiveServiceForm({
 
     async function load() {
       try {
-        const [companyResponse, contractResponse, onboardingResponse, servicesResponse, usersResponse] = await Promise.all([
+        const [companyResponse, servicesResponse, usersResponse] = await Promise.all([
           !isEditing
             ? listCompanies({
                 page: 1,
-                perPage: 500,
+                perPage: 100,
                 search: '',
                 status: '',
                 relationship: '',
@@ -75,45 +75,8 @@ export function ActiveServiceForm({
                 sortOrder: 'asc',
               })
             : Promise.resolve({ data: [] }),
-          !isEditing
-            ? listContracts({
-                page: 1,
-                per_page: 500,
-                search: '',
-                status: 'active',
-                currency: '',
-                created_from: '',
-                created_to: '',
-                end_from: '',
-                end_to: '',
-                sort_by: 'created_at',
-                sort_order: 'desc',
-                start_from: '',
-                start_to: '',
-              })
-            : Promise.resolve({ data: [] }),
-          !isEditing
-            ? listClientOnboardings({
-                page: 1,
-                per_page: 500,
-                search: '',
-                status: 'completed',
-                company_id: undefined,
-                contract_id: undefined,
-                assigned_to: undefined,
-                created_by: undefined,
-                kickoff_from: '',
-                kickoff_to: '',
-                target_go_live_from: '',
-                target_go_live_to: '',
-                created_from: '',
-                created_to: '',
-                sort_by: 'created_at',
-                sort_order: 'desc',
-              })
-            : Promise.resolve({ data: [] }),
           listServiceCatalog({ available_for_active_service: 1, active: 1 }),
-          dashboardFetch<UserOption[]>('/api/v1/users?per_page=500').catch(() => []),
+          dashboardFetch<UserOption[]>('/api/v1/users?per_page=100').catch(() => []),
         ])
 
         if (!mounted) {
@@ -122,8 +85,6 @@ export function ActiveServiceForm({
 
         if (!isEditing) {
           setCompanies(Array.isArray(companyResponse?.data) ? companyResponse.data : [])
-          setContracts(Array.isArray(contractResponse?.data) ? contractResponse.data : [])
-          setOnboardings(Array.isArray(onboardingResponse?.data) ? onboardingResponse.data : [])
         }
         setServices(Array.isArray(servicesResponse?.data) ? servicesResponse.data : [])
         const resolvedUsers = Array.isArray(usersResponse) ? usersResponse : ((usersResponse as { data?: UserOption[] })?.data || [])
@@ -142,6 +103,54 @@ export function ActiveServiceForm({
       mounted = false
     }
   }, [isEditing])
+
+  useEffect(() => {
+    if (isEditing) return
+    let mounted = true
+
+    async function loadScoped() {
+      if (!companyId) {
+        setContracts([])
+        setOnboardings([])
+        return
+      }
+
+      try {
+        const [contractResponse, onboardingResponse] = await Promise.all([
+          listContracts({
+            page: 1,
+            per_page: 100,
+            search: '',
+            status: 'active',
+            company_id: Number(companyId),
+            sort_by: 'created_at',
+            sort_order: 'desc',
+          }),
+          listClientOnboardings({
+            page: 1,
+            per_page: 100,
+            search: '',
+            status: 'completed',
+            company_id: Number(companyId),
+            contract_id: contractId ? Number(contractId) : undefined,
+            sort_by: 'created_at',
+            sort_order: 'desc',
+          }),
+        ])
+
+        if (!mounted) return
+        setContracts(Array.isArray(contractResponse?.data) ? contractResponse.data : [])
+        setOnboardings(Array.isArray(onboardingResponse?.data) ? onboardingResponse.data : [])
+      } catch {
+        // Keep form usable; scoped lists stay empty on failure.
+      }
+    }
+
+    void loadScoped()
+    return () => {
+      mounted = false
+    }
+  }, [companyId, contractId, isEditing])
 
   useEffect(() => {
     if (isEditing || !companyId) {

@@ -52,7 +52,9 @@ export function MediaPage() {
   const [notice, setNotice] = useState('')
 
   const canView = canAccessPermission(user, ['view_media', 'manage_media'])
-  const canManage = canAccessPermission(user, 'manage_media')
+  const canCreate = canAccessPermission(user, ['create_media', 'manage_media'])
+  const canUpdate = canAccessPermission(user, ['update_media', 'manage_media'])
+  const canDelete = canAccessPermission(user, ['delete_media', 'manage_media'])
 
   const page = Number(searchParams.get('page')) > 0 ? Number(searchParams.get('page')) : 1
   const query: MediaListParams = useMemo(() => ({
@@ -135,7 +137,7 @@ export function MediaPage() {
         title={copy.media}
         description={copy.mediaDescription}
         action={
-          canManage && (
+          canCreate && (
             <button className={styles.primaryButton} onClick={() => setIsUploadOpen(true)}>
               <Plus className={styles.buttonIcon} aria-hidden="true" />
               {copy.uploadMedia}
@@ -237,9 +239,9 @@ export function MediaPage() {
                     <div className={styles.rowActions} style={{ marginTop: 12 }}>
                       <button type="button" className={styles.iconButton} onClick={() => setViewingMediaId(m.id)} aria-label={copy.view} title={copy.view}><Eye aria-hidden="true" /></button>
                       <a className={styles.iconButton} href={m.download_url || m.safe_url} aria-label={copy.download} title={copy.download}><Download aria-hidden="true" /></a>
-                      {canManage ? <button type="button" className={styles.iconButton} onClick={() => setEditingMedia(m)} aria-label={copy.edit} title={copy.edit}><PenLine aria-hidden="true" /></button> : null}
-                      {canManage ? <button type="button" className={styles.iconButton} onClick={() => setReplacingMedia(m)} aria-label="Replace" title="Replace"><RefreshCw aria-hidden="true" /></button> : null}
-                      {canManage ? <button type="button" className={styles.iconButton} onClick={() => setDeletingMedia(m)} aria-label={copy.delete} title={copy.delete} disabled={m.is_in_use}><Trash2 aria-hidden="true" /></button> : null}
+                      {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => setEditingMedia(m)} aria-label={copy.edit} title={copy.edit}><PenLine aria-hidden="true" /></button> : null}
+                      {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => setReplacingMedia(m)} aria-label="Replace" title="Replace"><RefreshCw aria-hidden="true" /></button> : null}
+                      {canDelete ? <button type="button" className={styles.iconButton} onClick={() => setDeletingMedia(m)} aria-label={copy.delete} title={copy.delete} disabled={m.is_in_use}><Trash2 aria-hidden="true" /></button> : null}
                     </div>
                   </div>
                 </article>
@@ -290,7 +292,7 @@ export function MediaPage() {
                         <button type="button" className={styles.iconButton} onClick={() => setViewingMediaId(m.id)} aria-label={copy.view} title={copy.view}>
                           <Eye aria-hidden="true" />
                         </button>
-                        {canManage && (
+                        {canUpdate && (
                           <button type="button" className={styles.iconButton} onClick={() => setEditingMedia(m)} aria-label={copy.edit} title={copy.edit}>
                             <PenLine aria-hidden="true" />
                           </button>
@@ -298,12 +300,12 @@ export function MediaPage() {
                         <a href={m.download_url || m.safe_url} className={styles.iconButton} aria-label={copy.download} title={copy.download}>
                           <Download aria-hidden="true" />
                         </a>
-                        {canManage && (
+                        {canUpdate && (
                           <button type="button" className={styles.iconButton} onClick={() => setReplacingMedia(m)} aria-label="Replace" title="Replace">
                             <RefreshCw aria-hidden="true" />
                           </button>
                         )}
-                        {canManage && (
+                        {canDelete && (
                           <button type="button" className={styles.iconButton} onClick={() => setDeletingMedia(m)} aria-label={copy.delete} title={copy.delete} disabled={m.is_in_use}>
                             <Trash2 aria-hidden="true" />
                           </button>

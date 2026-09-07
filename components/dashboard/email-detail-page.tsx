@@ -23,7 +23,7 @@ export function EmailDetailPage({ id }: { id: string }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  const canManage = canAccessPermission(user, 'manage_emails')
+  const canUpdate = canAccessPermission(user, ['update_emails', 'manage_emails'])
   const canSend = canAccessPermission(user, 'send_emails')
 
   const fetchRecord = useCallback(async () => {
@@ -83,7 +83,7 @@ export function EmailDetailPage({ id }: { id: string }) {
           </div>
         </div>
         <div className={styles.companyHeaderActions}>
-          {canManage && email.status === 'draft' ? (
+          {canUpdate && email.status === 'draft' ? (
             <Link href={`/dashboard/emails?edit=${email.id}`} className={styles.secondaryAction}>
               <PenLine aria-hidden="true" />
               {copy.edit}
@@ -95,7 +95,7 @@ export function EmailDetailPage({ id }: { id: string }) {
               {copy.sendEmail}
             </button>
           ) : null}
-          {canManage && email.status === 'draft' ? (
+          {canUpdate && email.status === 'draft' ? (
             <button type="button" className={styles.secondaryButton} onClick={() => void runAction('cancel')} disabled={isWorking}>
               <X aria-hidden="true" />
               {copy.cancelEmail}

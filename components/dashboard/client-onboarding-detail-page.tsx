@@ -38,8 +38,12 @@ export function ClientOnboardingDetailPage({ id }: { id: string }) {
   const [showLifecycleDialog, setShowLifecycleDialog] = useState<'start' | 'complete' | 'cancel' | 'delete' | null>(null)
   const [isMutating, setIsMutating] = useState(false)
 
-  const canManage = canAccessPermission(user, 'manage_client_onboardings')
-  const canView = canAccessPermission(user, 'view_client_onboardings') || canManage
+  const canView = canAccessPermission(user, ['view_client_onboardings', 'manage_client_onboardings'])
+  const canUpdate = canAccessPermission(user, ['update_client_onboardings', 'manage_client_onboardings'])
+  const canDelete = canAccessPermission(user, ['delete_client_onboardings', 'manage_client_onboardings'])
+  const canStart = canAccessPermission(user, ['start_client_onboardings', 'manage_client_onboardings'])
+  const canComplete = canAccessPermission(user, ['complete_client_onboardings', 'manage_client_onboardings'])
+  const canCancel = canAccessPermission(user, ['cancel_client_onboardings', 'manage_client_onboardings'])
 
   const fetchRecord = useCallback(async () => {
     if (!canView) return
@@ -133,40 +137,48 @@ export function ClientOnboardingDetailPage({ id }: { id: string }) {
           </div>
         </div>
         <div className={styles.companyHeaderActions}>
-          {canManage && (
+          {canUpdate && (
             <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)}>
               <PenLine aria-hidden="true" />
               {copy.edit}
             </button>
           )}
 
-          {canManage && onboarding.status === 'draft' && (
+          {(canStart || canCancel) && onboarding.status === 'draft' && (
             <>
-              <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('start')}>
-                <PlayCircle aria-hidden="true" />
-                {copy.startOnboarding || 'Start'}
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')}>
-                <XCircle aria-hidden="true" />
-                {copy.cancelOnboarding || 'Cancel'}
-              </button>
+              {canStart ? (
+                <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('start')}>
+                  <PlayCircle aria-hidden="true" />
+                  {copy.startOnboarding || 'Start'}
+                </button>
+              ) : null}
+              {canCancel ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')}>
+                  <XCircle aria-hidden="true" />
+                  {copy.cancelOnboarding || 'Cancel'}
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && onboarding.status === 'in_progress' && (
+          {(canComplete || canCancel) && onboarding.status === 'in_progress' && (
             <>
-              <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('complete')}>
-                <CheckCircle aria-hidden="true" />
-                {copy.completeOnboarding || 'Complete'}
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')}>
-                <XCircle aria-hidden="true" />
-                {copy.cancelOnboarding || 'Cancel'}
-              </button>
+              {canComplete ? (
+                <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('complete')}>
+                  <CheckCircle aria-hidden="true" />
+                  {copy.completeOnboarding || 'Complete'}
+                </button>
+              ) : null}
+              {canCancel ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')}>
+                  <XCircle aria-hidden="true" />
+                  {copy.cancelOnboarding || 'Cancel'}
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && (onboarding.status === 'draft' || onboarding.status === 'cancelled') && (
+          {canDelete && (onboarding.status === 'draft' || onboarding.status === 'cancelled') && (
             <button type="button" className={styles.destructiveButton} onClick={() => setShowLifecycleDialog('delete')}>
               <Trash2 aria-hidden="true" />
               {copy.delete}

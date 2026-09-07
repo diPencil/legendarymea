@@ -51,8 +51,18 @@ export type CompanyRecord = {
   account_manager?: CompanyAccountManager | null
   contacts_count?: number
   primary_contact?: CompanyContact | null
+  portal_access?: CompanyPortalAccess | null
   created_at: string
   updated_at: string
+}
+
+export type CompanyPortalAccess = {
+  enabled: boolean
+  login_email: string | null
+  username: string | null
+  users_count: number
+  last_login_at: string | null
+  invite_status: string | null
 }
 
 export type CompanyListQuery = {
@@ -101,6 +111,8 @@ export type CompanyInput = {
   source: string
   notes: string
   relationship_types: CompanyRelationshipType[]
+  portal_access_enabled?: boolean
+  portal_email?: string
 }
 
 const companyBasePath = '/api/v1/companies'
@@ -154,6 +166,18 @@ export async function assignCompanyAccountManager(id: number, accountManagerId: 
     method: 'POST',
     body: JSON.stringify({ account_manager_id: accountManagerId ? Number(accountManagerId) : null }),
   })
+}
+
+export async function resendCompanyPortalInvite(id: number) {
+  return dashboardFetch<CompanyRecord>(`${companyBasePath}/${id}/portal/resend-invite`, { method: 'POST' })
+}
+
+export async function resetCompanyPortalPassword(id: number) {
+  return dashboardFetch<CompanyRecord>(`${companyBasePath}/${id}/portal/reset-password`, { method: 'POST' })
+}
+
+export async function disableCompanyPortalAccess(id: number) {
+  return dashboardFetch<CompanyRecord>(`${companyBasePath}/${id}/portal/disable`, { method: 'POST' })
 }
 
 export async function listCompanyContacts(companyId: number, page: number, perPage = 10): Promise<ContactListResult> {

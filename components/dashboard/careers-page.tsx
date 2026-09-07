@@ -74,6 +74,7 @@ export function CareersPage() {
 
   const canViewJobs = canAccessPermission(user, ['view_careers', 'manage_careers'])
   const canManageJobs = canAccessPermission(user, 'manage_careers')
+const canCreateJobs = canAccessPermission(user, ['create_careers', 'manage_careers'])
   const canManageApplications = canAccessPermission(user, 'manage_job_applications')
 
   const page = positiveNumber(searchParams.get(tab === 'jobs' ? 'page' : 'application_page'), 1)
@@ -170,7 +171,7 @@ export function CareersPage() {
         kicker={copy.administration}
         title={copy.jobs}
         description={copy.careersDescription}
-        action={tab === 'jobs' && canManageJobs ? (
+        action={tab === 'jobs' && canCreateJobs ? (
           <button type="button" className={styles.primaryButton} onClick={() => setJobModal({ mode: 'create' })}>
             <Plus aria-hidden="true" />
             {copy.createJob}

@@ -71,11 +71,11 @@ export function ClientOnboardingForm({
 
     async function load() {
       try {
-        const [companyResponse, contractResponse, usersResponse] = await Promise.all([
+        const [companyResponse, usersResponse] = await Promise.all([
           !isEditing
             ? listCompanies({
                 page: 1,
-                perPage: 500,
+                perPage: 100,
                 search: '',
                 status: '',
                 relationship: '',
@@ -85,24 +85,7 @@ export function ClientOnboardingForm({
                 sortOrder: 'asc',
               })
             : Promise.resolve({ data: [] }),
-          !isEditing
-            ? listContracts({
-                page: 1,
-                per_page: 500,
-                search: '',
-                status: 'active',
-                currency: '',
-                created_from: '',
-                created_to: '',
-                end_from: '',
-                end_to: '',
-                sort_by: 'created_at',
-                sort_order: 'desc',
-                start_from: '',
-                start_to: '',
-              })
-            : Promise.resolve({ data: [] }),
-          listUsers({ page: 1, per_page: 500, sort: 'name', direction: 'asc' }).catch(() => ({ data: [] as User[] })),
+          listUsers({ page: 1, per_page: 100, sort: 'name', direction: 'asc' }).catch(() => ({ data: [] as User[] })),
         ])
 
         if (!mounted) {
@@ -111,7 +94,6 @@ export function ClientOnboardingForm({
 
         if (!isEditing) {
           setCompanies(Array.isArray(companyResponse.data) ? companyResponse.data : [])
-          setContracts(Array.isArray(contractResponse.data) ? contractResponse.data : [])
         }
         setUsers(Array.isArray(usersResponse.data) ? usersResponse.data : [])
       } catch {
@@ -128,6 +110,40 @@ export function ClientOnboardingForm({
       mounted = false
     }
   }, [isEditing])
+
+  useEffect(() => {
+    if (isEditing) return
+    let mounted = true
+
+    async function loadScoped() {
+      if (!companyId) {
+        setContracts([])
+        return
+      }
+
+      try {
+        const contractResponse = await listContracts({
+          page: 1,
+          per_page: 100,
+          search: '',
+          status: 'active',
+          company_id: Number(companyId),
+          sort_by: 'created_at',
+          sort_order: 'desc',
+        })
+
+        if (!mounted) return
+        setContracts(Array.isArray(contractResponse.data) ? contractResponse.data : [])
+      } catch {
+        // Keep form usable; scoped list stays empty on failure.
+      }
+    }
+
+    void loadScoped()
+    return () => {
+      mounted = false
+    }
+  }, [companyId, isEditing])
 
   useEffect(() => {
     if (isEditing || !companyId || !contractId) {

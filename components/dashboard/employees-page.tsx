@@ -50,6 +50,8 @@ const pageSizes = [10, 15, 25, 50]
 
 const emptyCreateForm: EmployeeCreateInput = {
   name: '',
+  system_access: 'create',
+  user_id: '',
   username: '',
   email: '',
   password: '',
@@ -57,6 +59,9 @@ const emptyCreateForm: EmployeeCreateInput = {
   department: '',
   phone: '',
   country_code: '',
+  personal_email: '',
+  bank_account_number: '',
+  national_address: '',
   status: 'active',
   hire_date: '',
   manager_id: '',
@@ -80,12 +85,16 @@ export function DashboardEmployeesPage() {
   const [dialogMode, setDialogMode] = useState<DialogMode | null>(null)
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRecord | null>(null)
   const [form, setForm] = useState<EmployeeCreateInput>(emptyCreateForm)
+  const [identityDocumentFile, setIdentityDocumentFile] = useState<File | null>(null)
+  const [employeeDocumentFiles, setEmployeeDocumentFiles] = useState<File[]>([])
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '')
-  const [createSessionKey, setCreateSessionKey] = useState(0)
 
-  const canManageEmployees = canAccessPermission(user, 'manage_employees')
+  const canViewEmployees = canAccessPermission(user, ['view_employees', 'manage_employees'])
+  const canCreateEmployees = canAccessPermission(user, ['create_employees', 'manage_employees'])
+  const canUpdateEmployees = canAccessPermission(user, ['update_employees', 'manage_employees'])
+  const canDeleteEmployees = canAccessPermission(user, ['delete_employees', 'manage_employees'])
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15))
     ? positiveNumber(searchParams.get('per_page'), 15)
@@ -128,11 +137,13 @@ export function DashboardEmployeesPage() {
     setDialogMode(null)
     setSelectedEmployee(null)
     setFieldErrors({})
+    setIdentityDocumentFile(null)
+    setEmployeeDocumentFiles([])
     setIsSubmitting(false)
   }, [])
 
   const refreshEmployees = useCallback(async (quiet = false) => {
-    if (!canManageEmployees) {
+    if (!canViewEmployees) {
       setIsLoading(false)
       setIsRefreshing(false)
       return
@@ -159,7 +170,7 @@ export function DashboardEmployeesPage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [canManageEmployees, handleDashboardError, query])
+  }, [canViewEmployees, handleDashboardError, query])
 
   useEffect(() => {
     void refreshEmployees()
@@ -188,7 +199,7 @@ export function DashboardEmployeesPage() {
     return () => window.clearTimeout(timeout)
   }, [query.search, searchInput, setQueryParam])
 
-  if (!canManageEmployees) {
+  if (!canViewEmployees) {
     return <DashboardState title={copy.accessDenied} body={copy.accessDeniedBody} tone="danger" />
   }
 
@@ -207,10 +218,12 @@ export function DashboardEmployeesPage() {
           <h2>{copy.employees}</h2>
           <p>{copy.employeesDescription}</p>
         </div>
-        <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
-          <Plus aria-hidden="true" />
-          {copy.createEmployee}
-        </button>
+        {canCreateEmployees ? (
+          <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
+            <Plus aria-hidden="true" />
+            {copy.createEmployee}
+          </button>
+        ) : null}
       </section>
 
       {notice ? <p className={styles.successAlert} role="status">{notice}</p> : null}
@@ -325,8 +338,8 @@ export function DashboardEmployeesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingEmployees : copy.noEmployees}
             body={hasActiveQuery ? copy.noMatchingEmployeesBody : copy.noEmployeesBody}
-            actionLabel={copy.createEmployee}
-            onAction={openCreateDialog}
+            actionLabel={canCreateEmployees ? copy.createEmployee : undefined}
+            onAction={canCreateEmployees ? openCreateDialog : undefined}
           />
         )}
 
@@ -351,7 +364,7 @@ export function DashboardEmployeesPage() {
             ) : null}
 
             {(dialogMode === 'create' || dialogMode === 'edit') ? (
-              <EmployeeForm key={dialogMode === 'create' ? `create-${createSessionKey}` : `edit-${selectedEmployee?.id ?? 'employee'}`} managers={visibleManagers} mode={dialogMode} />
+              renderEmployeeForm(visibleManagers, dialogMode)
             ) : null}
           </section>
         </div>
@@ -360,21 +373,30 @@ export function DashboardEmployeesPage() {
   )
 
   function openCreateDialog() {
+    if (!canCreateEmployees) return
+
     setSelectedEmployee(null)
     setForm({ ...emptyCreateForm })
     setFieldErrors({})
-    setCreateSessionKey((current) => current + 1)
+    setIdentityDocumentFile(null)
+    setEmployeeDocumentFiles([])
     setDialogMode('create')
   }
 
   function openEditDialog(employee: EmployeeRecord) {
+    if (!canUpdateEmployees) return
+
     setSelectedEmployee(employee)
     setForm(formFromEmployee(employee))
     setFieldErrors({})
+    setIdentityDocumentFile(null)
+    setEmployeeDocumentFiles([])
     setDialogMode('edit')
   }
 
   function openDeleteDialog(employee: EmployeeRecord) {
+    if (!canDeleteEmployees) return
+
     setSelectedEmployee(employee)
     setFieldErrors({})
     setDialogMode('delete')
@@ -394,10 +416,16 @@ export function DashboardEmployeesPage() {
 
     try {
       if (dialogMode === 'create') {
-        await createEmployee(form)
+        if (!canCreateEmployees) return
+
+        const employee = await createEmployee(form)
+        await uploadSelectedDocuments(employee.id)
         setNotice(copy.employeeCreated)
       } else if (dialogMode === 'edit' && selectedEmployee) {
+        if (!canUpdateEmployees) return
+
         await updateEmployee(selectedEmployee.id, updatePayload(form))
+        await uploadSelectedDocuments(selectedEmployee.id)
         setNotice(copy.employeeUpdated)
         
         if (selectedEmployee.user?.username === user?.username) {
@@ -418,8 +446,26 @@ export function DashboardEmployeesPage() {
     }
   }
 
+  async function uploadSelectedDocuments(employeeId: number) {
+    const { uploadEmployeeDocument, uploadEmployeeIdentityDocument } = await import('@/lib/dashboard/employees')
+
+    if (identityDocumentFile) {
+      await uploadEmployeeIdentityDocument(employeeId, identityDocumentFile)
+    }
+
+    for (const file of employeeDocumentFiles) {
+      await uploadEmployeeDocument(employeeId, {
+        title: file.name.replace(/\.[^.]+$/, '') || file.name,
+        document_type: 'employee_document',
+        file,
+      })
+    }
+  }
+
   async function confirmDelete() {
     if (!selectedEmployee) return
+    if (!canDeleteEmployees) return
+
     setIsSubmitting(true)
     setFieldErrors({})
 
@@ -459,57 +505,75 @@ export function DashboardEmployeesPage() {
         <Link href={`/dashboard/employees/${employee.id}`} className={styles.iconButton} aria-label={`${copy.view} ${employeeName(employee)}`}>
           <Eye aria-hidden="true" />
         </Link>
-        <button type="button" className={styles.iconButton} aria-label={`${copy.edit} ${employeeName(employee)}`} onClick={() => openEditDialog(employee)}>
-          <Pencil aria-hidden="true" />
-        </button>
-        <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} aria-label={`${copy.delete} ${employeeName(employee)}`} onClick={() => openDeleteDialog(employee)}>
-          <Trash2 aria-hidden="true" />
-        </button>
+        {canUpdateEmployees ? (
+          <button type="button" className={styles.iconButton} aria-label={`${copy.edit} ${employeeName(employee)}`} onClick={() => openEditDialog(employee)}>
+            <Pencil aria-hidden="true" />
+          </button>
+        ) : null}
+        {canDeleteEmployees ? (
+          <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} aria-label={`${copy.delete} ${employeeName(employee)}`} onClick={() => openDeleteDialog(employee)}>
+            <Trash2 aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
     )
   }
 
-  function EmployeeForm({ managers: managerOptions, mode }: { managers: EmployeeRecord[]; mode: 'create' | 'edit' }) {
+  function renderEmployeeForm(managerOptions: EmployeeRecord[], mode: 'create' | 'edit') {
     return (
       <form className={styles.employeeForm} onSubmit={submitEmployee}>
             {mode === 'create' ? (
               <div className={styles.formGrid}>
                 <label className={styles.formField}>
-    <span>copy.employee <em>{copy.required}</em></span>
+    <span>{copy.employeeName} <em>{copy.required}</em></span>
     <input type="text" value={String(form.name ?? '')} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
     {fieldErrors.name?.[0] && <small className={styles.fieldError}>{fieldErrors.name[0]}</small>}
   </label>
                 <label className={styles.formField}>
-    <span>copy.username <em>{copy.required}</em></span>
-    <input type="text" value={String(form.username ?? '')} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
+    <span>{copy.systemAccess} <em>{copy.required}</em></span>
+    <select
+      value={form.system_access}
+      onChange={(e) => {
+        const next = e.target.value as EmployeeCreateInput['system_access']
+        setForm((current) => next === 'create' ? { ...current, system_access: next } : { ...current, system_access: next, username: '', email: '' })
+      }}
+      required
+    >
+      <option value="create">{copy.systemAccessCreate}</option>
+      <option value="none">{copy.systemAccessNone}</option>
+    </select>
+    {fieldErrors.system_access?.[0] && <small className={styles.fieldError}>{fieldErrors.system_access[0]}</small>}
+  </label>
+                <label className={styles.formField}>
+    <span>{copy.username} <em>{form.system_access === 'create' ? copy.required : copy.optional}</em></span>
+    <input type="text" dir="ltr" value={String(form.username ?? '')} onChange={(e) => setForm({ ...form, username: e.target.value })} required={form.system_access === 'create'} disabled={form.system_access !== 'create'} />
     {fieldErrors.username?.[0] && <small className={styles.fieldError}>{fieldErrors.username[0]}</small>}
   </label>
                 <label className={styles.formField}>
-    <span>copy.email <em>{copy.required}</em></span>
-    <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+    <span>{copy.email} <em>{form.system_access === 'create' ? copy.required : copy.optional}</em></span>
+    <input type="email" dir="ltr" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })} required={form.system_access === 'create'} disabled={form.system_access !== 'create'} />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
   </label>
-                <label className={styles.formField}>
-    <span>copy.password <em>{copy.required}</em></span>
-    <input type="password" value={String(form.password ?? '')} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-    {fieldErrors.password?.[0] && <small className={styles.fieldError}>{fieldErrors.password[0]}</small>}
-  </label>
+                <div className={styles.formField}>
+                  <span>{copy.password}</span>
+                  <small>{copy.temporaryPasswordGenerated}</small>
+                </div>
               </div>
             ) : (
               <div className={styles.formGrid}>
                 <label className={styles.formField}>
-    <span>copy.employee <em>{copy.required}</em></span>
+    <span>{copy.employeeName} <em>{copy.required}</em></span>
     <input type="text" value={String(form.name ?? '')} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
     {fieldErrors.name?.[0] && <small className={styles.fieldError}>{fieldErrors.name[0]}</small>}
   </label>
                 <label className={styles.formField}>
-    <span>copy.username <em>{copy.required}</em></span>
-    <input type="text" value={String(form.username ?? '')} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
+    <span>{copy.username} <em>{copy.optional}</em></span>
+    <input type="text" dir="ltr" value={String(form.username ?? '')} onChange={(e) => setForm({ ...form, username: e.target.value })} />
     {fieldErrors.username?.[0] && <small className={styles.fieldError}>{fieldErrors.username[0]}</small>}
   </label>
                 <label className={styles.formField}>
-    <span>copy.email <em>{copy.required}</em></span>
-    <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+    <span>{copy.email} <em>{copy.optional}</em></span>
+    <input type="email" dir="ltr" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })} />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
   </label>
                 <div />
@@ -518,7 +582,7 @@ export function DashboardEmployeesPage() {
 
         <div className={styles.formGrid}>
           <label className={styles.formField}>
-    <span>copy.jobTitle <em>{copy.optional}</em></span>
+    <span>{copy.jobTitle} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.job_title ?? '')} onChange={(e) => setForm({ ...form, job_title: e.target.value })}  />
     {fieldErrors.job_title?.[0] && <small className={styles.fieldError}>{fieldErrors.job_title[0]}</small>}
   </label>
@@ -534,20 +598,28 @@ export function DashboardEmployeesPage() {
           </label>
           <CountryPhoneFields
             isAr={locale === 'ar'}
-            countryLabel={copy.countryCode}
-            phoneLabel={copy.phone}
+            countryLabel={`${copy.countryCode} ${copy.optional}`}
+            phoneLabel={`${copy.phone} ${copy.optional}`}
             variant="dashboard"
             fieldClassName={styles.formField}
             countryCode={form.country_code}
             onCountryCodeChange={(code) => setForm(f => ({ ...f, country_code: code }))}
             phoneValue={form.phone}
             onPhoneChange={(phone) => setForm(f => ({ ...f, phone }))}
-          />
+          >
+            {fieldErrors.country_code?.[0] && <small className={styles.fieldError}>{fieldErrors.country_code[0]}</small>}
+          </CountryPhoneFields>
+          {fieldErrors.phone?.[0] && <small className={styles.fieldError}>{fieldErrors.phone[0]}</small>}
           <label className={styles.formField}>
-    <span>copy.hireDate <em>{copy.optional}</em></span>
-    <input type="date" value={String(form.hire_date ?? '')} onChange={(e) => setForm({ ...form, hire_date: e.target.value })}  />
+    <span>{copy.hireDate} <em>{copy.optional}</em></span>
+    <input type="date" dir="ltr" value={String(form.hire_date ?? '')} onChange={(e) => setForm({ ...form, hire_date: e.target.value })}  />
     {fieldErrors.hire_date?.[0] && <small className={styles.fieldError}>{fieldErrors.hire_date[0]}</small>}
   </label>
+          <label className={styles.formField}>
+            <span>{copy.personalEmail} <em>{copy.optional}</em></span>
+            <input type="email" dir="ltr" value={String(form.personal_email ?? '')} onChange={(e) => setForm({ ...form, personal_email: e.target.value })} />
+            {fieldErrors.personal_email?.[0] && <small className={styles.fieldError}>{fieldErrors.personal_email[0]}</small>}
+          </label>
           <label className={styles.formField}>
             <span>{copy.status} <em>{copy.required}</em></span>
             <select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as EmployeeStatus }))}>
@@ -566,6 +638,36 @@ export function DashboardEmployeesPage() {
             {fieldErrors.manager_id?.[0] && <small className={styles.fieldError}>{fieldErrors.manager_id[0]}</small>}
           </label>
         </div>
+
+        <div className={styles.formGrid}>
+          <label className={styles.formField}>
+            <span>{copy.bankAccountNumber} <em>{copy.optional}</em></span>
+            <input type="text" dir="ltr" value={String(form.bank_account_number ?? '')} onChange={(e) => setForm({ ...form, bank_account_number: e.target.value })} />
+            {fieldErrors.bank_account_number?.[0] && <small className={styles.fieldError}>{fieldErrors.bank_account_number[0]}</small>}
+          </label>
+          <label className={styles.formField}>
+            <span>{copy.identityDocument} <em>{copy.optional}</em></span>
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={(event) => setIdentityDocumentFile(event.target.files?.[0] ?? null)} />
+            <small>{identityDocumentFile ? identityDocumentFile.name : copy.privateDocumentHint}</small>
+          </label>
+        </div>
+
+        <label className={styles.formField}>
+          <span>{copy.nationalAddress} <em>{copy.optional}</em></span>
+          <textarea value={form.national_address} onChange={(event) => setForm((current) => ({ ...current, national_address: event.target.value }))} />
+          {fieldErrors.national_address?.[0] && <small className={styles.fieldError}>{fieldErrors.national_address[0]}</small>}
+        </label>
+
+        <label className={styles.formField}>
+          <span>{copy.employeeDocuments} <em>{copy.optional}</em></span>
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+            multiple
+            onChange={(event) => setEmployeeDocumentFiles(Array.from(event.target.files ?? []))}
+          />
+          <small>{employeeDocumentFiles.length ? employeeDocumentFiles.map((file) => file.name).join(', ') : copy.privateDocumentHint}</small>
+        </label>
 
         <label className={styles.formField}>
           <span>{copy.notes} <em>{copy.optional}</em></span>
@@ -667,6 +769,7 @@ export function DashboardEmployeesPage() {
 function formFromEmployee(employee: EmployeeRecord): EmployeeCreateInput {
   return {
     ...emptyCreateForm,
+    system_access: employee.user ? 'create' : 'none',
     name: employee.user?.name ?? '',
     username: employee.user?.username ?? '',
     email: employee.user?.email ?? '',
@@ -674,6 +777,9 @@ function formFromEmployee(employee: EmployeeRecord): EmployeeCreateInput {
     department: employee.department ?? '',
     phone: employee.phone ?? '',
     country_code: employee.country_code ?? '',
+    personal_email: employee.personal_email ?? '',
+    bank_account_number: employee.bank_account_number ?? '',
+    national_address: employee.national_address ?? '',
     status: employee.status,
     hire_date: employee.hire_date ?? '',
     manager_id: employee.manager ? String(employee.manager.id) : '',
@@ -690,6 +796,9 @@ function updatePayload(form: EmployeeCreateInput): EmployeeUpdateInput {
     department: form.department,
     phone: form.phone,
     country_code: form.country_code,
+    personal_email: form.personal_email,
+    bank_account_number: form.bank_account_number,
+    national_address: form.national_address,
     status: form.status,
     hire_date: form.hire_date,
     manager_id: form.manager_id,

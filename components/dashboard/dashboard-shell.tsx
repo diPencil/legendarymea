@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -43,7 +43,7 @@ import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
 import { NotificationsDropdown } from '@/components/dashboard/notifications-dropdown'
-import { DashboardApiError } from '@/lib/dashboard/api'
+import { changeDashboardPassword, DashboardApiError } from '@/lib/dashboard/api'
 import { displayRole, isDashboardRouteActive, visibleDashboardNav, visibleDashboardNavigationGroups } from '@/lib/dashboard/permissions'
 import { cn } from '@/lib/utils'
 
@@ -128,7 +128,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const { locale } = useLocale()
   const copy = dashboardCopy[locale]
-  const { user, logout } = useDashboardAuth()
+  const { user, logout, refresh } = useDashboardAuth()
   const navigation = visibleDashboardNav(user)
   const navigationGroups = visibleDashboardNavigationGroups(user)
   const currentItem = [...navigation]
@@ -143,6 +143,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     } catch (error) {
       setLogoutError(error instanceof DashboardApiError ? error.message : copy.errorTitle)
     }
+  }
+
+  if (user?.must_change_password) {
+    return <DashboardPasswordChangeRequired onDone={() => void refresh()} />
   }
 
   function toggleGroup(groupId: string) {
@@ -378,6 +382,73 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       )}
     </div>
+  )
+}
+
+function DashboardPasswordChangeRequired({ onDone }: { onDone: () => void }) {
+  const { locale } = useLocale()
+  const copy = dashboardCopy[locale]
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [password, setPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setMessage('')
+    setIsSubmitting(true)
+
+    try {
+      await changeDashboardPassword({
+        current_password: currentPassword,
+        password,
+        password_confirmation: passwordConfirmation,
+      })
+      onDone()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : copy.errorTitle)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <main className={styles.loginPage} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+      <section className={styles.loginBrandPanel}>
+        <img src="/legendary-management.png" alt="Legendary Management MEA" />
+        <span>{copy.protectedWorkspace}</span>
+        <h1>{copy.changePassword}</h1>
+        <p>{copy.passwordChangeRequired}</p>
+      </section>
+      <section className={styles.loginFormPanel} aria-labelledby="dashboard-password-title">
+        <div className={styles.loginFormHeader}>
+          <div>
+            <span>{copy.area}</span>
+            <h2 id="dashboard-password-title">{copy.changePassword}</h2>
+          </div>
+          <LanguageToggle />
+        </div>
+        <form className={styles.loginForm} onSubmit={submit}>
+          <label>
+            <span>{copy.currentPassword}</span>
+            <input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required />
+          </label>
+          <label>
+            <span>{copy.newPassword}</span>
+            <input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
+          </label>
+          <label>
+            <span>{copy.confirmPassword}</span>
+            <input type="password" autoComplete="new-password" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} required minLength={8} />
+          </label>
+          {message ? <p className={styles.inlineAlert} role="alert">{message}</p> : null}
+          <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>
+            {isSubmitting ? copy.saving : copy.changePassword}
+          </button>
+        </form>
+      </section>
+    </main>
   )
 }
 

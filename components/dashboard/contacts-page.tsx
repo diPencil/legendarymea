@@ -49,7 +49,9 @@ export function DashboardContactsPage() {
   const [selectedContact, setSelectedContact] = useState<ContactRecord | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   
-  const canViewContacts = canAccessPermission(user, 'view_contacts') || canAccessPermission(user, 'manage_contacts')
+  const canViewContacts = canAccessPermission(user, ['view_contacts', 'manage_contacts'])
+  const canCreateContacts = canAccessPermission(user, ['create_contacts', 'manage_contacts'])
+  const canUpdateContacts = canAccessPermission(user, ['update_contacts', 'manage_contacts'])
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
   
@@ -139,16 +141,20 @@ export function DashboardContactsPage() {
   }, [query.search, searchInput, setQueryParam])
 
   const openCreateDialog = useCallback(() => {
+    if (!canCreateContacts) return
+
     setDialogMode('create')
     setSelectedContact(null)
     setIsDialogOpen(true)
-  }, [])
+  }, [canCreateContacts])
 
   const openEditDialog = useCallback((contact: ContactRecord) => {
+    if (!canUpdateContacts) return
+
     setDialogMode('edit')
     setSelectedContact(contact)
     setIsDialogOpen(true)
-  }, [])
+  }, [canUpdateContacts])
 
   const closeDialog = useCallback(() => {
     setIsDialogOpen(false)
@@ -173,7 +179,7 @@ export function DashboardContactsPage() {
           <h2>{copy.contacts}</h2>
           <p>{copy.contactsDescription}</p>
         </div>
-        {canAccessPermission(user, 'manage_contacts') && (
+        {canCreateContacts && (
           <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
             <Plus aria-hidden="true" />
             {copy.createContactTitle}
@@ -274,6 +280,8 @@ export function DashboardContactsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingContacts : copy.noContacts}
             body={hasActiveQuery ? copy.noMatchingContactsBody : copy.noContactsBody}
+            actionLabel={canCreateContacts ? copy.createContactTitle : undefined}
+            onAction={canCreateContacts ? openCreateDialog : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} /> : null}
@@ -326,7 +334,7 @@ export function DashboardContactsPage() {
         <Link className={styles.iconButton} aria-label={`${copy.view} ${contact.full_name}`} href={`/dashboard/contacts/${contact.id}`}>
           <Eye aria-hidden="true" />
         </Link>
-        {canAccessPermission(user, 'manage_contacts') && (
+        {canUpdateContacts && (
           <button type="button" className={styles.iconButton} aria-label={`${copy.editContactTitle} ${contact.full_name}`} onClick={() => openEditDialog(contact)}>
             <Pencil aria-hidden="true" />
           </button>

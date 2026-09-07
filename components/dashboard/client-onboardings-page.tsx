@@ -67,8 +67,9 @@ export function ClientOnboardingsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingOnboarding, setEditingOnboarding] = useState<ClientOnboarding | null>(null)
 
-  const canViewOnboardings = canAccessPermission(user, 'view_client_onboardings') || canAccessPermission(user, 'manage_client_onboardings')
-  const canManageOnboardings = canAccessPermission(user, 'manage_client_onboardings')
+  const canViewOnboardings = canAccessPermission(user, ['view_client_onboardings', 'manage_client_onboardings'])
+  const canCreateOnboardings = canAccessPermission(user, ['create_client_onboardings', 'manage_client_onboardings'])
+  const canUpdateOnboardings = canAccessPermission(user, ['update_client_onboardings', 'manage_client_onboardings'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -179,7 +180,7 @@ export function ClientOnboardingsPage() {
   }
 
   async function openEditOnboarding(onboardingId: number) {
-    if (!canManageOnboardings) {
+    if (!canUpdateOnboardings) {
       return
     }
 
@@ -219,7 +220,7 @@ export function ClientOnboardingsPage() {
           <h2>{copy.clientOnboardings || 'Client Onboardings'}</h2>
           <p>{copy.clientOnboardingDescription || 'Manage client onboardings.'}</p>
         </div>
-        {canManageOnboardings ? (
+        {canCreateOnboardings ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.createOnboarding || 'Create onboarding'}
@@ -325,7 +326,7 @@ export function ClientOnboardingsPage() {
                           <Link href={`/dashboard/client-onboardings/${ob.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
-                            {canManageOnboardings && (
+                            {canUpdateOnboardings && (
                               <button type="button" className={styles.iconButton} onClick={() => void openEditOnboarding(ob.id)} aria-label={copy.edit}>
                               <PenLine aria-hidden="true" />
                             </button>
@@ -353,7 +354,7 @@ export function ClientOnboardingsPage() {
                     <Link href={`/dashboard/client-onboardings/${ob.id}`} className={styles.iconButton} aria-label={copy.view}>
                       <Eye aria-hidden="true" />
                     </Link>
-                    {canManageOnboardings && (
+                    {canUpdateOnboardings && (
                       <button type="button" className={styles.iconButton} onClick={() => void openEditOnboarding(ob.id)} aria-label={copy.edit}>
                         <PenLine aria-hidden="true" />
                       </button>
@@ -367,8 +368,8 @@ export function ClientOnboardingsPage() {
           <DashboardState
             title={hasActiveQuery ? (copy.noMatchingClientOnboardings || 'No matching onboardings') : (copy.noClientOnboardings || 'No onboardings yet')}
             body={hasActiveQuery ? (copy.noMatchingClientOnboardingsBody || 'Adjust search') : (copy.noClientOnboardingsBody || 'Create your first onboarding')}
-            actionLabel={canManageOnboardings && !hasActiveQuery ? (copy.createOnboarding || 'Create onboarding') : undefined}
-            onAction={canManageOnboardings && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
+actionLabel={canCreateOnboardings && !hasActiveQuery ? (copy.createOnboarding || 'Create onboarding') : undefined}
+onAction={canCreateOnboardings && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
           />
         )}
         {meta && onboardings.length > 0 ? (

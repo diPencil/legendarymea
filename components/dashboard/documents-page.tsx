@@ -90,7 +90,8 @@ export function DocumentsPage() {
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [activeDocument, setActiveDocument] = useState<Document | null>(null)
   
-  const canManage = canAccessPermission(user, 'manage_documents')
+  const canCreate = canAccessPermission(user, ['create_documents', 'manage_documents'])
+  const canUpdate = canAccessPermission(user, ['update_documents', 'manage_documents'])
 
   const rawQuery = useMemo(() => ({
     page: searchParams.get('page') || '1',
@@ -183,11 +184,13 @@ export function DocumentsPage() {
   }, [rawQuery.search, searchInput, setQueryParam])
 
   const openCreate = () => {
+    if (!canCreate) return
     setActiveDocument(null)
     setModalMode('create')
   }
 
   const openEdit = (record: Document) => {
+    if (!canUpdate) return
     setActiveDocument(record)
     setModalMode('edit')
   }
@@ -203,7 +206,7 @@ export function DocumentsPage() {
         kicker={copy.operations}
         title={copy.documents}
         description={copy.documentsDescription}
-        action={canManage ? (
+        action={canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={openCreate}>
             <FileUp aria-hidden="true" />
             {copy.uploadDocument}
@@ -302,7 +305,7 @@ export function DocumentsPage() {
                           <Link href={`/dashboard/documents/${record.id}`} className={styles.iconButton} aria-label={copy.view || 'View'}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canManage && (
+                          {canUpdate && (
                             <button type="button" className={styles.iconButton} onClick={() => openEdit(record)} aria-label={copy.edit}>
                               <PenLine aria-hidden="true" />
                             </button>
@@ -341,7 +344,7 @@ export function DocumentsPage() {
                       <Eye aria-hidden="true" />
                       {copy.view || 'View'}
                     </Link>
-                    {canManage && (
+                    {canUpdate && (
                       <button type="button" className={styles.secondaryButton} onClick={() => openEdit(record)}>
                         <PenLine aria-hidden="true" />
                         {copy.edit}
@@ -356,8 +359,8 @@ export function DocumentsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingDocuments : copy.noDocuments}
             body={hasActiveQuery ? copy.noMatchingDocumentsBody : copy.noDocumentsBody}
-            onAction={!hasActiveQuery && canManage ? openCreate : undefined}
-            actionLabel={!hasActiveQuery && canManage ? copy.uploadDocument : undefined}
+            onAction={!hasActiveQuery && canCreate ? openCreate : undefined}
+            actionLabel={!hasActiveQuery && canCreate ? copy.uploadDocument : undefined}
             actionIcon={FileUp}
             inline
           />

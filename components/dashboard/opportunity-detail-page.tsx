@@ -35,8 +35,9 @@ export function DashboardOpportunityDetailPage({ opportunityId }: { opportunityI
   const [targetStage, setTargetStage] = useState<OpportunityStage | ''>('')
   const [lostReason, setLostReason] = useState('')
 
-  const canViewOpportunities = canAccessPermission(user, 'view_opportunities') || canAccessPermission(user, 'manage_opportunities')
-  const canManageOpportunities = canAccessPermission(user, 'manage_opportunities')
+  const canViewOpportunities = canAccessPermission(user, ['view_opportunities', 'manage_opportunities'])
+  const canUpdateOpportunities = canAccessPermission(user, ['update_opportunities', 'manage_opportunities'])
+  const canDeleteOpportunities = canAccessPermission(user, ['delete_opportunities', 'manage_opportunities'])
   const canAssignOpportunities = canAccessPermission(user, 'assign_opportunities')
 
   const handleDashboardError = useCallback((requestError: unknown) => {
@@ -217,9 +218,9 @@ export function DashboardOpportunityDetailPage({ opportunityId }: { opportunityI
             <StageBadge stage={opportunity.stage} />
           </div>
         </div>
-        {canManageOpportunities ? (
+        {canUpdateOpportunities || canDeleteOpportunities || canAssignOpportunities ? (
           <div className={styles.companyHeaderActions}>
-            {opportunity.stage !== 'won' && opportunity.stage !== 'lost' ? (
+            {canUpdateOpportunities && opportunity.stage !== 'won' && opportunity.stage !== 'lost' ? (
               <>
                 <button type="button" className={styles.secondaryButton} onClick={() => { setTargetStage(opportunity.stage); setDialogMode('stage'); }} title={copy.changeStage} aria-label={copy.changeStage}>
                   <GitBranch aria-hidden="true" />
@@ -231,22 +232,26 @@ export function DashboardOpportunityDetailPage({ opportunityId }: { opportunityI
                   <AlertTriangle aria-hidden="true" />
                 </button>
               </>
-            ) : (
+            ) : canUpdateOpportunities ? (
               <button type="button" className={styles.secondaryButton} onClick={() => { setTargetStage(''); setDialogMode('reopen'); }} title={copy.reopen} aria-label={copy.reopen}>
                 <RotateCcw aria-hidden="true" />
               </button>
-            )}
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
-              <Pencil aria-hidden="true" />
-            </button>
+            ) : null}
+            {canUpdateOpportunities ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
+                <Pencil aria-hidden="true" />
+              </button>
+            ) : null}
             {canAssignOpportunities ? (
               <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('owner')} title={opportunity.owner ? copy.reassignOwner : copy.assignOwner} aria-label={opportunity.owner ? copy.reassignOwner : copy.assignOwner}>
                 <UserRoundPlus aria-hidden="true" />
               </button>
             ) : null}
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
-              <Trash2 aria-hidden="true" />
-            </button>
+            {canDeleteOpportunities ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
+                <Trash2 aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

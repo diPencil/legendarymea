@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
+import 'react-quill-new/dist/quill.snow.css'
 import { ChevronLeft, ChevronRight, Eye, Image as ImageIcon, Mail, PenLine, Plus, RotateCcw, Search, Send, Trash2, Upload, X } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
@@ -40,6 +43,16 @@ type EmailModalState = { mode: 'create' | 'edit'; email?: EmailMessage; prefill?
 type TemplateModalState = { mode: 'create' | 'edit'; template?: EmailTemplate } | null
 type TemplatePreviewState = { template: EmailTemplate } | null
 type TemplateContentMode = 'body' | 'image'
+type FixedEmailContent = {
+  ctaNote: string
+  ctaButton: string
+  regards: string
+  senderName: string
+  senderTitle: string
+  senderPhone: string
+  senderEmail: string
+  senderWebsite: string
+}
 type ConfirmState =
   | { kind: 'send' | 'cancel' | 'retry' | 'delete'; email: EmailMessage }
   | { kind: 'delete-template'; template: EmailTemplate }
@@ -49,6 +62,30 @@ type ListMeta = { current_page: number; last_page: number; per_page: number; tot
 const emptyMeta: ListMeta = { current_page: 1, last_page: 1, per_page: 15, total: 0, from: null, to: null }
 const pageSizes = [10, 15, 25, 50]
 const emailStatuses: EmailStatus[] = ['draft', 'sent', 'failed', 'cancelled']
+const defaultTemplateBodyEn = '<p>Dear [Client Name]</p><p>I hope this email finds you well.</p><p>Write your email content here.</p>'
+const defaultTemplateBodyAr = '<p>السيد / السيدة [اسم العميل]</p><p>أتمنى أن تكونوا بأفضل حال.</p><p>اكتب محتوى البريد هنا.</p>'
+const defaultFixedEmailContent: Record<'en' | 'ar', FixedEmailContent> = {
+  en: {
+    ctaNote: 'I would appreciate the opportunity to schedule a brief introduction call to show how Legendary Management MEA can support your travel and business needs.',
+    ctaButton: 'Schedule a Quick Call',
+    regards: 'Warm regards,',
+    senderName: '[Your Name]',
+    senderTitle: '[Your Title]',
+    senderPhone: '[Phone Number]',
+    senderEmail: '[Official Email]',
+    senderWebsite: '[Website URL]',
+  },
+  ar: {
+    ctaNote: 'يسعدنا ترتيب مكالمة تعريفية قصيرة لشرح كيف يمكن لـ Legendary Management MEA دعم احتياجات السفر والأعمال لديكم.',
+    ctaButton: 'احجز مكالمة سريعة',
+    regards: 'مع خالص التحية،',
+    senderName: '[اسمك]',
+    senderTitle: '[المسمى الوظيفي]',
+    senderPhone: '[رقم الهاتف]',
+    senderEmail: '[البريد الرسمي]',
+    senderWebsite: '[رابط الموقع]',
+  },
+}
 
 export function EmailsPage() {
   const router = useRouter()
@@ -78,9 +115,14 @@ export function EmailsPage() {
   const [confirmState, setConfirmState] = useState<ConfirmState>(null)
 
   const canView = canAccessPermission(user, ['view_emails', 'manage_emails'])
-  const canManage = canAccessPermission(user, 'manage_emails')
+  const canCreate = canAccessPermission(user, ['create_emails', 'manage_emails'])
+  const canUpdate = canAccessPermission(user, ['update_emails', 'manage_emails'])
+  const canDelete = canAccessPermission(user, ['delete_emails', 'manage_emails'])
   const canSend = canAccessPermission(user, 'send_emails')
-  const canManageTemplates = canManage || canAccessPermission(user, 'manage_email_templates')
+  const canViewTemplates = canAccessPermission(user, ['view_email_templates', 'manage_email_templates', 'manage_emails'])
+  const canCreateTemplates = canAccessPermission(user, ['create_email_templates', 'manage_email_templates', 'manage_emails'])
+  const canUpdateTemplates = canAccessPermission(user, ['update_email_templates', 'manage_email_templates', 'manage_emails'])
+  const canDeleteTemplates = canAccessPermission(user, ['delete_email_templates', 'manage_email_templates', 'manage_emails'])
 
   const emailPage = useMemo(() => positiveNumber(searchParams.get('page'), 1), [searchParams])
   const templatePage = useMemo(() => positiveNumber(searchParams.get('template_page'), 1), [searchParams])
@@ -139,7 +181,7 @@ export function EmailsPage() {
   }, [canView, copy.emailsLoadError, dateFrom, dateTo, emailPage, emailPerPage, handleDashboardError, searchInput, searchParams, statusFilter])
 
   const loadTemplates = useCallback(async (quiet = false) => {
-    if (!canManageTemplates) {
+    if (!canViewTemplates) {
       setIsLoading(false)
       return
     }
@@ -163,7 +205,7 @@ export function EmailsPage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [canManageTemplates, copy.errorTitle, handleDashboardError, searchInput, templateActiveFilter, templatePage, templatePerPage])
+  }, [canViewTemplates, copy.errorTitle, handleDashboardError, searchInput, templateActiveFilter, templatePage, templatePerPage])
 
   const openEditEmail = useCallback(async (id: number) => {
     const response = await getEmail(id)
@@ -212,7 +254,7 @@ export function EmailsPage() {
     }
   }, [emailModal, openEditEmail, pathname, router, searchParams])
 
-  if (!canView && !canManageTemplates) {
+  if (!canView && !canViewTemplates) {
     return <DashboardState title={copy.accessDenied} body={copy.accessDeniedBody} />
   }
 
@@ -228,13 +270,13 @@ export function EmailsPage() {
           <h2>{copy.emails}</h2>
           <p>{copy.emailsDescription}</p>
         </div>
-        {tab === 'messages' && canManage ? (
+        {tab === 'messages' && canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={() => setEmailModal({ mode: 'create' })}>
             <Plus aria-hidden="true" />
             {copy.createEmail}
           </button>
         ) : null}
-        {tab === 'templates' && canManageTemplates ? (
+        {tab === 'templates' && canCreateTemplates ? (
           <button type="button" className={styles.primaryButton} onClick={() => setTemplateModal({ mode: 'create' })}>
             <Plus aria-hidden="true" />
             {copy.createEmailTemplate}
@@ -320,14 +362,14 @@ export function EmailsPage() {
           <DashboardState
             title={tab === 'messages' ? (hasActiveFilters ? copy.noMatchingEmails : copy.noEmails) : copy.emailTemplates}
             body={tab === 'messages' ? (hasActiveFilters ? copy.noMatchingEmailsBody : copy.noEmailsBody) : copy.noTemplatesBody}
-            actionLabel={tab === 'messages' && canManage ? copy.createEmail : tab === 'templates' && canManageTemplates ? copy.createEmailTemplate : undefined}
-            onAction={tab === 'messages' && canManage ? () => setEmailModal({ mode: 'create' }) : tab === 'templates' && canManageTemplates ? () => setTemplateModal({ mode: 'create' }) : undefined}
+            actionLabel={tab === 'messages' && canCreate ? copy.createEmail : tab === 'templates' && canCreateTemplates ? copy.createEmailTemplate : undefined}
+            onAction={tab === 'messages' && canCreate ? () => setEmailModal({ mode: 'create' }) : tab === 'templates' && canCreateTemplates ? () => setTemplateModal({ mode: 'create' }) : undefined}
             inline
           />
         ) : tab === 'messages' ? (
-          <EmailMessagesTable emails={emails} copy={copy} canManage={canManage} canSend={canSend} onEdit={openEditEmail} onConfirm={setConfirmState} />
+          <EmailMessagesTable emails={emails} copy={copy} canUpdate={canUpdate} canDelete={canDelete} canSend={canSend} onEdit={openEditEmail} onConfirm={setConfirmState} />
         ) : (
-          <EmailTemplatesTable templates={templates} copy={copy} canManageTemplates={canManageTemplates} onPreview={openPreviewTemplate} onEdit={openEditTemplate} onConfirm={setConfirmState} />
+          <EmailTemplatesTable templates={templates} copy={copy} canUpdateTemplates={canUpdateTemplates} canDeleteTemplates={canDeleteTemplates} onPreview={openPreviewTemplate} onEdit={openEditTemplate} onConfirm={setConfirmState} />
         )}
 
         {meta.total > 0 ? <Pagination meta={meta} tab={tab} pathname={pathname} router={router} searchParams={searchParams} copy={copy} /> : null}
@@ -341,7 +383,7 @@ export function EmailsPage() {
   )
 }
 
-function EmailMessagesTable({ emails, copy, canManage, canSend, onEdit, onConfirm }: { emails: EmailMessage[]; copy: typeof dashboardCopy.en; canManage: boolean; canSend: boolean; onEdit: (id: number) => Promise<void>; onConfirm: (state: ConfirmState) => void }) {
+function EmailMessagesTable({ emails, copy, canUpdate, canDelete, canSend, onEdit, onConfirm }: { emails: EmailMessage[]; copy: typeof dashboardCopy.en; canUpdate: boolean; canDelete: boolean; canSend: boolean; onEdit: (id: number) => Promise<void>; onConfirm: (state: ConfirmState) => void }) {
   return (
     <>
       <div className={styles.employeeTableWrap}>
@@ -368,7 +410,7 @@ function EmailMessagesTable({ emails, copy, canManage, canSend, onEdit, onConfir
                 <td>{email.inquiry ? <Link href={`/dashboard/inquiries/${email.inquiry.id}`} className={styles.textLink} dir="ltr">{email.inquiry.reference}</Link> : '-'}</td>
                 <td>{email.creator?.name ?? '-'}</td>
                 <td dir="ltr">{formatDateTime(email.sent_at)}</td>
-                <td className={styles.actionColumn}><EmailRowActions email={email} copy={copy} canManage={canManage} canSend={canSend} onEdit={onEdit} onConfirm={onConfirm} /></td>
+                <td className={styles.actionColumn}><EmailRowActions email={email} copy={copy} canUpdate={canUpdate} canDelete={canDelete} canSend={canSend} onEdit={onEdit} onConfirm={onConfirm} /></td>
               </tr>
             ))}
           </tbody>
@@ -387,7 +429,7 @@ function EmailMessagesTable({ emails, copy, canManage, canSend, onEdit, onConfir
               <div><dt>{copy.inquirySubject}</dt><dd>{email.subject}</dd></div>
               <div><dt>{copy.sentAt}</dt><dd dir="ltr">{formatDateTime(email.sent_at)}</dd></div>
             </dl>
-            <EmailRowActions email={email} copy={copy} canManage={canManage} canSend={canSend} onEdit={onEdit} onConfirm={onConfirm} />
+            <EmailRowActions email={email} copy={copy} canUpdate={canUpdate} canDelete={canDelete} canSend={canSend} onEdit={onEdit} onConfirm={onConfirm} />
           </article>
         ))}
       </div>
@@ -395,7 +437,7 @@ function EmailMessagesTable({ emails, copy, canManage, canSend, onEdit, onConfir
   )
 }
 
-function EmailTemplatesTable({ templates, copy, canManageTemplates, onPreview, onEdit, onConfirm }: { templates: EmailTemplate[]; copy: typeof dashboardCopy.en; canManageTemplates: boolean; onPreview: (id: number) => Promise<void>; onEdit: (id: number) => Promise<void>; onConfirm: (state: ConfirmState) => void }) {
+function EmailTemplatesTable({ templates, copy, canUpdateTemplates, canDeleteTemplates, onPreview, onEdit, onConfirm }: { templates: EmailTemplate[]; copy: typeof dashboardCopy.en; canUpdateTemplates: boolean; canDeleteTemplates: boolean; onPreview: (id: number) => Promise<void>; onEdit: (id: number) => Promise<void>; onConfirm: (state: ConfirmState) => void }) {
   return (
     <div className={styles.employeeTableWrap}>
       <table className={styles.employeeTable}>
@@ -425,8 +467,8 @@ function EmailTemplatesTable({ templates, copy, canManageTemplates, onPreview, o
               <td className={styles.actionColumn}>
                 <div className={styles.rowActions}>
                   <button type="button" className={styles.iconButton} onClick={() => void onPreview(template.id)} aria-label={copy.preview}><Eye aria-hidden="true" /></button>
-                  {canManageTemplates ? <button type="button" className={styles.iconButton} onClick={() => void onEdit(template.id)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
-                  {canManageTemplates ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => onConfirm({ kind: 'delete-template', template })} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
+                  {canUpdateTemplates ? <button type="button" className={styles.iconButton} onClick={() => void onEdit(template.id)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
+                  {canDeleteTemplates ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => onConfirm({ kind: 'delete-template', template })} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
                 </div>
               </td>
             </tr>
@@ -449,15 +491,15 @@ function EmailIdentity({ email }: { email: EmailMessage }) {
   )
 }
 
-function EmailRowActions({ email, copy, canManage, canSend, onEdit, onConfirm }: { email: EmailMessage; copy: typeof dashboardCopy.en; canManage: boolean; canSend: boolean; onEdit: (id: number) => Promise<void>; onConfirm: (state: ConfirmState) => void }) {
+function EmailRowActions({ email, copy, canUpdate, canDelete, canSend, onEdit, onConfirm }: { email: EmailMessage; copy: typeof dashboardCopy.en; canUpdate: boolean; canDelete: boolean; canSend: boolean; onEdit: (id: number) => Promise<void>; onConfirm: (state: ConfirmState) => void }) {
   return (
     <div className={styles.rowActions}>
       <Link href={`/dashboard/emails/${email.id}`} className={styles.iconButton} aria-label={copy.view}><Eye aria-hidden="true" /></Link>
-      {canManage && email.status === 'draft' ? <button type="button" className={styles.iconButton} onClick={() => void onEdit(email.id)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
+      {canUpdate && email.status === 'draft' ? <button type="button" className={styles.iconButton} onClick={() => void onEdit(email.id)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
       {canSend && email.status === 'draft' ? <button type="button" className={styles.iconButton} onClick={() => onConfirm({ kind: 'send', email })} aria-label={copy.sendEmail}><Send aria-hidden="true" /></button> : null}
-      {canManage && email.status === 'draft' ? <button type="button" className={styles.iconButton} onClick={() => onConfirm({ kind: 'cancel', email })} aria-label={copy.cancelEmail}><X aria-hidden="true" /></button> : null}
+      {canUpdate && email.status === 'draft' ? <button type="button" className={styles.iconButton} onClick={() => onConfirm({ kind: 'cancel', email })} aria-label={copy.cancelEmail}><X aria-hidden="true" /></button> : null}
       {canSend && email.status === 'failed' ? <button type="button" className={styles.iconButton} onClick={() => onConfirm({ kind: 'retry', email })} aria-label={copy.retryEmail}><RotateCcw aria-hidden="true" /></button> : null}
-      {canManage ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => onConfirm({ kind: 'delete', email })} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
+      {canDelete ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => onConfirm({ kind: 'delete', email })} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
     </div>
   )
 }
@@ -498,7 +540,7 @@ function EmailComposerDialog({ copy, locale, state, onClose, onSuccess }: { copy
 
     const content = localizedTemplateContent(selected, locale)
     setSubject(content.subject)
-    setBody(content.body)
+    setBody(extractEditableTemplateBody(content.body))
   }
 
   useEffect(() => {
@@ -508,7 +550,7 @@ function EmailComposerDialog({ copy, locale, state, onClose, onSuccess }: { copy
 
       const content = localizedTemplateContent(selected, locale)
       setSubject(content.subject)
-      setBody(content.body)
+      setBody(extractEditableTemplateBody(content.body))
     }
   }, [locale, templateId, templates, state?.mode])
 
@@ -581,7 +623,13 @@ function EmailComposerDialog({ copy, locale, state, onClose, onSuccess }: { copy
             <div className={styles.formGrid}>
               <label className={styles.formField}><span>{copy.inquirySubject}</span><input value={subject} onChange={(event) => setSubject(event.target.value)} required />{errors.subject ? <p className={styles.fieldError}>{errors.subject[0]}</p> : null}</label>
             </div>
-              <label className={styles.formField}><span>{copy.emailBody}</span><textarea value={body} onChange={(event) => setBody(event.target.value)} required dir={locale === 'ar' ? 'rtl' : undefined} />{errors.body ? <p className={styles.fieldError}>{errors.body[0]}</p> : null}</label>
+          <label className={styles.formField}>
+            <span>{copy.emailBody}</span>
+            <div className={styles.quillContainer}>
+              <ReactQuill theme="snow" value={body} onChange={(val) => setBody(val)} />
+            </div>
+            {errors.body ? <p className={styles.fieldError}>{errors.body[0]}</p> : null}
+          </label>
           </fieldset>
           <div className={styles.dialogActions}>
             <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={isSubmitting}>{copy.cancel}</button>
@@ -593,138 +641,18 @@ function EmailComposerDialog({ copy, locale, state, onClose, onSuccess }: { copy
   )
 }
 
-const defaultTemplateBodyEn = `<!doctype html>
-<html>
-  <body style="margin:0;padding:0;background:#f4f1eb;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;color:#081d60;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f1eb;margin:0;padding:0;">
-      <tr>
-        <td align="center" style="padding:28px 14px;">
-          <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #ded8ce;border-radius:14px;overflow:hidden;">
-            <tr><td style="height:5px;background:#b69338;font-size:0;line-height:0;">&nbsp;</td></tr>
-            <tr>
-              <td style="padding:28px 32px 20px 32px;text-align:center;">
-                <img src="https://legendarymea.com/legendary-management.png" width="190" alt="Legendary Management MEA" style="display:block;margin:0 auto 14px auto;width:190px;max-width:80%;height:auto;border:0;">
-                <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b69338;">Corporate Travel, Hospitality &amp; Business Mobility Solutions</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:0 32px 26px 32px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-top:1px solid #e6e0d6;">
-                  <tr>
-                    <td style="padding-top:26px;font-size:15px;line-height:1.75;color:#24345f;">
-                      <p style="margin:0 0 16px 0;">Dear [Client Name]</p>
-                      <p style="margin:0 0 16px 0;">Write your email content here.</p>
-
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:22px 0;background:#f7f3ea;border:1px solid #dfd2b8;border-radius:12px;">
-                        <tr><td style="padding:18px 20px;font-size:15px;line-height:1.7;color:#24345f;">Add your call-to-action note here.</td></tr>
-                      </table>
-
-                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px 0;">
-                        <tr><td bgcolor="#081d60" style="border-radius:8px;"><a href="https://wa.me/966530363444" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">Schedule a Quick Call</a></td></tr>
-                      </table>
-
-                      <p style="margin:0 0 6px 0;">Warm regards,</p>
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:18px;border-top:1px solid #e6e0d6;">
-                        <tr>
-                          <td style="padding-top:18px;">
-                            <div style="font-size:17px;font-weight:700;color:#081d60;">[Your Name]</div>
-                            <div style="font-size:13px;color:#b69338;font-weight:700;margin-top:3px;">[Your Title]</div>
-                            <div style="font-size:14px;color:#24345f;margin-top:8px;">Legendary Management MEA</div>
-                            <div style="font-size:13px;color:#5c6375;margin-top:7px;">[Phone Number] | <a href="mailto:[Official Email]" style="color:#081d60;text-decoration:none;">[Official Email]</a></div>
-                            <div style="font-size:13px;margin-top:4px;"><a href="[Website URL]" style="color:#081d60;text-decoration:none;">[Website URL]</a></div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td style="background:#081d60;padding:22px 32px;text-align:center;color:#ffffff;">
-                <div style="font-size:15px;font-weight:700;">Legendary Management MEA</div>
-                <div style="font-size:12px;line-height:1.6;color:#d8c27c;margin-top:6px;">Corporate Travel, Hospitality &amp; Business Mobility Solutions</div>
-                <div style="font-size:12px;line-height:1.7;color:#dfe5f6;margin-top:10px;">[Official Email] &nbsp;|&nbsp; [Phone Number] &nbsp;|&nbsp; [Website URL]</div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`
-
-const defaultTemplateBodyAr = `<!doctype html>
-<html lang="ar" dir="rtl">
-  <body style="margin:0;padding:0;background:#f4f1eb;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;color:#081d60;direction:rtl;text-align:right;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f1eb;margin:0;padding:0;">
-      <tr>
-        <td align="center" style="padding:28px 14px;">
-          <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #ded8ce;border-radius:14px;overflow:hidden;">
-            <tr><td style="height:5px;background:#b69338;font-size:0;line-height:0;">&nbsp;</td></tr>
-            <tr>
-              <td style="padding:28px 32px 20px 32px;text-align:center;">
-                <img src="https://legendarymea.com/legendary-management.png" width="190" alt="Legendary Management MEA" style="display:block;margin:0 auto 14px auto;width:190px;max-width:80%;height:auto;border:0;">
-                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#b69338;">حلول السفر المؤسسي والضيافة وتنقل الأعمال</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:0 32px 26px 32px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-top:1px solid #e6e0d6;">
-                  <tr>
-                    <td style="padding-top:26px;font-size:15px;line-height:1.9;color:#24345f;direction:rtl;text-align:right;">
-                      <p style="margin:0 0 16px 0;">عزيزي/عزيزتي [اسم العميل]</p>
-                      <p style="margin:0 0 16px 0;">اكتب محتوى الرسالة هنا.</p>
-
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:22px 0;background:#f7f3ea;border:1px solid #dfd2b8;border-radius:12px;">
-                        <tr><td style="padding:18px 20px;font-size:15px;line-height:1.8;color:#24345f;">اكتب ملاحظة الدعوة لاتخاذ إجراء هنا.</td></tr>
-                      </table>
-
-                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px 0;">
-                        <tr><td bgcolor="#081d60" style="border-radius:8px;"><a href="https://wa.me/966530363444" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">احجز مكالمة سريعة</a></td></tr>
-                      </table>
-
-                      <p style="margin:0 0 6px 0;">مع خالص التحية،</p>
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:18px;border-top:1px solid #e6e0d6;">
-                        <tr>
-                          <td style="padding-top:18px;">
-                            <div style="font-size:17px;font-weight:700;color:#081d60;">[اسمك]</div>
-                            <div style="font-size:13px;color:#b69338;font-weight:700;margin-top:3px;">[المسمى الوظيفي]</div>
-                            <div style="font-size:14px;color:#24345f;margin-top:8px;">Legendary Management MEA</div>
-                            <div style="font-size:13px;color:#5c6375;margin-top:7px;">[رقم الهاتف] | <a href="mailto:[البريد الرسمي]" style="color:#081d60;text-decoration:none;">[البريد الرسمي]</a></div>
-                            <div style="font-size:13px;margin-top:4px;"><a href="[رابط الموقع]" style="color:#081d60;text-decoration:none;">[رابط الموقع]</a></div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td style="background:#081d60;padding:22px 32px;text-align:center;color:#ffffff;">
-                <div style="font-size:15px;font-weight:700;">Legendary Management MEA</div>
-                <div style="font-size:12px;line-height:1.6;color:#d8c27c;margin-top:6px;">حلول السفر المؤسسي والضيافة وتنقل الأعمال</div>
-                <div style="font-size:12px;line-height:1.7;color:#dfe5f6;margin-top:10px;">[البريد الرسمي] &nbsp;|&nbsp; [رقم الهاتف] &nbsp;|&nbsp; [رابط الموقع]</div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`
-
 function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy: typeof dashboardCopy.en; locale: string; state: TemplateModalState; onClose: () => void; onSuccess: (message: string) => void }) {
   const template = state?.template
   const initialContentMode: TemplateContentMode = template?.image_url && template.body_en.includes(template.image_url) && !template.body_en.includes('Dear [Client Name]') ? 'image' : 'body'
+  const initialFixedEn = extractFixedEmailContent(template?.body_en ?? '', 'en')
+  const initialFixedAr = extractFixedEmailContent(template?.body_ar ?? '', 'ar')
   const [payload, setPayload] = useState<EmailTemplatePayload>({
     name: template?.name ?? '',
     key: template?.key ?? '',
     subject_en: template?.subject_en ?? '',
     subject_ar: template?.subject_ar ?? '',
-    body_en: template?.body_en ?? defaultTemplateBodyEn,
-    body_ar: template?.body_ar ?? defaultTemplateBodyAr,
+    body_en: extractEditableTemplateBody(template?.body_en ?? defaultTemplateBodyEn),
+    body_ar: extractEditableTemplateBody(template?.body_ar ?? defaultTemplateBodyAr),
     image_media_id: template?.image_media_id ?? null,
     is_active: template?.is_active ?? true,
   })
@@ -737,10 +665,12 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
   )
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [imageNotice, setImageNotice] = useState('')
+  const [fixedEn, setFixedEn] = useState<FixedEmailContent>(initialFixedEn)
+  const [fixedAr, setFixedAr] = useState<FixedEmailContent>(initialFixedAr)
   const previewSubject = locale === 'ar' ? payload.subject_ar : payload.subject_en
   const previewBody = contentMode === 'image'
     ? imageUrl ? imageOnlyTemplateBody(imageUrl, locale, previewSubject || payload.name) : ''
-    : locale === 'ar' ? payload.body_ar : payload.body_en
+    : wrapEmailPreview(locale === 'ar' ? payload.body_ar : payload.body_en, locale, locale === 'ar' ? fixedAr : fixedEn)
 
   function handleContentModeChange(mode: TemplateContentMode) {
     setContentMode(mode)
@@ -804,7 +734,12 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
           body_en: imageUrl ? imageOnlyTemplateBody(imageUrl, 'en', payload.subject_en || payload.name) : '',
           body_ar: imageUrl ? imageOnlyTemplateBody(imageUrl, 'ar', payload.subject_ar || payload.name) : '',
         }
-      : { ...payload, image_media_id: null }
+      : {
+          ...payload,
+          body_en: buildTemplateInnerBody(payload.body_en, 'en', fixedEn),
+          body_ar: buildTemplateInnerBody(payload.body_ar, 'ar', fixedAr),
+          image_media_id: null,
+        }
 
     if (contentMode === 'image' && !payload.image_media_id) {
       setErrors({ image_media_id: [copy.templateImageRequired || 'Upload an image before saving this template.'] })
@@ -852,10 +787,27 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
               <button type="button" className={contentMode === 'image' ? styles.primaryButton : styles.secondaryButton} onClick={() => handleContentModeChange('image')} aria-pressed={contentMode === 'image'}>{copy.imageTemplate || 'Image'}</button>
             </div>
             {contentMode === 'body' ? (
-              <div className={styles.formGrid}>
-                <label className={styles.formField}><span>{copy.bodyEn}</span><textarea value={payload.body_en} onChange={(event) => setPayload((current) => ({ ...current, body_en: event.target.value }))} required />{errors.body_en ? <p className={styles.fieldError}>{errors.body_en[0]}</p> : null}</label>
-                <label className={styles.formField}><span>{copy.bodyAr}</span><textarea value={payload.body_ar} onChange={(event) => setPayload((current) => ({ ...current, body_ar: event.target.value }))} required dir="rtl" />{errors.body_ar ? <p className={styles.fieldError}>{errors.body_ar[0]}</p> : null}</label>
-              </div>
+              <>
+                <div className={styles.formGrid}>
+                  <label className={styles.formField}><span>{copy.bodyEn}</span><div className={styles.quillContainer}><ReactQuill theme="snow" value={payload.body_en} onChange={(val) => setPayload((current) => ({ ...current, body_en: val }))} /></div>{errors.body_en ? <p className={styles.fieldError}>{errors.body_en[0]}</p> : null}</label>
+                  <label className={styles.formField}><span>{copy.bodyAr}</span><div className={cn(styles.quillContainer, styles.rtlQuillContainer)} dir="rtl"><ReactQuill theme="snow" value={payload.body_ar} onChange={(val) => setPayload((current) => ({ ...current, body_ar: val }))} /></div>{errors.body_ar ? <p className={styles.fieldError}>{errors.body_ar[0]}</p> : null}</label>
+                </div>
+                <FixedEmailFields title="CTA message" en={fixedEn} ar={fixedAr} field="ctaNote" enLabel="CTA message EN" arLabel="CTA message AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} multiline />
+                <FixedEmailFields title="CTA button" en={fixedEn} ar={fixedAr} field="ctaButton" enLabel="Button text EN" arLabel="Button text AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} />
+                <FixedEmailFields title="Signature and footer details" en={fixedEn} ar={fixedAr} field="regards" enLabel="Greeting EN" arLabel="Greeting AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} />
+                <div className={styles.formGrid}>
+                  <label className={styles.formField}><span>Sender name EN</span><input value={fixedEn.senderName} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderName', event.target.value)} /></label>
+                  <label className={styles.formField}><span>Sender name AR</span><input value={fixedAr.senderName} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderName', event.target.value)} dir="rtl" /></label>
+                  <label className={styles.formField}><span>Sender title EN</span><input value={fixedEn.senderTitle} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderTitle', event.target.value)} /></label>
+                  <label className={styles.formField}><span>Sender title AR</span><input value={fixedAr.senderTitle} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderTitle', event.target.value)} dir="rtl" /></label>
+                  <label className={styles.formField}><span>Phone shown in email EN</span><input value={fixedEn.senderPhone} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderPhone', event.target.value)} placeholder="+966 53 036 3444" dir="ltr" /></label>
+                  <label className={styles.formField}><span>Phone shown in email AR</span><input value={fixedAr.senderPhone} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderPhone', event.target.value)} placeholder="+966 53 036 3444" dir="rtl" /></label>
+                  <label className={styles.formField}><span>Email shown in email EN</span><input value={fixedEn.senderEmail} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderEmail', event.target.value)} placeholder="sales@legendarymea.com" dir="ltr" /></label>
+                  <label className={styles.formField}><span>Email shown in email AR</span><input value={fixedAr.senderEmail} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderEmail', event.target.value)} placeholder="sales@legendarymea.com" dir="rtl" /></label>
+                  <label className={styles.formField}><span>Website shown in email EN</span><input value={fixedEn.senderWebsite} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderWebsite', event.target.value)} placeholder="legendarymea.com" dir="ltr" /></label>
+                  <label className={styles.formField}><span>Website shown in email AR</span><input value={fixedAr.senderWebsite} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderWebsite', event.target.value)} placeholder="legendarymea.com" dir="rtl" /></label>
+                </div>
+              </>
             ) : (
               <div className={styles.emailTemplateImageField}>
                 <div className={styles.cardTitle}>
@@ -946,6 +898,238 @@ function isSupportedTemplateImage(file: File) {
   return !file.type || file.type === 'application/octet-stream'
 }
 
+function FixedEmailFields({
+  title,
+  en,
+  ar,
+  field,
+  enLabel,
+  arLabel,
+  onChangeEn,
+  onChangeAr,
+  multiline = false,
+}: {
+  title: string
+  en: FixedEmailContent
+  ar: FixedEmailContent
+  field: keyof FixedEmailContent
+  enLabel: string
+  arLabel: string
+  onChangeEn: (value: FixedEmailContent | ((current: FixedEmailContent) => FixedEmailContent)) => void
+  onChangeAr: (value: FixedEmailContent | ((current: FixedEmailContent) => FixedEmailContent)) => void
+  multiline?: boolean
+}) {
+  const Input = multiline ? 'textarea' : 'input'
+
+  return (
+    <fieldset className={styles.inlineFormSection}>
+      <legend>{title}</legend>
+      <div className={styles.formGrid}>
+        <label className={styles.formField}>
+          <span>{enLabel}</span>
+          <Input value={en[field]} onChange={(event) => updateFixedEmailField(onChangeEn, field, event.target.value)} />
+        </label>
+        <label className={styles.formField}>
+          <span>{arLabel}</span>
+          <Input value={ar[field]} onChange={(event) => updateFixedEmailField(onChangeAr, field, event.target.value)} dir="rtl" />
+        </label>
+      </div>
+    </fieldset>
+  )
+}
+
+function updateFixedEmailField(
+  setFixed: (value: FixedEmailContent | ((current: FixedEmailContent) => FixedEmailContent)) => void,
+  field: keyof FixedEmailContent,
+  value: string,
+) {
+  setFixed((current) => ({ ...current, [field]: value }))
+}
+
+function extractEditableTemplateBody(value: string) {
+  const html = value.trim()
+
+  if (!html || (!/<\/?(html|body|table)\b/i.test(html) && !html.includes('<!doctype'))) {
+    return html
+  }
+
+  if (typeof window !== 'undefined') {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    doc.querySelectorAll('[data-fixed-email-section]').forEach((element) => element.remove())
+
+    const layoutCell = Array.from(doc.querySelectorAll('td[style]')).find((cell) => {
+      const style = cell.getAttribute('style') ?? ''
+      return style.includes('padding-top:26px') && style.includes('line-height:1.75')
+    })
+
+    if (layoutCell?.innerHTML.trim()) {
+      return layoutCell.innerHTML.trim()
+    }
+
+    const body = doc.body?.innerHTML.trim()
+    if (body) return body
+  }
+
+  const layoutMatch = html.match(/<td[^>]*padding-top:26px[^>]*line-height:1\.75[^>]*>([\s\S]*?)<\/td>/i)
+  if (layoutMatch?.[1]) {
+    return layoutMatch[1].trim()
+  }
+
+  return html
+    .replace(/<[^>]+data-fixed-email-section=["'][^"']+["'][\s\S]*?<\/(?:table|div)>/gi, '')
+    .replace(/<!doctype[^>]*>/gi, '')
+    .replace(/<\/?html[^>]*>/gi, '')
+    .replace(/<\/?body[^>]*>/gi, '')
+    .trim()
+}
+
+function extractFixedEmailContent(value: string, locale: 'en' | 'ar') {
+  const defaults = defaultFixedEmailContent[locale]
+  const html = value.trim()
+
+  if (!html || typeof window === 'undefined') {
+    return defaults
+  }
+
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const textFrom = (selector: string, fallback: string) => doc.querySelector(selector)?.textContent?.trim() || fallback
+  const linkFrom = (selector: string, fallback: string) => doc.querySelector(selector)?.getAttribute('href')?.trim() || fallback
+  const signature = doc.querySelector('[data-fixed-email-section="signature"]')
+
+  return {
+    ctaNote: textFrom('[data-fixed-email-section="cta"] td', defaults.ctaNote),
+    ctaButton: textFrom('[data-fixed-email-section="cta-button"] a', defaults.ctaButton),
+    regards: signature?.querySelector('p')?.textContent?.trim() || defaults.regards,
+    senderName: signature?.querySelector('[data-fixed-email-field="sender-name"]')?.textContent?.trim() || defaults.senderName,
+    senderTitle: signature?.querySelector('[data-fixed-email-field="sender-title"]')?.textContent?.trim() || defaults.senderTitle,
+    senderPhone: signature?.querySelector('[data-fixed-email-field="sender-phone"]')?.textContent?.trim() || defaults.senderPhone,
+    senderEmail: signature?.querySelector('[data-fixed-email-field="sender-email"]')?.textContent?.trim() || defaults.senderEmail,
+    senderWebsite: linkFrom('[data-fixed-email-field="sender-website"]', defaults.senderWebsite),
+  }
+}
+
+function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEmailContent) {
+  const trimmed = extractEditableTemplateBody(content).trim()
+  const isArabic = locale === 'ar'
+
+  const footerLine = isArabic
+    ? 'حلول السفر المؤسسي والضيافة وتنقل الأعمال'
+    : 'Corporate Travel, Hospitality &amp; Business Mobility Solutions'
+  const directionStyle = isArabic ? 'direction:rtl;text-align:right;' : 'direction:ltr;text-align:left;'
+  const safeCtaNote = escapeHtml(fixed.ctaNote)
+  const safeCtaButton = escapeHtml(fixed.ctaButton)
+  const safeRegards = escapeHtml(fixed.regards)
+  const safeName = escapeHtml(fixed.senderName)
+  const safeTitle = escapeHtml(fixed.senderTitle)
+  const safePhone = escapeHtml(fixed.senderPhone)
+  const safeEmail = escapeHtml(fixed.senderEmail)
+  const safeWebsite = escapeHtml(fixed.senderWebsite)
+  const safePhoneHref = escapeHtml(phoneHref(fixed.senderPhone))
+  const safeEmailHref = escapeHtml(emailHref(fixed.senderEmail))
+  const safeWebsiteHref = escapeHtml(websiteHref(fixed.senderWebsite))
+
+  return `${trimmed}
+
+<table data-fixed-email-section="cta" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:22px 0;background:#f7f3ea;border:1px solid #dfd2b8;border-radius:12px;${directionStyle}">
+  <tr><td style="padding:18px 20px;font-size:15px;line-height:1.7;color:#24345f;">${safeCtaNote}</td></tr>
+</table>
+
+<table data-fixed-email-section="cta-button" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px 0;${isArabic ? 'direction:rtl;' : ''}">
+  <tr><td bgcolor="#081d60" style="border-radius:8px;"><a href="https://wa.me/966530363444" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">${safeCtaButton}</a></td></tr>
+</table>
+
+<div data-fixed-email-section="signature" style="margin-top:18px;${directionStyle}">
+  <p style="margin:0 0 6px 0;">${safeRegards}</p>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:18px;border-top:1px solid #e6e0d6;${directionStyle}">
+    <tr>
+      <td style="padding-top:18px;">
+        <div data-fixed-email-field="sender-name" style="font-size:17px;font-weight:700;color:#081d60;">${safeName}</div>
+        <div data-fixed-email-field="sender-title" style="font-size:13px;color:#b69338;font-weight:700;margin-top:3px;">${safeTitle}</div>
+        <div style="font-size:14px;color:#24345f;margin-top:8px;">Legendary Management MEA</div>
+        <div style="font-size:13px;color:#5c6375;margin-top:7px;"><a data-fixed-email-field="sender-phone" href="${safePhoneHref}" style="color:#081d60;text-decoration:none;">${safePhone}</a> | <a data-fixed-email-field="sender-email" href="${safeEmailHref}" style="color:#081d60;text-decoration:none;">${safeEmail}</a></div>
+        <div style="font-size:13px;margin-top:4px;"><a data-fixed-email-field="sender-website" href="${safeWebsiteHref}" style="color:#081d60;text-decoration:none;">${safeWebsite}</a></div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<table data-fixed-email-section="brand-footer" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:28px;">
+  <tr>
+    <td style="background:#081d60;padding:22px 32px;text-align:center;color:#ffffff;border-radius:0 0 12px 12px;">
+      <div style="font-size:15px;font-weight:700;">Legendary Management MEA</div>
+      <div style="font-size:12px;line-height:1.6;color:#d8c27c;margin-top:6px;">${footerLine}</div>
+      <div style="font-size:12px;line-height:1.7;color:#dfe5f6;margin-top:10px;"><a href="${safeEmailHref}" style="color:#dfe5f6;text-decoration:none;">${safeEmail}</a> &nbsp;|&nbsp; <a href="${safePhoneHref}" style="color:#dfe5f6;text-decoration:none;">${safePhone}</a> &nbsp;|&nbsp; <a href="${safeWebsiteHref}" style="color:#dfe5f6;text-decoration:none;">${safeWebsite}</a></div>
+    </td>
+  </tr>
+</table>`
+}
+
+function phoneHref(phone: string) {
+  const digits = phone.replace(/[^\d+]/g, '')
+
+  return digits && !phone.includes('[') ? `tel:${digits}` : '#'
+}
+
+function emailHref(email: string) {
+  const value = email.trim()
+
+  return value && value.includes('@') && !value.includes('[') ? `mailto:${value}` : '#'
+}
+
+function websiteHref(website: string) {
+  const value = website.trim()
+
+  if (!value || value.includes('[')) return '#'
+  if (/^https?:\/\//i.test(value)) return value
+
+  return `https://${value.replace(/^\/+/, '')}`
+}
+
+function wrapEmailPreview(content: string, locale: string, fixed: FixedEmailContent) {
+  const trimmed = buildTemplateInnerBody(content, locale, fixed).trim()
+
+  if (!trimmed || /<!doctype|<html\b|<body\b/i.test(trimmed)) {
+    return trimmed
+  }
+
+  const dir = locale === 'ar' ? 'rtl' : 'ltr'
+  const align = locale === 'ar' ? 'right' : 'left'
+
+  return `<!doctype html>
+<html lang="${locale}" dir="${dir}">
+  <body style="margin:0;padding:0;background:#f4f1eb;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;color:#081d60;direction:${dir};text-align:${align};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f1eb;margin:0;padding:0;">
+      <tr>
+        <td align="center" style="padding:28px 14px;">
+          <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #ded8ce;border-radius:14px;overflow:hidden;direction:${dir};text-align:${align};">
+            <tr>
+              <td style="height:5px;background:#b69338;font-size:0;line-height:0;">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 20px 32px;text-align:center;">
+                <img src="https://legendarymea.com/legendary-management.png" width="190" alt="Legendary Management MEA" style="display:block;margin:0 auto 14px auto;width:190px;max-width:80%;height:auto;border:0;">
+                <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b69338;">Corporate Travel, Hospitality &amp; Business Mobility Solutions</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 26px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-top:1px solid #e6e0d6;">
+                  <tr>
+                    <td style="padding-top:26px;font-size:15px;line-height:1.75;color:#24345f;">
+                      ${trimmed}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`
+}
+
 function imageOnlyTemplateBody(imageUrl: string, locale: string, alt: string) {
   const safeImageUrl = escapeHtml(imageUrl)
   const safeAlt = escapeHtml(alt || 'Email template image')
@@ -1015,6 +1199,8 @@ function EmailTemplatePreviewDialog({ copy, locale, state, onClose }: { copy: ty
   if (!template) return null
 
   const content = localizedTemplateContent(template, locale)
+  const fixedContent = extractFixedEmailContent(content.body, locale === 'ar' ? 'ar' : 'en')
+  const previewBody = template.image_media_id ? content.body : wrapEmailPreview(extractEditableTemplateBody(content.body), locale, fixedContent)
 
   return (
     <div className={styles.modalLayer} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
@@ -1029,7 +1215,7 @@ function EmailTemplatePreviewDialog({ copy, locale, state, onClose }: { copy: ty
             <div><dt>{copy.templateKey}</dt><dd dir="ltr">{template.key}</dd></div>
             <div className={styles.detailWide}><dt>{content.subjectLabel}</dt><dd>{content.subject}</dd></div>
           </dl>
-          <div className={styles.emailPreviewFrame} dir={content.dir} dangerouslySetInnerHTML={{ __html: content.body }} />
+          <div className={styles.emailPreviewFrame} dir={content.dir} dangerouslySetInnerHTML={{ __html: previewBody }} />
         </div>
       </section>
     </div>

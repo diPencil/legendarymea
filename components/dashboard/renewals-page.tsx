@@ -42,7 +42,8 @@ export function RenewalsPage() {
   const [editingRenewal, setEditingRenewal] = useState<RenewalRecord | null>(null)
 
   const canViewRenewals = canAccessPermission(user, ['view_renewals', 'manage_renewals'])
-  const canManageRenewals = canAccessPermission(user, 'manage_renewals')
+  const canCreateRenewals = canAccessPermission(user, ['create_renewals', 'manage_renewals'])
+  const canUpdateRenewals = canAccessPermission(user, ['update_renewals', 'manage_renewals'])
 
   const query: RenewalListParams = useMemo(() => ({
     page: positiveNumber(searchParams.get('page'), 1),
@@ -142,7 +143,7 @@ export function RenewalsPage() {
   }
 
   async function openEditRenewal(id: number) {
-    if (!canManageRenewals) return
+    if (!canUpdateRenewals) return
 
     try {
       setIsRefreshing(true)
@@ -179,7 +180,7 @@ export function RenewalsPage() {
           <h2>{copy.renewals}</h2>
           <p>{copy.renewalsDescription}</p>
         </div>
-        {canManageRenewals ? (
+        {canCreateRenewals ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.createRenewal}
@@ -278,7 +279,7 @@ export function RenewalsPage() {
                           <Link href={`/dashboard/renewals/${renewal.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canManageRenewals && ['upcoming', 'due'].includes(renewal.status) ? (
+                          {canUpdateRenewals && ['upcoming', 'due'].includes(renewal.status) ? (
                             <button type="button" className={styles.iconButton} onClick={() => void openEditRenewal(renewal.id)} aria-label={copy.edit}>
                               <PenLine aria-hidden="true" />
                             </button>
@@ -307,7 +308,7 @@ export function RenewalsPage() {
                     <Link href={`/dashboard/renewals/${renewal.id}`} className={styles.iconButton} aria-label={copy.view}>
                       <Eye aria-hidden="true" />
                     </Link>
-                    {canManageRenewals && ['upcoming', 'due'].includes(renewal.status) ? (
+                    {canUpdateRenewals && ['upcoming', 'due'].includes(renewal.status) ? (
                       <button type="button" className={styles.iconButton} onClick={() => void openEditRenewal(renewal.id)} aria-label={copy.edit}>
                         <PenLine aria-hidden="true" />
                       </button>
@@ -321,8 +322,8 @@ export function RenewalsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.renewals : copy.renewals}
             body={copy.noRenewalsBody}
-            actionLabel={canManageRenewals ? copy.createRenewal : undefined}
-            onAction={canManageRenewals ? () => setShowCreateModal(true) : undefined}
+            actionLabel={canCreateRenewals ? copy.createRenewal : undefined}
+            onAction={canCreateRenewals ? () => setShowCreateModal(true) : undefined}
             inline
           />
         )}

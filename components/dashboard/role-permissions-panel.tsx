@@ -67,7 +67,11 @@ export function RolePermissionsPanel({ mode }: { mode: 'roles' | 'matrix' }) {
     setError('')
     setNotice('')
     try {
-      const response = await updateRolePermissions(role.id, role.permissions)
+      const visiblePermissions = new Set(permissions)
+      const response = await updateRolePermissions(
+        role.id,
+        role.permissions.filter((permission) => visiblePermissions.has(permission)),
+      )
       setDraftRoles((roles) => roles.map((item) => item.id === role.id ? response.data : item))
       setMatrix((current) => current ? {
         ...current,

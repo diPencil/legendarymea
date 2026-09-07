@@ -94,17 +94,17 @@ export const activeDashboardNav = dashboardNavigationGroups.flatMap((group) =>
 
 export function isInternalDashboardUser(user: DashboardUser | null) {
   if (!user) return false
-  return user.roles.some((role) => role === 'super_admin' || role === 'admin' || role === 'employee')
+  return user.roles.some((role) => ['super_admin', 'admin', 'manager', 'employee'].includes(role.toLowerCase()))
 }
 
 export function isClientRole(user: DashboardUser | null) {
-  return Boolean(user?.roles.includes('client'))
+  return Boolean(user?.roles.some((role) => role.toLowerCase() === 'client'))
 }
 
 export function canAccessPermission(user: DashboardUser | null, permission?: DashboardNavItem['permission']) {
   if (!permission) return true
   if (!user) return false
-  if (user.roles.includes('super_admin')) return true
+  if (user.roles.some((role) => role.toLowerCase() === 'super_admin')) return true
   if (Array.isArray(permission)) {
     return permission.some((item) => hasPermission(user, item))
   }
@@ -130,7 +130,15 @@ const permissionFallbacks: Record<string, string[]> = {
 
 function hasPermission(user: DashboardUser, permission: string) {
   if (user.permissions.includes(permission)) return true
-  return (permissionFallbacks[permission] ?? []).some((fallback) => user.permissions.includes(fallback))
+  return [...genericPermissionFallbacks(permission), ...(permissionFallbacks[permission] ?? [])]
+    .some((fallback) => user.permissions.includes(fallback))
+}
+
+function genericPermissionFallbacks(permission: string) {
+  const match = permission.match(/^(view|create|update|delete)_(.+)$/)
+  if (!match) return []
+
+  return [`manage_${match[2]}`]
 }
 
 export function visibleDashboardNav(user: DashboardUser | null) {

@@ -26,14 +26,16 @@ interface Notification {
   module: string
   action_type: string
   entity_reference: string
-  title: { en: string; ar: string }
-  description: { en: string; ar: string }
+  title?: LocalizedNotificationText
+  description?: LocalizedNotificationText
   actor_name: string
-  action_path: string
-  icon: string
+  action_path?: string | null
+  icon?: string
   read_at: string | null
   created_at: string
 }
+
+type LocalizedNotificationText = string | { en?: string | null; ar?: string | null } | null | undefined
 
 interface NotificationApiItem {
   id: string
@@ -155,6 +157,12 @@ export function NotificationsDropdown({ isOpen, onToggle, onClose }: { isOpen: b
     return locale === 'ar' ? `منذ ${Math.floor(diff/86400)} يوم` : `${Math.floor(diff/86400)}d ago`
   }
 
+  const localizedText = (value: LocalizedNotificationText, fallback = '') => {
+    if (!value) return fallback
+    if (typeof value === 'string') return value || fallback
+    return value[locale as 'ar' | 'en'] || value.en || value.ar || fallback
+  }
+
   return (
     <div className={styles.wrapper} ref={dropdownRef}>
       <button
@@ -193,10 +201,15 @@ export function NotificationsDropdown({ isOpen, onToggle, onClose }: { isOpen: b
                 <p className={styles.emptyText}>{locale === 'ar' ? 'لا توجد إشعارات' : 'No notifications yet'}</p>
               </div>
             ) : (
-              notifications.map(notification => (
+              notifications.map(notification => {
+                const title = localizedText(notification.title, locale === 'ar' ? 'نشاط جديد' : 'New activity')
+                const description = localizedText(notification.description)
+                const href = notification.action_path || '/dashboard/notifications'
+
+                return (
                 <Link 
                   key={notification.id} 
-                  href={notification.action_path}
+                  href={href}
                   onClick={() => {
                     if (!notification.read_at) {
                       dashboardFetch(`/api/v1/notifications/${notification.id}/read`, { method: 'POST' }).catch(console.error)
@@ -206,16 +219,16 @@ export function NotificationsDropdown({ isOpen, onToggle, onClose }: { isOpen: b
                   className={cn(styles.item, !notification.read_at && styles.itemUnread)}
                 >
                   <div className={styles.itemIconWrap}>
-                    {getIcon(notification.icon)}
+                    {getIcon(notification.icon || 'Bell')}
                   </div>
                   <div className={styles.itemContent}>
                     <div className={styles.itemTitleRow}>
-                      <span className={styles.actorName}>{notification.actor_name}</span>
+                      <span className={styles.actorName}>{notification.actor_name || 'System'}</span>
                       <span className={styles.time}><Clock size={12} /> {formatTimeAgo(notification.created_at)}</span>
                     </div>
-                    <p className={styles.itemTitle}>{notification.title[locale as 'ar' | 'en']}</p>
-                    {notification.description && notification.description[locale as 'ar' | 'en'] && (
-                      <p className={styles.itemDesc}>{notification.description[locale as 'ar' | 'en']}</p>
+                    <p className={styles.itemTitle}>{title}</p>
+                    {description && (
+                      <p className={styles.itemDesc}>{description}</p>
                     )}
                   </div>
                   {!notification.read_at && (
@@ -228,7 +241,8 @@ export function NotificationsDropdown({ isOpen, onToggle, onClose }: { isOpen: b
                     </button>
                   )}
                 </Link>
-              ))
+                )
+              })
             )}
           </div>
 

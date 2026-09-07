@@ -30,8 +30,9 @@ export function DashboardNoteDetailPage({ noteId }: { noteId: string | number })
   const [dialogMode, setDialogMode] = useState<'edit' | 'delete' | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const canViewNotes = canAccessPermission(user, 'view_notes') || canAccessPermission(user, 'manage_notes')
-  const canManageNotes = canAccessPermission(user, 'manage_notes')
+  const canViewNotes = canAccessPermission(user, ['view_notes', 'manage_notes'])
+  const canUpdateNotes = canAccessPermission(user, ['update_notes', 'manage_notes'])
+  const canDeleteNotes = canAccessPermission(user, ['delete_notes', 'manage_notes'])
 
   const handleDashboardError = useCallback((requestError: unknown) => {
     if (requestError instanceof DashboardApiError && requestError.code === 401) {
@@ -142,14 +143,18 @@ export function DashboardNoteDetailPage({ noteId }: { noteId: string | number })
             <strong dir="ltr">{noteRecord.reference}</strong>
           </div>
         </div>
-        {canManageNotes ? (
+        {canUpdateNotes || canDeleteNotes ? (
           <div className={styles.companyHeaderActions}>
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')}>
-              <Pencil aria-hidden="true" />{copy.edit}
-            </button>
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
-              <Trash2 aria-hidden="true" />{copy.delete}
-            </button>
+            {canUpdateNotes ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')}>
+                <Pencil aria-hidden="true" />{copy.edit}
+              </button>
+            ) : null}
+            {canDeleteNotes ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
+                <Trash2 aria-hidden="true" />{copy.delete}
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

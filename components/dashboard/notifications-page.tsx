@@ -17,6 +17,8 @@ interface LocalizedText {
   ar?: string
 }
 
+type NotificationText = string | LocalizedText | null | undefined
+
 interface NotificationRow {
   id: string
   data: {
@@ -114,6 +116,12 @@ export function NotificationsPage() {
     </button>
   ) : null
 
+  const localizedText = (value: NotificationText, fallback = '') => {
+    if (!value) return fallback
+    if (typeof value === 'string') return value || fallback
+    return value[locale] || value.en || value.ar || fallback
+  }
+
   return (
     <ManagementPage>
       <ManagementPageHeader
@@ -152,8 +160,11 @@ export function NotificationsPage() {
                 <tbody>
                   {items.map(item => {
                     const isNotification = isNotificationRow(item)
-                    const title = isNotification ? item.data?.title?.[locale] : item.title?.[locale]
-                    const desc = isNotification ? item.data?.description?.[locale] : item.description?.[locale]
+                    const title = localizedText(
+                      isNotification ? item.data?.title : item.title,
+                      locale === 'ar' ? 'نشاط جديد' : 'New activity',
+                    )
+                    const desc = localizedText(isNotification ? item.data?.description : item.description)
                     const actorName = isNotification ? item.data?.actor_name : item.actor_name
                     const time = item.created_at
                     const isUnread = isNotification && !item.read_at

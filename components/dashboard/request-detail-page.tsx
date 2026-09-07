@@ -34,8 +34,9 @@ export function DashboardRequestDetailPage({ requestId }: { requestId: string | 
   const [ownerId, setOwnerId] = useState('')
   const [targetStatus, setTargetStatus] = useState<RequestStatus | ''>('')
 
-  const canViewRequests = canAccessPermission(user, 'view_requests') || canAccessPermission(user, 'manage_requests')
-  const canManageRequests = canAccessPermission(user, 'manage_requests')
+  const canViewRequests = canAccessPermission(user, ['view_requests', 'manage_requests'])
+  const canUpdateRequests = canAccessPermission(user, ['update_requests', 'manage_requests'])
+  const canDeleteRequests = canAccessPermission(user, ['delete_requests', 'manage_requests'])
   const canAssignRequests = canAccessPermission(user, 'assign_requests')
 
   const handleDashboardError = useCallback((requestError: unknown) => {
@@ -208,19 +209,19 @@ export function DashboardRequestDetailPage({ requestId }: { requestId: string | 
             <StageBadge stage={requestRecord.priority} />
           </div>
         </div>
-        {canManageRequests ? (
+        {canUpdateRequests || canDeleteRequests || canAssignRequests ? (
           <div className={styles.companyHeaderActions}>
-            {requestRecord.status === 'new' && (
+            {canUpdateRequests && requestRecord.status === 'new' && (
               <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('in_progress')} title={copy.start || 'Start Progress'} aria-label={copy.start || 'Start Progress'}>
                 <PlayCircle aria-hidden="true" />
               </button>
             )}
-            {requestRecord.status === 'assigned' && (
+            {canUpdateRequests && requestRecord.status === 'assigned' && (
               <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('in_progress')} title={copy.start || 'Start Progress'} aria-label={copy.start || 'Start Progress'}>
                 <PlayCircle aria-hidden="true" />
               </button>
             )}
-            {requestRecord.status === 'in_progress' && (
+            {canUpdateRequests && requestRecord.status === 'in_progress' && (
               <>
                 <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('waiting_client')} title={copy.waiting_client || 'Wait for Client'} aria-label={copy.waiting_client || 'Wait for Client'}>
                   <Clock aria-hidden="true" />
@@ -230,7 +231,7 @@ export function DashboardRequestDetailPage({ requestId }: { requestId: string | 
                 </button>
               </>
             )}
-            {requestRecord.status === 'waiting_client' && (
+            {canUpdateRequests && requestRecord.status === 'waiting_client' && (
               <>
                 <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('in_progress')} title={copy.resume || 'Resume Progress'} aria-label={copy.resume || 'Resume Progress'}>
                   <PlayCircle aria-hidden="true" />
@@ -240,23 +241,27 @@ export function DashboardRequestDetailPage({ requestId }: { requestId: string | 
                 </button>
               </>
             )}
-            {(requestRecord.status !== 'completed' && requestRecord.status !== 'cancelled') && (
+            {canUpdateRequests && (requestRecord.status !== 'completed' && requestRecord.status !== 'cancelled') && (
               <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} disabled={isSubmitting} onClick={() => void changeStatusAction('cancelled')} title={copy.cancelled || 'Cancel'} aria-label={copy.cancelled || 'Cancel'}>
                 <AlertTriangle aria-hidden="true" />
               </button>
             )}
 
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
-              <Pencil aria-hidden="true" />
-            </button>
+            {canUpdateRequests ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
+                <Pencil aria-hidden="true" />
+              </button>
+            ) : null}
             {canAssignRequests ? (
               <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('owner')} title={requestRecord.assigned_employee ? (copy.reassignOwner || 'Reassign') : (copy.assignOwner || 'Assign')} aria-label={requestRecord.assigned_employee ? (copy.reassignOwner || 'Reassign') : (copy.assignOwner || 'Assign')}>
                 <UserRoundPlus aria-hidden="true" />
               </button>
             ) : null}
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
-              <Trash2 aria-hidden="true" />
-            </button>
+            {canDeleteRequests ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
+                <Trash2 aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

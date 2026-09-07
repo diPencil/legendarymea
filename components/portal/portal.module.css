@@ -1,0 +1,1039 @@
+.portalPage {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(244, 240, 232, 0.92)),
+    #f4f0e8;
+  color: #081d60;
+  font-family: var(--font-en), var(--font-ar), Montserrat, Arial, sans-serif;
+  padding: 24px;
+}
+
+.loadingPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(244, 240, 232, 0.96)),
+    #f4f0e8;
+  color: #081d60;
+  font-family: var(--font-en), var(--font-ar), Montserrat, Arial, sans-serif;
+}
+
+.loadingPanel {
+  width: min(100%, 440px);
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  padding: 36px 32px 34px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #d9d8d2;
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(8, 29, 96, 0.1);
+  text-align: center;
+}
+
+.loadingBrand {
+  width: min(230px, 78vw);
+  height: auto;
+  display: block;
+}
+
+.loadingMark {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(160, 127, 49, 0.22);
+  border-top-color: #a07f31;
+  border-radius: 50%;
+  animation: portalSpin 0.95s linear infinite;
+}
+
+.loadingMark span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #081d60;
+  box-shadow: inset 0 0 0 8px #fff, 0 0 0 1px rgba(8, 29, 96, 0.08);
+}
+
+.loadingCopy {
+  display: grid;
+  gap: 8px;
+}
+
+.loadingCopy span {
+  color: #a07f31;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.loadingCopy h1 {
+  margin: 0;
+  color: #081d60;
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+
+.loadingCopy p {
+  margin: 0;
+  color: #6d716f;
+  font-size: 0.9rem;
+}
+
+@keyframes portalSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.portalShell {
+  width: min(100%, 1360px);
+  margin: 0 auto;
+}
+
+.portalTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d9d8d2;
+  border-radius: 8px;
+  box-shadow: 0 18px 55px rgba(8, 29, 96, 0.07);
+}
+
+.brandBlock,
+.topbarActions,
+.accountButton {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand {
+  width: 188px;
+  height: auto;
+  display: block;
+}
+
+.brandBlock span,
+.portalHeader span,
+.heroPanel span {
+  display: block;
+  color: #a07f31;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.brandBlock strong {
+  display: block;
+  max-width: 360px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #081d60;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iconButton,
+.accountButton {
+  min-height: 42px;
+  border: 1px solid #d9d8d2;
+  border-radius: 8px;
+  background: #fff;
+  color: #081d60;
+  font: inherit;
+  cursor: pointer;
+}
+
+.iconButton {
+  display: grid;
+  width: 42px;
+  place-items: center;
+}
+
+.iconButton svg,
+.accountButton svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+
+.accountButton {
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 16px 0 22px;
+  padding: 8px;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid #d9d8d2;
+  border-radius: 8px;
+}
+
+.nav button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #5f6572;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nav button:hover {
+  color: #081d60;
+  border-color: rgba(160, 127, 49, 0.35);
+}
+
+.nav button[aria-current="page"] {
+  color: #fff;
+  background: #081d60;
+}
+
+.portalMain,
+.overviewStack {
+  display: grid;
+  gap: 18px;
+}
+
+.portalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: end;
+  padding: 10px 2px 4px;
+}
+
+.portalHeader h1 {
+  margin: 6px 0 0;
+  color: #081d60;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 1.05;
+}
+
+.portalHeader p {
+  max-width: 480px;
+  margin: 0;
+  color: #6d716f;
+  font-size: 0.96rem;
+  line-height: 1.7;
+}
+
+.heroPanel,
+.portalPanel,
+.loginPanel {
+  background: #fff;
+  border: 1px solid #d9d8d2;
+  border-radius: 8px;
+  box-shadow: 0 20px 70px rgba(8, 29, 96, 0.06);
+}
+
+.heroPanel {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  overflow: hidden;
+  padding: clamp(28px, 4vw, 46px);
+}
+
+.heroPanel::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: 100%;
+  height: 5px;
+  background: #a07f31;
+}
+
+.heroPanel h2 {
+  max-width: 760px;
+  margin: 8px 0 14px;
+  color: #081d60;
+  font-size: clamp(2rem, 4vw, 4.2rem);
+  line-height: 0.98;
+}
+
+.heroPanel p {
+  max-width: 620px;
+  margin: 0;
+  color: #6d716f;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.heroPanel > svg {
+  width: 74px;
+  height: 74px;
+  color: rgba(160, 127, 49, 0.28);
+  align-self: center;
+}
+
+.portalPanel,
+.loginPanel {
+  padding: 26px;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric {
+  min-height: 150px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #d9d8d2;
+  border-radius: 8px;
+}
+
+.metric small {
+  display: block;
+  color: #a07f31;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 20px;
+  color: #081d60;
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.metric span {
+  display: block;
+  margin-top: 10px;
+  color: #6d716f;
+  font-size: 0.86rem;
+}
+
+.insightGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e7e1d7;
+}
+
+.panelTitle svg {
+  width: 18px;
+  height: 18px;
+  color: #a07f31;
+}
+
+.panelTitle h2 {
+  margin: 0;
+  color: #081d60;
+  font-size: 1.2rem;
+}
+
+.compactLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 0;
+  border-bottom: 1px solid #eee9df;
+}
+
+.compactLine:last-child {
+  border-bottom: 0;
+}
+
+.compactLine span {
+  color: #6d716f;
+}
+
+.compactLine strong {
+  color: #081d60;
+  text-align: end;
+}
+
+.table {
+  width: 100%;
+  margin-top: 16px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #eee9df;
+  padding: 14px 10px;
+  text-align: start;
+}
+
+.table th {
+  color: #a07f31;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.clickableRow {
+  transition: background 0.15s ease;
+}
+
+.clickableRow:hover {
+  background: #fcfaf7;
+}
+
+.clickableRow td:first-child:hover {
+  color: #a07f31;
+}
+
+.loginPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(160, 127, 49, 0.08), transparent 60%),
+    radial-gradient(700px 500px at 85% 90%, rgba(8, 29, 96, 0.06), transparent 60%),
+    linear-gradient(180deg, #fcfaf7 0%, #f4f0e8 100%);
+}
+
+.loginPage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(8, 29, 96, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 29, 96, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(800px 600px at 50% 50%, black 40%, transparent 75%);
+  pointer-events: none;
+}
+
+.loginPanel {
+  width: min(100%, 1020px);
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  background: #fff;
+  border: 1px solid #e8e3d9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 28px 80px rgba(8, 29, 96, 0.09),
+    0 8px 24px rgba(8, 29, 96, 0.06),
+    0 1px 0 rgba(8, 29, 96, 0.04);
+  position: relative;
+  z-index: 1;
+}
+
+.loginBrand {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 40px 38px 32px;
+  background:
+    linear-gradient(180deg, rgba(8, 29, 96, 0.015), transparent 40%),
+    linear-gradient(180deg, #fcfaf7 0%, #ffffff 100%);
+  border-inline-end: 1px solid #eee9df;
+  position: relative;
+}
+
+.loginBrand::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #081d60 0%, #a07f31 100%);
+  opacity: 0.95;
+}
+
+.loginBrandTop {
+  display: grid;
+  gap: 18px;
+}
+
+.loginBrand h2 {
+  margin: 0;
+  color: #081d60;
+  font-size: clamp(1.55rem, 2.3vw, 1.85rem);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.loginBrandDesc {
+  margin: 0;
+  color: #6d716f;
+  font-size: 0.93rem;
+  line-height: 1.75;
+  max-width: 36ch;
+}
+
+.loginFeatures {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.loginFeature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #081d60;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.loginFeature i {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(160, 127, 49, 0.11);
+  color: #a07f31;
+  flex: none;
+}
+
+.loginFeature i svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.loginBrandFooter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid #eee9df;
+  color: #8a8f98;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.loginBrandFooter strong {
+  color: #081d60;
+  font-weight: 700;
+}
+
+.secureBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(8, 29, 96, 0.06);
+  border: 1px solid rgba(8, 29, 96, 0.08);
+  color: #081d60;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.secureBadge svg {
+  width: 12px;
+  height: 12px;
+  color: #0a7a3a;
+}
+
+.loginFormSide {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 36px 32px;
+  background: #fff;
+}
+
+.loginHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.loginHeader span,
+.eyebrow {
+  display: block;
+  color: #a07f31;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.loginHeader h1 {
+  margin: 6px 0 0;
+  color: #081d60;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.loginHeader p {
+  margin: 6px 0 0;
+  color: #8a8f98;
+  font-size: 0.82rem;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form label {
+  display: grid;
+  gap: 7px;
+  color: #081d60;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.fieldWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fieldWrap svg {
+  position: absolute;
+  inset-inline-start: 12px;
+  width: 16px;
+  height: 16px;
+  color: #9aa0ad;
+  pointer-events: none;
+}
+
+.form input {
+  width: 100%;
+  border: 1px solid #d9d8d2;
+  border-radius: 10px;
+  padding: 13px 14px 13px 38px;
+  color: #081d60;
+  background: #fcfaf7;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form input::placeholder {
+  color: #9aa0ad;
+}
+
+.form input:hover {
+  border-color: #c9c5bc;
+  background: #fff;
+}
+
+.form input:focus {
+  outline: none;
+  border-color: #a07f31;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(160, 127, 49, 0.13);
+}
+
+.passwordToggle {
+  position: absolute;
+  inset-inline-end: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #7a8190;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.passwordToggle:hover {
+  background: #f4f0e8;
+  color: #081d60;
+}
+
+.passwordToggle svg {
+  position: static;
+  width: 16px;
+  height: 16px;
+}
+
+.formMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: -4px;
+}
+
+.formMeta a {
+  color: #081d60;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(160, 127, 49, 0.4);
+}
+
+.formMeta a:hover {
+  color: #a07f31;
+}
+
+.primaryButton,
+.secondaryButton {
+  border-radius: 10px;
+  padding: 13px 18px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.primaryButton {
+  border: 0;
+  background: #081d60;
+  color: #fff;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 20px rgba(8, 29, 96, 0.18);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #0f2a85;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(8, 29, 96, 0.22);
+}
+
+.primaryButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.primaryButton:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.secondaryButton {
+  border: 1px solid #d9d8d2;
+  background: #fff;
+  color: #081d60;
+}
+
+.alert {
+  border: 1px solid #e7c56b;
+  background: #fff8e6;
+  color: #8a6515;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.danger {
+  border-color: #efb4b4;
+  background: #fff1f1;
+  color: #9c1b1b;
+}
+
+.loginSupport {
+  margin-top: 18px;
+  text-align: center;
+  color: #8a8f98;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.loginSupport a {
+  color: #081d60;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 980px) {
+  .portalTopbar,
+  .portalHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbarActions {
+    flex-wrap: wrap;
+  }
+
+  .metricGrid,
+  .insightGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 880px) {
+  .loginPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .loginBrand {
+    border-inline-end: 0;
+    border-bottom: 1px solid #eee9df;
+    padding: 28px 24px 22px;
+  }
+
+  .loginBrandFooter {
+    display: none;
+  }
+
+  .loginFormSide {
+    padding: 24px 24px 28px;
+  }
+}
+
+@media (max-width: 680px) {
+  .portalPage,
+  .loginPage {
+    padding: 14px;
+  }
+
+  .brandBlock {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .brand {
+    width: 170px;
+  }
+
+  .metricGrid,
+  .insightGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .accountButton span {
+    display: none;
+  }
+
+  .heroPanel {
+    flex-direction: column;
+  }
+
+  .loginPage {
+    padding: 12px;
+    place-items: start center;
+  }
+
+  .loginPanel {
+    border-radius: 16px;
+  }
+}
+
+/* ================= RTL / Arabic polish — isolates Arabic styling ================= */
+html[lang="ar"] .portalPage,
+.portalPage[dir="rtl"],
+html[lang="ar"] .loginPage,
+.loginPage[dir="rtl"] {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+}
+
+html[lang="ar"] .portalPage h1,
+html[lang="ar"] .portalPage h2,
+html[lang="ar"] .portalPage h3,
+html[lang="ar"] .loginPage h1,
+html[lang="ar"] .loginPage h2,
+html[lang="ar"] .loginPage h3,
+.portalPage[dir="rtl"] h1,
+.portalPage[dir="rtl"] h2,
+.portalPage[dir="rtl"] h3,
+.loginPage[dir="rtl"] h1,
+.loginPage[dir="rtl"] h2,
+.loginPage[dir="rtl"] h3 {
+  letter-spacing: 0 !important;
+  line-height: 1.18;
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+}
+
+html[lang="ar"] .brandBlock span,
+html[lang="ar"] .portalHeader span,
+html[lang="ar"] .heroPanel span,
+html[lang="ar"] .metric small,
+html[lang="ar"] .table th,
+html[lang="ar"] .eyebrow,
+html[lang="ar"] .loginHeader span,
+html[lang="ar"] .secureBadge,
+.portalPage[dir="rtl"] .brandBlock span,
+.portalPage[dir="rtl"] .portalHeader span,
+.portalPage[dir="rtl"] .heroPanel span,
+.portalPage[dir="rtl"] .metric small,
+.portalPage[dir="rtl"] .table th,
+.loginPage[dir="rtl"] .eyebrow,
+.loginPage[dir="rtl"] .loginHeader span,
+.loginPage[dir="rtl"] .secureBadge {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  font-weight: 700;
+}
+
+html[lang="ar"] .portalHeader h1,
+.portalPage[dir="rtl"] .portalHeader h1 {
+  font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+}
+
+html[lang="ar"] .heroPanel h2,
+.portalPage[dir="rtl"] .heroPanel h2 {
+  line-height: 1.22;
+  font-size: clamp(1.8rem, 3.5vw, 3.4rem);
+}
+
+html[lang="ar"] .portalHeader p,
+html[lang="ar"] .heroPanel p,
+html[lang="ar"] .loginBrandDesc,
+html[lang="ar"] .form label,
+html[lang="ar"] .nav button,
+html[lang="ar"] .metric span,
+html[lang="ar"] .compactLine span,
+html[lang="ar"] .compactLine strong,
+.portalPage[dir="rtl"] .portalHeader p,
+.portalPage[dir="rtl"] .heroPanel p,
+.loginPage[dir="rtl"] .loginBrandDesc,
+.loginPage[dir="rtl"] .form label,
+.portalPage[dir="rtl"] .nav button,
+.portalPage[dir="rtl"] .metric span,
+.portalPage[dir="rtl"] .compactLine span,
+.portalPage[dir="rtl"] .compactLine strong {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+html[lang="ar"] .portalHeader p,
+.portalPage[dir="rtl"] .portalHeader p {
+  text-align: start;
+  unicode-bidi: plaintext;
+}
+
+html[lang="ar"] .nav button,
+.portalPage[dir="rtl"] .nav button {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+html[lang="ar"] .table th,
+.portalPage[dir="rtl"] .table th {
+  font-size: 0.75rem;
+}
+
+html[lang="ar"] .form input,
+.loginPage[dir="rtl"] .form input {
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+}
+
+html[lang="ar"] .alert,
+.portalPage[dir="rtl"] .alert,
+.loginPage[dir="rtl"] .alert {
+  text-align: start;
+  unicode-bidi: plaintext;
+  font-family: var(--font-ar), Tahoma, Arial, sans-serif;
+  line-height: 1.7;
+}
+
+/* Arabic table alignment: keep LTR values (reference/date) visually under their RTL headers */
+html[lang="ar"] .table td[dir="ltr"],
+.portalPage[dir="rtl"] .table td[dir="ltr"] {
+  text-align: right;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* Ensure title/status stay right-aligned under their headers in RTL */
+html[lang="ar"] .table td:nth-child(2),
+html[lang="ar"] .table td:nth-child(3),
+.portalPage[dir="rtl"] .table td:nth-child(2),
+.portalPage[dir="rtl"] .table td:nth-child(3) {
+  text-align: right;
+}
+
+/* Invoice Arabic alignment: ensure labels and values stay under their headers */
+html[lang="ar"] .invoiceDetailsGrid,
+.portalPage[dir="rtl"] .invoiceDetailsGrid,
+html[lang="ar"] .invoiceBillGrid,
+.portalPage[dir="rtl"] .invoiceBillGrid,
+html[lang="ar"] .invoiceDetailsGrid dl,
+.portalPage[dir="rtl"] .invoiceDetailsGrid dl {
+  direction: rtl;
+}
+html[lang="ar"] .invoiceDetailsGrid dt,
+html[lang="ar"] .invoiceDetailsGrid dd,
+.portalPage[dir="rtl"] .invoiceDetailsGrid dt,
+.portalPage[dir="rtl"] .invoiceDetailsGrid dd,
+html[lang="ar"] .invoiceBillGrid dt,
+html[lang="ar"] .invoiceBillGrid dd,
+.portalPage[dir="rtl"] .invoiceBillGrid dt,
+.portalPage[dir="rtl"] .invoiceBillGrid dd {
+  text-align: right;
+}
+html[lang="ar"] .invoiceDetailsGrid dd[dir="ltr"],
+.portalPage[dir="rtl"] .invoiceDetailsGrid dd[dir="ltr"],
+html[lang="ar"] .invoiceBillGrid dd[dir="ltr"],
+.portalPage[dir="rtl"] .invoiceBillGrid dd[dir="ltr"] {
+  text-align: right;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+html[lang="ar"] .invoiceDocumentHeader,
+.portalPage[dir="rtl"] .invoiceDocumentHeader,
+html[lang="ar"] .invoiceDocumentMark,
+.portalPage[dir="rtl"] .invoiceDocumentMark {
+  direction: rtl;
+}
+html[lang="ar"] .invoiceIssuerCopy,
+.portalPage[dir="rtl"] .invoiceIssuerCopy,
+html[lang="ar"] .invoiceIssuerCopy p,
+.portalPage[dir="rtl"] .invoiceIssuerCopy p {
+  text-align: right;
+}
+html[lang="ar"] .invoiceIssuerCopy p[dir="ltr"],
+.portalPage[dir="rtl"] .invoiceIssuerCopy p[dir="ltr"] {
+  text-align: right;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+html[lang="ar"] .invoiceDocumentMark,
+.portalPage[dir="rtl"] .invoiceDocumentMark {
+  text-align: left;
+}
+html[lang="ar"] .invoiceDocumentMark h1,
+.portalPage[dir="rtl"] .invoiceDocumentMark h1 {
+  text-align: left;
+}

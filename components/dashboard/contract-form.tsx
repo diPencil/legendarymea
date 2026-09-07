@@ -92,38 +92,23 @@ export function ContractForm({
 
     async function load() {
       try {
-        const [compRes, contRes, quotRes] = await Promise.all([
-          listCompanies({
-            page: 1,
-            perPage: 500,
-            search: '',
-            status: '',
-            relationship: '',
-            countryCode: '',
-            accountManagerId: '',
-            sortBy: 'name',
-            sortOrder: 'asc',
-          }),
-          listContacts({
-            page: 1,
-            perPage: 1000,
-            search: '',
-            sort_by: 'first_name',
-            sort_dir: 'asc',
-            status: '',
-            company_id: '',
-            is_primary: '',
-          }),
-          listQuotations({ per_page: 500, status: 'accepted' }),
-        ])
+        const compRes = await listCompanies({
+          page: 1,
+          perPage: 100,
+          search: '',
+          status: '',
+          relationship: '',
+          countryCode: '',
+          accountManagerId: '',
+          sortBy: 'name',
+          sortOrder: 'asc',
+        })
 
         if (!mounted) {
           return
         }
 
         setCompanies(compRes.data)
-        setContacts(contRes.data)
-        setQuotations(quotRes.data)
       } catch {
         // Keep the form usable even if optional selectors fail to hydrate.
       } finally {
@@ -138,6 +123,48 @@ export function ContractForm({
       mounted = false
     }
   }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadRelated() {
+      if (!companyId) {
+        setContacts([])
+        setQuotations([])
+        return
+      }
+
+      try {
+        const [contRes, quotRes] = await Promise.all([
+          listContacts({
+            page: 1,
+            perPage: 100,
+            search: '',
+            sort_by: 'first_name',
+            sort_dir: 'asc',
+            status: '',
+            company_id: String(companyId),
+            is_primary: '',
+          }),
+          listQuotations({ per_page: 100, status: 'accepted', company_id: Number(companyId) }),
+        ])
+
+        if (!mounted) {
+          return
+        }
+
+        setContacts(contRes.data)
+        setQuotations(quotRes.data)
+      } catch {
+        // Keep the form usable even if optional selectors fail to hydrate.
+      }
+    }
+
+    void loadRelated()
+    return () => {
+      mounted = false
+    }
+  }, [companyId])
 
   useEffect(() => {
     let mounted = true
@@ -194,12 +221,69 @@ export function ContractForm({
     }
   }, [companyId, contacts, quotations, contactId, quotationId])
 
-  const visibleContacts = companyId
-    ? contacts.filter((entry) => !entry.company?.id || entry.company.id === Number(companyId))
-    : contacts
-  const visibleQuotations = companyId
-    ? quotations.filter((entry) => entry.company?.id === Number(companyId))
-    : quotations
+  const visibleContacts = (() => {
+    const base = companyId
+      ? contacts.filter((entry) => !entry.company?.id || entry.company.id === Number(companyId))
+      : contacts
+    // Preserve linked contact in edit mode even if outside current page
+    if (contract?.contact && !base.some((entry) => entry.id === contract.contact!.id)) {
+      return [
+        ...base,
+        {
+          id: contract.contact.id,
+          reference: '',
+          company_id: contract.company.id,
+          first_name: contract.contact.name,
+          last_name: null,
+          full_name: contract.contact.name,
+          job_title: null,
+          department: null,
+          email: null,
+          phone: null,
+          country_code: null,
+          is_primary: false,
+          status: null,
+          preferred_locale: null,
+          notes: null,
+          company: { id: contract.company.id, reference: contract.company.reference, name: contract.company.name },
+          created_at: '',
+          updated_at: '',
+        },
+      ]
+    }
+    return base
+  })()
+  const visibleQuotations = (() => {
+    const base = companyId
+      ? quotations.filter((entry) => entry.company?.id === Number(companyId))
+      : quotations
+    // Preserve linked quotation in edit mode even if status is no longer accepted
+    if (contract?.quotation && !base.some((entry) => entry.id === contract.quotation!.id)) {
+      return [
+        ...base,
+        {
+          id: contract.quotation.id,
+          reference: contract.quotation.reference,
+          status: contract.quotation.status as Quotation['status'],
+          currency: contract.quotation.currency ?? 'USD',
+          subtotal: '',
+          discount_amount: null,
+          tax_amount: null,
+          total_amount: contract.quotation.total_amount != null ? String(contract.quotation.total_amount) : '',
+          issue_date: null,
+          valid_until: null,
+          notes: null,
+          terms: null,
+          company: { id: contract.company.id, reference: contract.company.reference, name: contract.company.name },
+          items: [],
+          creator: { id: 0, name: '', username: '' },
+          created_at: '',
+          updated_at: '',
+        },
+      ]
+    }
+    return base
+  })()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -384,11 +468,18 @@ export function ContractForm({
                   <option value="">{copy.none}</option>
                   {visibleQuotations.map((quotation) => (
                     <option key={quotation.id} value={quotation.id}>
-                      {quotation.reference} {quotation.total_amount ? `(${quotation.currency} ${quotation.total_amount})` : ''}
+                      {quotation.reference} {quotation.total_amount ? `(${quotation.currency} ${quotation.total_amount})` : ''} [{quotation.status}]
                     </option>
                   ))}
                 </select>
                 <FieldError name="quotation_id" errors={errors} />
+                {companyId && visibleQuotations.length === 0 ? (
+                  <small className={styles.mutedState}>
+                    {locale === 'ar'
+                      ? 'لا توجد عروض أسعار مقبولة لهذه الشركة. يجب قبول عرض السعر أولاً لربطه بالعقد.'
+                      : 'No accepted quotations for this company. Accept a quotation first to link it.'}
+                  </small>
+                ) : null}
               </label>
             </div>
       </fieldset>

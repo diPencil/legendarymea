@@ -30,8 +30,9 @@ export function DashboardContactDetailPage({ contactId }: { contactId: string | 
   const [dialogMode, setDialogMode] = useState<'edit' | 'delete' | 'primary' | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const canViewContacts = canAccessPermission(user, 'view_contacts') || canAccessPermission(user, 'manage_contacts')
-  const canManageContacts = canAccessPermission(user, 'manage_contacts')
+  const canViewContacts = canAccessPermission(user, ['view_contacts', 'manage_contacts'])
+  const canUpdateContacts = canAccessPermission(user, ['update_contacts', 'manage_contacts'])
+  const canDeleteContacts = canAccessPermission(user, ['delete_contacts', 'manage_contacts'])
 
   const handleDashboardError = useCallback((requestError: unknown) => {
     if (requestError instanceof DashboardApiError && requestError.code === 401) {
@@ -150,19 +151,23 @@ export function DashboardContactDetailPage({ contactId }: { contactId: string | 
             <StatusBadge status={contact.status ?? 'active'} />
           </div>
         </div>
-        {canManageContacts ? (
+        {canUpdateContacts || canDeleteContacts ? (
           <div className={styles.companyHeaderActions}>
-            {contact.company && !contact.is_primary && (
+            {canUpdateContacts && contact.company && !contact.is_primary && (
               <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('primary')}>
                 <Star aria-hidden="true" />{copy.setPrimaryContact}
               </button>
             )}
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')}>
-              <Pencil aria-hidden="true" />{copy.edit}
-            </button>
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
-              <Trash2 aria-hidden="true" />{copy.delete}
-            </button>
+            {canUpdateContacts ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')}>
+                <Pencil aria-hidden="true" />{copy.edit}
+              </button>
+            ) : null}
+            {canDeleteContacts ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
+                <Trash2 aria-hidden="true" />{copy.delete}
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

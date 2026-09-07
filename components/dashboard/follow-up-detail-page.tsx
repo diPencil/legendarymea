@@ -34,8 +34,9 @@ export function DashboardFollowUpDetailPage({ followUpId }: { followUpId: string
   const [ownerId, setOwnerId] = useState('')
   const [targetStatus, setTargetStatus] = useState<FollowUpStatus | ''>('')
 
-  const canViewFollowUps = canAccessPermission(user, 'view_follow_ups')
-  const canManageFollowUps = canAccessPermission(user, 'manage_follow_ups')
+  const canViewFollowUps = canAccessPermission(user, ['view_follow_ups', 'manage_follow_ups'])
+  const canUpdateFollowUps = canAccessPermission(user, ['update_follow_ups', 'manage_follow_ups'])
+  const canDeleteFollowUps = canAccessPermission(user, ['delete_follow_ups', 'manage_follow_ups'])
   const canAssignFollowUps = canAccessPermission(user, 'assign_follow_ups')
 
   const handleDashboardError = useCallback((requestError: unknown) => {
@@ -196,9 +197,9 @@ export function DashboardFollowUpDetailPage({ followUpId }: { followUpId: string
             )}
           </div>
         </div>
-        {canManageFollowUps ? (
+        {canUpdateFollowUps || canDeleteFollowUps || canAssignFollowUps ? (
           <div className={styles.companyHeaderActions}>
-            {followUpRecord.status === 'pending' && (
+            {canUpdateFollowUps && followUpRecord.status === 'pending' && (
               <>
                 <button type="button" className={styles.primaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('completed')} title={copy.completeFollowUp || 'Complete'} aria-label={copy.completeFollowUp || 'Complete'}>
                   <CheckCircle2 aria-hidden="true" />
@@ -208,23 +209,27 @@ export function DashboardFollowUpDetailPage({ followUpId }: { followUpId: string
                 </button>
               </>
             )}
-            {(followUpRecord.status === 'completed' || followUpRecord.status === 'cancelled') && (
+            {canUpdateFollowUps && (followUpRecord.status === 'completed' || followUpRecord.status === 'cancelled') && (
               <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('pending')} title={copy.reopenFollowUp || 'Reopen'} aria-label={copy.reopenFollowUp || 'Reopen'}>
                 <RotateCcw aria-hidden="true" />
               </button>
             )}
             
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
-              <Pencil aria-hidden="true" />
-            </button>
+            {canUpdateFollowUps ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
+                <Pencil aria-hidden="true" />
+              </button>
+            ) : null}
             {canAssignFollowUps ? (
               <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('owner')} title={followUpRecord.assignee ? (copy.reassignFollowUp || 'Reassign') : (copy.assignFollowUp || 'Assign')} aria-label={followUpRecord.assignee ? (copy.reassignFollowUp || 'Reassign') : (copy.assignFollowUp || 'Assign')}>
                 <UserRoundPlus aria-hidden="true" />
               </button>
             ) : null}
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
-              <Trash2 aria-hidden="true" />
-            </button>
+            {canDeleteFollowUps ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
+                <Trash2 aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

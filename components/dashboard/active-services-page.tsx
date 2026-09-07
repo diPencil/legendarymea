@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Building2, ChevronLeft, ChevronRight, ChevronsUpDown, Eye, Plus, X, PenLine, Search } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, ChevronsUpDown, Eye, Plus, PenLine, Search } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
@@ -65,8 +65,9 @@ export function ActiveServicesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingService, setEditingService] = useState<ActiveService | null>(null)
 
-  const canViewServices = canAccessPermission(user, 'view_active_services') || canAccessPermission(user, 'manage_active_services')
-  const canManageServices = canAccessPermission(user, 'manage_active_services')
+  const canViewServices = canAccessPermission(user, ['view_active_services', 'manage_active_services'])
+  const canCreateServices = canAccessPermission(user, ['create_active_services', 'manage_active_services'])
+  const canUpdateServices = canAccessPermission(user, ['update_active_services', 'manage_active_services'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -240,7 +241,7 @@ export function ActiveServicesPage() {
           <h2>{copy.activeServices}</h2>
           <p>{copy.activeServicesDescription}</p>
         </div>
-        {canManageServices ? (
+        {canCreateServices ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.createActiveService}
@@ -367,7 +368,7 @@ export function ActiveServicesPage() {
                           <Link href={`/dashboard/active-services/${service.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canManageServices && ['draft', 'active', 'suspended'].includes(service.status) && (
+                          {canUpdateServices && ['draft', 'active', 'suspended'].includes(service.status) && (
                             <button type="button" className={styles.iconButton} onClick={() => void openEditService(service.id)} aria-label={copy.edit}>
                               <PenLine aria-hidden="true" />
                             </button>
@@ -401,7 +402,7 @@ export function ActiveServicesPage() {
                     <Link href={`/dashboard/active-services/${service.id}`} className={styles.iconButton} aria-label={copy.view}>
                       <Eye aria-hidden="true" />
                     </Link>
-                    {canManageServices && ['draft', 'active', 'suspended'].includes(service.status) && (
+                    {canUpdateServices && ['draft', 'active', 'suspended'].includes(service.status) && (
                       <button type="button" className={styles.iconButton} onClick={() => void openEditService(service.id)} aria-label={copy.edit}>
                         <PenLine aria-hidden="true" />
                       </button>
@@ -415,8 +416,8 @@ export function ActiveServicesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingActiveServices : copy.noActiveServices}
             body={hasActiveQuery ? copy.noMatchingActiveServicesBody : copy.noActiveServicesBody}
-            actionLabel={canManageServices && !hasActiveQuery ? copy.createActiveService : undefined}
-            onAction={canManageServices && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
+actionLabel={canCreateServices && !hasActiveQuery ? copy.createActiveService : undefined}
+onAction={canCreateServices && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
           />
         )}
         {meta && services.length > 0 ? (
@@ -450,7 +451,7 @@ export function ActiveServicesPage() {
   )
 
   async function openEditService(serviceId: number) {
-    if (!canManageServices) {
+    if (!canUpdateServices) {
       return
     }
 

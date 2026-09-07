@@ -75,7 +75,8 @@ export function QuotationsPage() {
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [activeQuotation, setActiveQuotation] = useState<Quotation | null>(null)
   
-  const canManage = canAccessPermission(user, 'manage_quotations')
+  const canCreate = canAccessPermission(user, ['create_quotations', 'manage_quotations'])
+  const canUpdate = canAccessPermission(user, ['update_quotations', 'manage_quotations'])
 
   const rawQuery = useMemo(() => ({
     page: searchParams.get('page') || '1',
@@ -175,11 +176,13 @@ export function QuotationsPage() {
   }, [rawQuery.search, searchInput, setQueryParam])
 
   const openCreate = () => {
+    if (!canCreate) return
     setActiveQuotation(null)
     setModalMode('create')
   }
 
   const openEdit = (record: Quotation) => {
+    if (!canUpdate) return
     setActiveQuotation(record)
     setModalMode('edit')
   }
@@ -197,7 +200,7 @@ export function QuotationsPage() {
           <h2>{copy.quotations}</h2>
           <p>{copy.quotationsDescription}</p>
         </div>
-        {canManage ? (
+        {canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={openCreate}>
             <Plus aria-hidden="true" />
             {copy.createQuotation}
@@ -301,7 +304,7 @@ export function QuotationsPage() {
                           <Link href={`/dashboard/quotations/${record.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canManage && record.status === 'draft' && (
+                          {canUpdate && record.status === 'draft' && (
                             <button type="button" className={styles.iconButton} onClick={() => openEdit(record)} aria-label={copy.edit}>
                               <PenLine aria-hidden="true" />
                             </button>
@@ -343,7 +346,7 @@ export function QuotationsPage() {
                     <Link href={`/dashboard/quotations/${record.id}`} className={styles.iconButton} aria-label={copy.view}>
                       <Eye aria-hidden="true" />
                     </Link>
-                    {canManage && record.status === 'draft' && (
+                    {canUpdate && record.status === 'draft' && (
                       <button type="button" className={styles.iconButton} onClick={() => openEdit(record)} aria-label={copy.edit}>
                         <PenLine aria-hidden="true" />
                       </button>
@@ -357,8 +360,8 @@ export function QuotationsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingQuotations : copy.noQuotations}
             body={hasActiveQuery ? copy.noMatchingQuotationsBody : copy.noQuotationsBody}
-            onAction={!hasActiveQuery && canManage ? openCreate : undefined}
-            actionLabel={!hasActiveQuery && canManage ? copy.createQuotation : undefined}
+            onAction={!hasActiveQuery && canCreate ? openCreate : undefined}
+            actionLabel={!hasActiveQuery && canCreate ? copy.createQuotation : undefined}
             actionIcon={Plus}
             inline
           />

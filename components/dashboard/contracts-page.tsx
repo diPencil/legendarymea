@@ -80,8 +80,9 @@ export function ContractsPage() {
       || searchParams.get('created_to'),
   ))
 
-  const canViewContracts = canAccessPermission(user, 'view_contracts') || canAccessPermission(user, 'manage_contracts')
-  const canManageContracts = canAccessPermission(user, 'manage_contracts')
+  const canViewContracts = canAccessPermission(user, ['view_contracts', 'manage_contracts'])
+  const canCreateContracts = canAccessPermission(user, ['create_contracts', 'manage_contracts'])
+  const canUpdateContracts = canAccessPermission(user, ['update_contracts', 'manage_contracts'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -224,7 +225,7 @@ export function ContractsPage() {
   }
 
   async function openEditContract(contractId: number) {
-    if (!canManageContracts) {
+    if (!canUpdateContracts) {
       return
     }
 
@@ -240,9 +241,9 @@ export function ContractsPage() {
     const isCurrent = query.sort_by === sortKey
     return (
       <th aria-sort={isCurrent ? (query.sort_order === 'asc' ? 'ascending' : 'descending') : 'none'}>
-        <button type="button" onClick={() => toggleSort(sortKey)} className={styles.tableSortButton}>
+        <button type="button" onClick={() => toggleSort(sortKey)} className={styles.sortButton}>
           {label}
-          <ChevronsUpDown aria-hidden="true" className={cn(styles.sortIcon, isCurrent && styles.sortIconActive)} />
+          <ChevronsUpDown aria-hidden="true" className={cn(styles.sortButtonIcon, isCurrent && styles.sortButtonActive)} />
         </button>
       </th>
     )
@@ -264,7 +265,7 @@ export function ContractsPage() {
         kicker={copy.commercial}
         title={copy.contracts}
         description={copy.contractsDescription}
-        action={canManageContracts ? (
+        action={canCreateContracts ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.createContract}
@@ -340,89 +341,91 @@ export function ContractsPage() {
           <DashboardState title={copy.errorTitle} body={error} actionLabel={copy.retry} onAction={() => void fetchList(false)} />
         ) : contracts.length > 0 ? (
           <>
-            <div className={styles.employeeTableWrap}>
-              <table className={styles.employeeTable}>
-                <thead>
-                  <tr>
-                    <th>{copy.company}</th>
-                    {renderSortableHeader(copy.contractReference, "reference")}
-                    {renderSortableHeader(copy.contractTitle, "title")}
-                    <th>{copy.status}</th>
-                    {renderSortableHeader(copy.contractValue, "contract_value")}
-                    <th>{copy.contractPeriod}</th>
-                    {renderSortableHeader(copy.createdAt, "created_at")}
-                    <th>{copy.actions}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contracts.map((contract) => (
-                    <tr key={contract.id}>
-                      <td>
-                        <CompanyIdentity company={contract.company} />
-                      </td>
-                      <td>{contract.title}</td>
-                      <td>
-                        <Link href={`/dashboard/contracts/${contract.id}`} className={styles.textLink} dir="ltr">
-                          {contract.reference}
-                        </Link>
-                      </td>
-                      <td><StatusBadge status={contract.status} label={statusLabel(contract.status, copy)} /></td>
-                      <td dir="ltr">{contract.contract_value !== null ? `${contract.currency} ${formatMoney(contract.contract_value)}` : '-'}</td>
-                      <td dir="ltr">
-                        {contract.start_date || '?'} &rarr; {contract.end_date || '...'}
-                      </td>
-                      <td dir="ltr">{formatDate(contract.created_at)}</td>
-                      <td>
-                        <div className={styles.rowActions}>
-                          <Link href={`/dashboard/contracts/${contract.id}`} className={styles.iconButton} aria-label={copy.view}>
-                            <Eye aria-hidden="true" />
-                          </Link>
-                          {canManageContracts && (
-                            <button type="button" className={styles.iconButton} onClick={() => void openEditContract(contract.id)} aria-label={copy.edit}>
-                              <PenLine aria-hidden="true" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+            <div className={styles.employeePanel}>
+              <div className={styles.employeeTableWrap}>
+                <table className={styles.employeeTable}>
+                  <thead>
+                    <tr>
+                      <th>{copy.company}</th>
+                      {renderSortableHeader(copy.contractReference, "reference")}
+                      {renderSortableHeader(copy.contractTitle, "title")}
+                      <th>{copy.status}</th>
+                      {renderSortableHeader(copy.contractValue, "contract_value")}
+                      <th>{copy.contractPeriod}</th>
+                      {renderSortableHeader(copy.createdAt, "created_at")}
+                      <th>{copy.actions}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {contracts.map((contract) => (
+                      <tr key={contract.id}>
+                        <td>
+                          <CompanyIdentity company={contract.company} />
+                        </td>
+                        <td>{contract.title}</td>
+                        <td>
+                          <Link href={`/dashboard/contracts/${contract.id}`} className={styles.textLink} dir="ltr">
+                            {contract.reference}
+                          </Link>
+                        </td>
+                        <td><StatusBadge status={contract.status} label={statusLabel(contract.status, copy)} /></td>
+                        <td dir="ltr">{contract.contract_value !== null ? `${contract.currency} ${formatMoney(contract.contract_value)}` : '-'}</td>
+                        <td dir="ltr">
+                          {contract.start_date || '?'} &rarr; {contract.end_date || '...'}
+                        </td>
+                        <td dir="ltr">{formatDate(contract.created_at)}</td>
+                        <td>
+                          <div className={styles.rowActions}>
+                            <Link href={`/dashboard/contracts/${contract.id}`} className={styles.iconButton} aria-label={copy.view}>
+                              <Eye aria-hidden="true" />
+                            </Link>
+                            {canUpdateContracts && (
+                              <button type="button" className={styles.iconButton} onClick={() => void openEditContract(contract.id)} aria-label={copy.edit}>
+                                <PenLine aria-hidden="true" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            <div className={styles.employeeMobileList}>
-              {contracts.map((contract) => (
-                <article key={contract.id} className={styles.employeeMobileCard}>
-                  <header className={styles.mobileCardHeader}>
-                    <CompanyIdentity company={contract.company} />
-                    <StatusBadge status={contract.status} label={statusLabel(contract.status, copy)} />
-                  </header>
-                  <dl>
-                    <div><dt>{copy.contractReference}</dt><dd dir="ltr">{contract.reference}</dd></div>
-                    <div><dt>{copy.contractTitle}</dt><dd>{contract.title}</dd></div>
-                    <div><dt>{copy.contractValue}</dt><dd dir="ltr">{contract.contract_value !== null ? `${contract.currency} ${formatMoney(contract.contract_value)}` : '-'}</dd></div>
-                    <div><dt>{copy.contractPeriod}</dt><dd dir="ltr">{contract.start_date || '?'} &rarr; {contract.end_date || '...'}</dd></div>
-                  </dl>
-                  <div className={styles.rowActions}>
-                    <Link href={`/dashboard/contracts/${contract.id}`} className={styles.iconButton} aria-label={copy.view}>
-                      <Eye aria-hidden="true" />
-                    </Link>
-                    {canManageContracts && (
-                      <button type="button" className={styles.iconButton} onClick={() => void openEditContract(contract.id)} aria-label={copy.edit}>
-                        <PenLine aria-hidden="true" />
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
+              <div className={styles.employeeMobileList}>
+                {contracts.map((contract) => (
+                  <article key={contract.id} className={styles.employeeMobileCard}>
+                    <header className={styles.mobileCardHeader}>
+                      <CompanyIdentity company={contract.company} />
+                      <StatusBadge status={contract.status} label={statusLabel(contract.status, copy)} />
+                    </header>
+                    <dl>
+                      <div><dt>{copy.contractReference}</dt><dd dir="ltr">{contract.reference}</dd></div>
+                      <div><dt>{copy.contractTitle}</dt><dd>{contract.title}</dd></div>
+                      <div><dt>{copy.contractValue}</dt><dd dir="ltr">{contract.contract_value !== null ? `${contract.currency} ${formatMoney(contract.contract_value)}` : '-'}</dd></div>
+                      <div><dt>{copy.contractPeriod}</dt><dd dir="ltr">{contract.start_date || '?'} &rarr; {contract.end_date || '...'}</dd></div>
+                    </dl>
+                    <div className={styles.rowActions}>
+                      <Link href={`/dashboard/contracts/${contract.id}`} className={styles.iconButton} aria-label={copy.view}>
+                        <Eye aria-hidden="true" />
+                      </Link>
+                      {canUpdateContracts && (
+                        <button type="button" className={styles.iconButton} onClick={() => void openEditContract(contract.id)} aria-label={copy.edit}>
+                          <PenLine aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
           </>
         ) : (
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingContracts : copy.noContracts}
             body={hasActiveQuery ? copy.noMatchingContractsBody : copy.noContractsBody}
-            actionLabel={canManageContracts && !hasActiveQuery ? copy.createContract : undefined}
-            onAction={canManageContracts && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
+            actionLabel={canCreateContracts && !hasActiveQuery ? copy.createContract : undefined}
+            onAction={canCreateContracts && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
           />
         )}
         

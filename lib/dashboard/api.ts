@@ -6,6 +6,8 @@ export type DashboardUser = {
   username: string
   email: string
   status: string
+  company_id?: number | null
+  must_change_password?: boolean
   roles: DashboardRole[]
   permissions: string[]
   avatar_url?: string | null
@@ -31,14 +33,36 @@ export type DashboardBreakdownItem = {
   status: 'ready' | 'denied' | 'error'
 }
 
+export type DashboardOverviewPeriod = 'today' | 'month' | 'year'
+
+export type DashboardFinancePoint = {
+  key: string
+  label: string
+  revenue: number
+  count: number
+  average: number
+}
+
+export type DashboardFinanceTrend = {
+  currency: string | null
+  points: DashboardFinancePoint[]
+}
+
 export type DashboardOverviewResponse = {
+  period?: DashboardOverviewPeriod
   totals: DashboardTotal[]
   lead_snapshot: DashboardBreakdownItem[]
   pipeline_snapshot: DashboardBreakdownItem[]
+  activity_report?: DashboardBreakdownItem[]
+  email_snapshot?: DashboardBreakdownItem[]
+  contract_snapshot?: DashboardBreakdownItem[]
+  finance_trend?: DashboardFinanceTrend
+  quotation_snapshot?: DashboardBreakdownItem[]
+  request_snapshot?: DashboardBreakdownItem[]
 }
 
-let dashboardOverviewCache: { data: DashboardOverviewResponse; expiresAt: number } | null = null
-let dashboardOverviewRequest: Promise<DashboardOverviewResponse> | null = null
+const dashboardOverviewCache: Record<string, { data: DashboardOverviewResponse; expiresAt: number }> = {}
+const dashboardOverviewRequest: Record<string, Promise<DashboardOverviewResponse> | null> = {}
 const dashboardOverviewCacheMs = 30_000
 
 export type DashboardApiErrorCode = 400 | 401 | 403 | 409 | 422 | 500
@@ -221,6 +245,15 @@ export async function logout() {
   await dashboardFetch<null>('/api/v1/auth/logout', { method: 'POST' })
 }
 
+export async function changeDashboardPassword(input: { current_password: string; password: string; password_confirmation: string }) {
+  const result = await dashboardFetch<{ user: DashboardUser }>('/api/v1/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+
+  return result.user
+}
+
 export async function getCurrentUser() {
   const result = await dashboardFetch<{ user: DashboardUser }>('/api/v1/auth/me')
   return result.user
@@ -256,24 +289,34 @@ export async function getFilteredTotal(endpoint: string, query: string) {
   return getResourceTotal(`${endpoint}?per_page=1&${query}`)
 }
 
-export async function getDashboardOverview(): Promise<DashboardOverviewResponse> {
-  if (dashboardOverviewCache && dashboardOverviewCache.expiresAt > Date.now()) {
-    return dashboardOverviewCache.data
+export async function getFinanceTrend(from?: string, to?: string): Promise<DashboardFinanceTrend | null> {
+  const params = new URLSearchParams()
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  const query = params.toString()
+  return dashboardFetch<DashboardFinanceTrend | null>(`/api/v1/dashboard/finance-trend${query ? `?${query}` : ''}`)
+}
+
+export async function getDashboardOverview(period: DashboardOverviewPeriod = 'month'): Promise<DashboardOverviewResponse> {
+  if (dashboardOverviewCache[period] && dashboardOverviewCache[period].expiresAt > Date.now()) {
+    return dashboardOverviewCache[period].data
   }
 
-  if (dashboardOverviewRequest) {
-    return dashboardOverviewRequest
+  if (dashboardOverviewRequest[period]) {
+    return dashboardOverviewRequest[period]
   }
 
-  dashboardOverviewRequest = dashboardFetchEnvelope<DashboardOverviewResponse>('/api/v1/dashboard/overview')
+  dashboardOverviewRequest[period] = dashboardFetchEnvelope<DashboardOverviewResponse>(`/api/v1/dashboard/overview?period=${period}`)
     .then((payload) => {
       const data = payload?.data ?? {
+        period,
         totals: [],
         lead_snapshot: [],
         pipeline_snapshot: [],
+        activity_report: [],
       }
 
-      dashboardOverviewCache = {
+      dashboardOverviewCache[period] = {
         data,
         expiresAt: Date.now() + dashboardOverviewCacheMs,
       }
@@ -281,8 +324,8 @@ export async function getDashboardOverview(): Promise<DashboardOverviewResponse>
       return data
     })
     .finally(() => {
-      dashboardOverviewRequest = null
+      dashboardOverviewRequest[period] = null
     })
 
-  return dashboardOverviewRequest
+  return dashboardOverviewRequest[period]
 }

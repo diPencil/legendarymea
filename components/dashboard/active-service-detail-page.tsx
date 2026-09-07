@@ -40,8 +40,14 @@ export function ActiveServiceDetailPage({ id }: { id: string }) {
   const [showLifecycleDialog, setShowLifecycleDialog] = useState<'activate' | 'suspend' | 'resume' | 'end' | 'cancel' | 'delete' | null>(null)
   const [isMutating, setIsMutating] = useState(false)
 
-  const canManage = canAccessPermission(user, 'manage_active_services')
-  const canView = canAccessPermission(user, 'view_active_services') || canManage
+  const canView = canAccessPermission(user, ['view_active_services', 'manage_active_services'])
+  const canUpdate = canAccessPermission(user, ['update_active_services', 'manage_active_services'])
+  const canDelete = canAccessPermission(user, ['delete_active_services', 'manage_active_services'])
+  const canActivate = canAccessPermission(user, ['activate_active_services', 'manage_active_services'])
+  const canSuspend = canAccessPermission(user, ['suspend_active_services', 'manage_active_services'])
+  const canResume = canAccessPermission(user, ['resume_active_services', 'manage_active_services'])
+  const canEnd = canAccessPermission(user, ['end_active_services', 'manage_active_services'])
+  const canCancel = canAccessPermission(user, ['cancel_active_services', 'manage_active_services'])
 
   const fetchRecord = useCallback(async () => {
     if (!canView) return
@@ -139,53 +145,65 @@ export function ActiveServiceDetailPage({ id }: { id: string }) {
         </div>
         <div className={styles.companyHeaderActions}>
           
-          {canManage && (service.status === 'draft' || service.status === 'active' || service.status === 'suspended') && (
+          {canUpdate && (service.status === 'draft' || service.status === 'active' || service.status === 'suspended') && (
             <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)}>
               <PenLine aria-hidden="true" />
               {copy.edit}
             </button>
           )}
 
-          {canManage && service.status === 'draft' && (
+          {(canActivate || canCancel) && service.status === 'draft' && (
             <>
-              <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('activate')}>
-                <PlayCircle aria-hidden="true" />
-                {copy.activateActiveService || 'Activate'}
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')}>
-                <XCircle aria-hidden="true" />
-                {copy.cancelActiveService || 'Cancel'}
-              </button>
+              {canActivate ? (
+                <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('activate')}>
+                  <PlayCircle aria-hidden="true" />
+                  {copy.activateActiveService || 'Activate'}
+                </button>
+              ) : null}
+              {canCancel ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')}>
+                  <XCircle aria-hidden="true" />
+                  {copy.cancelActiveService || 'Cancel'}
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && service.status === 'active' && (
+          {(canSuspend || canEnd) && service.status === 'active' && (
             <>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('suspend')}>
-                <PauseCircle aria-hidden="true" />
-                {copy.suspendActiveService || 'Suspend'}
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('end')}>
-                <CheckCircle aria-hidden="true" />
-                {copy.endActiveService || 'End'}
-              </button>
+              {canSuspend ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('suspend')}>
+                  <PauseCircle aria-hidden="true" />
+                  {copy.suspendActiveService || 'Suspend'}
+                </button>
+              ) : null}
+              {canEnd ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('end')}>
+                  <CheckCircle aria-hidden="true" />
+                  {copy.endActiveService || 'End'}
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && service.status === 'suspended' && (
+          {(canResume || canEnd) && service.status === 'suspended' && (
             <>
-              <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('resume')}>
-                <PlayCircle aria-hidden="true" />
-                {copy.resumeActiveService || 'Resume'}
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('end')}>
-                <CheckCircle aria-hidden="true" />
-                {copy.endActiveService || 'End'}
-              </button>
+              {canResume ? (
+                <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('resume')}>
+                  <PlayCircle aria-hidden="true" />
+                  {copy.resumeActiveService || 'Resume'}
+                </button>
+              ) : null}
+              {canEnd ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('end')}>
+                  <CheckCircle aria-hidden="true" />
+                  {copy.endActiveService || 'End'}
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && (service.status === 'draft' || service.status === 'cancelled') && (
+          {canDelete && (service.status === 'draft' || service.status === 'cancelled') && (
             <button type="button" className={styles.destructiveButton} onClick={() => setShowLifecycleDialog('delete')}>
               <Trash2 aria-hidden="true" />
               {copy.delete}
