@@ -56,7 +56,7 @@ export type DashboardOverviewResponse = {
   activity_report?: DashboardBreakdownItem[]
   email_snapshot?: DashboardBreakdownItem[]
   contract_snapshot?: DashboardBreakdownItem[]
-  finance_trend?: DashboardFinanceTrend
+  finance_trend?: DashboardFinanceTrend | null
   quotation_snapshot?: DashboardBreakdownItem[]
   request_snapshot?: DashboardBreakdownItem[]
 }

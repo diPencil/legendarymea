@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->hasRole('super_admin') ? true : null;
+            return \App\Support\PermissionAccess::hasRole($user, 'super_admin') ? true : null;
         });
 
         \Illuminate\Support\Facades\Gate::policy(\App\Models\EmailMessage::class, \App\Policies\EmailPolicy::class);

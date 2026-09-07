@@ -118,6 +118,7 @@ class CompanyApiTest extends TestCase
         $user->assignRole($this->managerRole);
 
         $employeeUser = User::factory()->create();
+        $employeeUser->assignRole($this->managerRole);
         $employee = Employee::factory()->create(['user_id' => $employeeUser->id, 'status' => 'active']);
         $company = Company::factory()->create();
 
@@ -136,6 +137,23 @@ class CompanyApiTest extends TestCase
             'subject_id' => $company->id,
             'action' => 'company.account_manager_changed'
         ]);
+    }
+
+    public function test_cannot_assign_regular_employee_as_account_manager()
+    {
+        $user = User::factory()->create();
+        $user->assignRole($this->managerRole);
+
+        $employeeUser = User::factory()->create();
+        $employee = Employee::factory()->create(['user_id' => $employeeUser->id, 'status' => 'active']);
+        $company = Company::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson("/api/v1/companies/{$company->id}/account-manager", [
+                'account_manager_id' => $employee->id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['account_manager_id']);
     }
 
     public function test_cannot_delete_company_without_permission()
