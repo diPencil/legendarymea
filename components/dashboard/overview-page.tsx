@@ -630,6 +630,7 @@ function leadSnapshotLabel(key: string, copy: typeof dashboardCopy.en) {
     new: copy.new,
     contacted: copy.contacted,
     qualified: copy.qualified,
+    converted: copy.converted,
   }
 
   return labels[key] ?? key
