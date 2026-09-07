@@ -9,6 +9,7 @@ import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
+import { DashboardApiError } from '@/lib/dashboard/api'
 import { listCompanies, type CompanyRecord } from '@/lib/dashboard/companies'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { listUsers, type User } from '@/lib/dashboard/users'
@@ -69,9 +70,12 @@ export function SuppliersPage() {
   })
 
   const canView = canAccessPermission(user, ['view_suppliers', 'manage_suppliers'])
-  const canManage = canAccessPermission(user, 'manage_suppliers')
-const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_suppliers'])
+  const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_suppliers'])
+  const canUpdate = canAccessPermission(user, ['update_suppliers', 'manage_suppliers'])
+  const canDelete = canAccessPermission(user, ['delete_suppliers', 'manage_suppliers'])
   const canFund = canAccessPermission(user, 'fund_supplier_balances')
+  const canViewCompanyOptions = canAccessPermission(user, ['view_companies', 'manage_companies'])
+  const canViewUserOptions = canAccessPermission(user, ['view_users', 'manage_users'])
 
   const page = Math.max(Number(searchParams.get('page') ?? '1') || 1, 1)
   const perPage = pageSizes.includes(Number(searchParams.get('per_page') ?? '15')) ? Number(searchParams.get('per_page')) : 15
@@ -96,8 +100,18 @@ const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_supplie
           type: (searchParams.get('type') as 'user' | 'company' | '') ?? '',
           status: (searchParams.get('status') as 'active' | 'inactive' | '') ?? '',
         }),
-        listCompanies({ page: 1, perPage: 500, search: '', status: '', relationship: '', countryCode: '', accountManagerId: '', sortBy: 'name', sortOrder: 'asc' }),
-        listUsers({ page: 1, per_page: 500, sort: 'name', direction: 'asc' }),
+        canViewCompanyOptions
+          ? listCompanies({ page: 1, perPage: 500, search: '', status: '', relationship: '', countryCode: '', accountManagerId: '', sortBy: 'name', sortOrder: 'asc' }).catch((error: unknown) => {
+              if (error instanceof DashboardApiError && error.code === 401) throw error
+              return { data: [], meta: null }
+            })
+          : Promise.resolve({ data: [], meta: null }),
+        canViewUserOptions
+          ? listUsers({ page: 1, per_page: 500, sort: 'name', direction: 'asc' }).catch((error: unknown) => {
+              if (error instanceof DashboardApiError && error.code === 401) throw error
+              return { data: [], meta: null }
+            })
+          : Promise.resolve({ data: [], meta: null }),
       ])
 
       setSuppliers(supplierResponse.data)
@@ -116,7 +130,7 @@ const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_supplie
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [canView, clearSession, page, perPage, router, searchParams])
+  }, [canView, canViewCompanyOptions, canViewUserOptions, clearSession, page, perPage, router, searchParams])
 
   useEffect(() => {
     void fetchData()
@@ -526,9 +540,9 @@ const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_supplie
     return (
       <div className={styles.rowActions}>
         <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.iconButton} aria-label={copy.view}><Eye aria-hidden="true" /></Link>
-        {canManage ? <button type="button" className={styles.iconButton} onClick={() => openEdit(supplier)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
+        {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => openEdit(supplier)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
         {canFund ? <button type="button" className={styles.iconButton} onClick={() => { setSelectedSupplier(supplier); setDialogMode('fund') }} aria-label={labels.fund}><BanknoteArrowDown aria-hidden="true" /></button> : null}
-        {canManage ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => { setSelectedSupplier(supplier); setDialogMode('delete') }} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
+        {canDelete ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => { setSelectedSupplier(supplier); setDialogMode('delete') }} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
       </div>
     )
   }
