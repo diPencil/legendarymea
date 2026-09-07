@@ -10,6 +10,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\RequestStatus;
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Contract;
@@ -20,6 +21,7 @@ use App\Models\Quotation;
 use App\Models\Lead;
 use App\Models\Opportunity;
 use App\Models\Request as ClientRequest;
+use App\Models\User;
 use App\Support\PermissionAccess;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -62,6 +64,7 @@ class DashboardOverviewController extends Controller
                     ])
                     : [],
                 'activity_report' => $this->activityReport($user, $from, $to),
+                'recent_activity' => $this->recentActivity($user),
                 'email_snapshot' => PermissionAccess::canView($user, 'emails')
                     ? $this->breakdown(EmailMessage::class, 'status', [
                         EmailStatus::SENT->value,
@@ -262,6 +265,34 @@ class DashboardOverviewController extends Controller
                 'key' => $card['key'],
                 'total' => $model::query()->whereBetween('created_at', [$from, $to])->count(),
                 'status' => 'ready',
+            ];
+        })->values()->all();
+    }
+
+    private function recentActivity(User $user): array
+    {
+        $query = AuditLog::query()->latest()->limit(5);
+
+        if (! PermissionAccess::hasRole($user, 'super_admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query->get()->map(function (AuditLog $audit): array {
+            $context = $audit->request_context ?? [];
+
+            return [
+                'id' => $audit->id,
+                'actor_name' => $context['actor_name'] ?? 'System',
+                'module' => $context['module'] ?? explode('.', $audit->action)[0] ?? 'System',
+                'title' => [
+                    'en' => $context['title_en'] ?? '',
+                    'ar' => $context['title_ar'] ?? '',
+                ],
+                'description' => [
+                    'en' => $context['description_en'] ?? '',
+                    'ar' => $context['description_ar'] ?? '',
+                ],
+                'created_at' => $audit->created_at,
             ];
         })->values()->all();
     }
