@@ -242,7 +242,7 @@ class EmailApiTest extends TestCase
             ->assertJsonPath('data.image_media_id', $image->id);
 
         $this->assertStringContainsString('<img src=', $response->json('data.body_en'));
-        $this->assertStringContainsString('/dashboard-api/api/v1/media-files/' . $image->id . '/content', $response->json('data.body_en'));
+        $this->assertStringContainsString('/dashboard-api/api/v1/public/media-files/' . $image->id . '/content', $response->json('data.body_en'));
         $this->assertStringContainsString('Legendary Management MEA', $response->json('data.body_en'));
         $this->assertStringContainsString('Corporate Travel, Hospitality &amp; Business Mobility Solutions', $response->json('data.body_en'));
         $this->assertStringContainsString('حلول السفر المؤسسي والضيافة وتنقل الأعمال', $response->json('data.body_ar'));

@@ -271,7 +271,7 @@ class EmailConfigurationService
     {
         $decodedUrl = urldecode($url);
         
-        if (preg_match('#/api/v1/media-files/(\d+)/content#', $decodedUrl, $matches)) {
+        if (preg_match('#/api/v1/(?:public/)?media-files/(\d+)/content#', $decodedUrl, $matches)) {
             $mediaFile = \App\Models\MediaFile::find($matches[1]);
             if ($mediaFile && $mediaFile->disk === 'public') {
                 return ltrim($mediaFile->path, '/');

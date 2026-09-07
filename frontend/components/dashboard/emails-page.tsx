@@ -659,7 +659,7 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [contentMode, setContentMode] = useState<TemplateContentMode>(initialContentMode)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [imageUrl, setImageUrl] = useState(template?.image_media_id ? `/dashboard-api/api/v1/media-files/${template.image_media_id}/content` : (template?.image_url ?? ''))
+  const [imageUrl, setImageUrl] = useState(template?.image_media_id ? `/dashboard-api/api/v1/public/media-files/${template.image_media_id}/content` : (template?.image_url ?? ''))
   const [imageDetails, setImageDetails] = useState<{ name: string; type: string; width: number | null; height: number | null } | null>(
     template?.image_url ? { name: template.name, type: 'Saved image', width: null, height: null } : null,
   )
@@ -694,7 +694,7 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
     try {
       const response = await uploadMediaFile(file)
       setPayload((current) => ({ ...current, image_media_id: response.data.id }))
-      setImageUrl(`/dashboard-api/api/v1/media-files/${response.data.id}/content`)
+      setImageUrl(response.data.safe_url)
       setImageDetails({
         name: response.data.original_name,
         type: response.data.mime_type,

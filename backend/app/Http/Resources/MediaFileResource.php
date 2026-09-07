@@ -11,6 +11,10 @@ class MediaFileResource extends JsonResource
     {
         $usage = $this->usage();
 
+        $previewUrl = $this->type === 'image'
+            ? "/dashboard-api/api/v1/public/media-files/{$this->id}/content"
+            : "/dashboard-api/api/v1/media-files/{$this->id}/content";
+
         return [
             'id' => $this->id,
             'reference' => $this->reference,
@@ -24,7 +28,7 @@ class MediaFileResource extends JsonResource
             'alt_text_ar' => $this->alt_text_ar,
             'caption_en' => $this->caption_en,
             'caption_ar' => $this->caption_ar,
-            'safe_url' => "/dashboard-api/api/v1/media-files/{$this->id}/content",
+            'safe_url' => $previewUrl,
             'content_url' => "/dashboard-api/api/v1/media-files/{$this->id}/content",
             'download_url' => "/dashboard-api/api/v1/media-files/{$this->id}/download",
             'usage' => $usage,

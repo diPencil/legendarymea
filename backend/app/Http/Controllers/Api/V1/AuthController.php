@@ -179,7 +179,7 @@ class AuthController extends Controller
             'roles' => $this->normalizedRoleNames($user),
             'permissions' => $user->getAllPermissions()->pluck('name')->values(),
             'avatar_url' => $user->avatar_media_id
-                ? "/dashboard-api/api/v1/media-files/{$user->avatar_media_id}/content"
+                ? "/dashboard-api/api/v1/public/media-files/{$user->avatar_media_id}/content"
                 : ($user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null),
         ];
     }

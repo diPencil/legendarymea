@@ -139,7 +139,7 @@ class UsernameIdentityTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJsonPath('data.profile.username', 'avatar.user')
-                 ->assertJsonPath('data.profile.avatar_url', fn ($value) => is_string($value) && str_contains($value, '/dashboard-api/api/v1/media-files/'));
+                 ->assertJsonPath('data.profile.avatar_url', fn ($value) => is_string($value) && str_contains($value, '/dashboard-api/api/v1/public/media-files/'));
 
         $user->refresh();
         $this->assertNotNull($user->avatar_media_id);

@@ -65,7 +65,7 @@ class MediaApiTest extends TestCase
         $this->assertEquals(50, $res->json('data.height'));
         $this->assertEquals('image/jpeg', $res->json('data.mime_type'));
         $this->assertNotNull($res->json('data.safe_url'));
-        $this->assertSame('/dashboard-api/api/v1/media-files/'.$res->json('data.id').'/content', $res->json('data.safe_url'));
+        $this->assertSame('/dashboard-api/api/v1/public/media-files/'.$res->json('data.id').'/content', $res->json('data.safe_url'));
         $this->assertStringNotContainsString(storage_path(), $res->json('data.safe_url'));
         
         unlink($imagePath);
