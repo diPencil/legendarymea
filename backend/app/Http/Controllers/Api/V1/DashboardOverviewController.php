@@ -271,7 +271,7 @@ class DashboardOverviewController extends Controller
 
     private function recentActivity(User $user): array
     {
-        $query = AuditLog::query()->latest()->limit(5);
+        $query = AuditLog::query()->latest()->limit(2);
 
         if (! PermissionAccess::hasRole($user, 'super_admin')) {
             $query->where('user_id', $user->id);
