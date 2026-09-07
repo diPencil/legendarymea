@@ -110,6 +110,7 @@ type LaravelPaginator = {
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? '/dashboard-api'
 export const dashboardApiBaseUrl = rawBaseUrl.replace(/\/+$/, '')
+const dashboardRequestTimeoutMs = Number(process.env.NEXT_PUBLIC_DASHBOARD_API_TIMEOUT_MS ?? 15_000)
 
 function apiUrl(path: string) {
   if (!dashboardApiBaseUrl && !path.startsWith('/')) {
@@ -123,6 +124,46 @@ function csrfToken() {
   if (typeof document === 'undefined') return ''
   const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/)
   return match ? decodeURIComponent(match[1]) : ''
+}
+
+function withTimeoutSignal(signal?: AbortSignal | null) {
+  const timeoutMs = Number.isFinite(dashboardRequestTimeoutMs) && dashboardRequestTimeoutMs > 0
+    ? dashboardRequestTimeoutMs
+    : 15_000
+  const controller = new AbortController()
+  const abortFromParent = () => controller.abort(signal?.reason)
+
+  if (signal?.aborted) {
+    controller.abort(signal.reason)
+  } else {
+    signal?.addEventListener('abort', abortFromParent, { once: true })
+  }
+
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      clearTimeout(timer)
+      signal?.removeEventListener('abort', abortFromParent)
+    },
+  }
+}
+
+async function dashboardRequest(input: RequestInfo | URL, init: RequestInit = {}) {
+  const timeout = withTimeoutSignal(init.signal)
+
+  try {
+    return await fetch(input, { ...init, signal: timeout.signal })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new DashboardApiError('Dashboard request timed out. Please retry.', 500)
+    }
+
+    throw error
+  } finally {
+    timeout.cleanup()
+  }
 }
 
 async function parseJson<T>(response: Response): Promise<T | null> {
@@ -154,7 +195,7 @@ export async function dashboardFetch<T>(path: string, init: RequestInit = {}): P
 }
 
 export async function dashboardFetchMultipart<T>(path: string, formData: FormData, method: 'POST' | 'PATCH' = 'POST'): Promise<T> {
-  const response = await fetch(apiUrl(path), {
+  const response = await dashboardRequest(apiUrl(path), {
     method,
     body: formData,
     credentials: 'include',
@@ -184,7 +225,7 @@ export async function dashboardFetchMultipart<T>(path: string, formData: FormDat
 }
 
 export async function dashboardFetchEnvelope<T>(path: string, init: RequestInit = {}): Promise<ApiEnvelope<T> | null> {
-  const response = await fetch(apiUrl(path), {
+  const response = await dashboardRequest(apiUrl(path), {
     ...init,
     credentials: 'include',
     cache: 'no-store',
@@ -211,7 +252,7 @@ export async function dashboardFetchEnvelope<T>(path: string, init: RequestInit 
 }
 
 export async function dashboardFetchBlob(path: string, init: RequestInit = {}): Promise<Blob> {
-  const response = await fetch(apiUrl(path), {
+  const response = await dashboardRequest(apiUrl(path), {
     ...init,
     credentials: 'include',
     cache: 'no-store',
@@ -235,7 +276,7 @@ export async function dashboardFetchBlob(path: string, init: RequestInit = {}): 
 }
 
 export async function getSanctumCsrfCookie() {
-  const response = await fetch(apiUrl('/sanctum/csrf-cookie'), {
+  const response = await dashboardRequest(apiUrl('/sanctum/csrf-cookie'), {
     method: 'GET',
     credentials: 'include',
     cache: 'no-store',

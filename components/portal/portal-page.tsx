@@ -93,36 +93,63 @@ export function PortalPage() {
     }
   }, [overview, portalDisabled, loading])
 
-  useEffect(() => {
-    async function boot() {
-      try {
-        const nextUser = await getCurrentUser()
-        if (!isClientRole(nextUser)) {
-          router.replace('/dashboard')
-          return
-        }
-        setUser(nextUser)
-        try {
-          setOverview(await getPortalOverview())
-        } catch (e) {
-          if (e instanceof DashboardApiError && e.code === 403) {
-            setPortalDisabled(true)
-            return
-          }
-          throw e
-        }
-      } catch (e) {
-        if (e instanceof DashboardApiError && (e as DashboardApiError).code === 403) {
-          setPortalDisabled(true)
-          return
-        }
-        router.replace('/portal/login')
-      } finally {
-        setLoading(false)
+  const loadPortal = useCallback(async () => {
+    setLoading(true)
+    setMessage('')
+    setPortalDisabled(false)
+
+    try {
+      const nextUser = await getCurrentUser()
+      if (!isClientRole(nextUser)) {
+        router.replace('/dashboard')
+        return
       }
+      setUser(nextUser)
+    } catch (error) {
+      if (error instanceof DashboardApiError && error.code === 403) {
+        setPortalDisabled(true)
+        return
+      }
+
+      if (error instanceof DashboardApiError && error.code === 401) {
+        router.replace('/portal/login')
+        return
+      }
+
+      setMessage(error instanceof DashboardApiError
+        ? error.message
+        : (isAr ? 'تعذر التحقق من جلسة البورتال. حاول مرة أخرى.' : 'Unable to verify your portal session. Please retry.'))
+      return
+    } finally {
+      setLoading(false)
     }
-    void boot()
-  }, [router])
+
+    setLoading(true)
+    try {
+      setOverview(await getPortalOverview())
+    } catch (error) {
+      if (error instanceof DashboardApiError && error.code === 403) {
+        setPortalDisabled(true)
+        return
+      }
+
+      if (error instanceof DashboardApiError && error.code === 401) {
+        router.replace('/portal/login')
+        return
+      }
+
+      setOverview(null)
+      setMessage(error instanceof DashboardApiError
+        ? error.message
+        : (isAr ? 'تعذر تحميل بيانات البورتال. حاول مرة أخرى.' : 'Unable to load your portal data. Please retry.'))
+    } finally {
+      setLoading(false)
+    }
+  }, [isAr, router])
+
+  useEffect(() => {
+    void loadPortal()
+  }, [loadPortal])
 
   const pendingJump = useRef<{ target: ModuleKey; entityId: number } | null>(null)
 
@@ -342,6 +369,7 @@ export function PortalPage() {
   }
 
   const isDetail = selectedId != null && selectedType != null
+  const hasBootError = Boolean(message && !overview)
 
   return (
     <main className={styles.portalPage} dir={isAr ? 'rtl' : 'ltr'}>
@@ -461,18 +489,32 @@ export function PortalPage() {
               </header>
               {overview?.must_change_password ? <PasswordPanel isAr={isAr} onDone={() => setOverview((current) => current ? { ...current, must_change_password: false } : current)} /> : null}
               {message ? <p className={`${styles.alert} ${styles.danger}`}>{message}</p> : null}
-              {active === 'overview' ? <OverviewPanel overview={overview} isAr={isAr} /> : null}
-              {active === 'company' ? <CompanyPanel overview={overview} isAr={isAr} /> : null}
-              {active === 'account' ? <AccountPanel user={user} isAr={isAr} /> : null}
-              {!['overview', 'company', 'account'].includes(active) ? (
-                <RecordsPanel
-                  records={records}
-                  title={label(active, isAr)}
-                  isAr={isAr}
-                  active={active}
-                  onSelect={handleSelect}
-                />
-              ) : null}
+              {hasBootError ? (
+                <section className={styles.portalPanel}>
+                  <PanelTitle title={isAr ? 'تعذر فتح البورتال' : 'Portal could not be opened'} />
+                  <p style={{ color: '#6d716f', lineHeight: 1.7 }}>
+                    {isAr ? 'جلسة الدخول موجودة، لكن بيانات مساحة الشركة لم تصل من الخادم.' : 'Your sign-in session is present, but the company workspace data did not arrive from the server.'}
+                  </p>
+                  <button type="button" className={styles.primaryButton} onClick={() => void loadPortal()} style={{ width: 'fit-content' }}>
+                    {isAr ? 'إعادة المحاولة' : 'Retry'}
+                  </button>
+                </section>
+              ) : (
+                <>
+                  {active === 'overview' ? <OverviewPanel overview={overview} isAr={isAr} /> : null}
+                  {active === 'company' ? <CompanyPanel overview={overview} isAr={isAr} /> : null}
+                  {active === 'account' ? <AccountPanel user={user} isAr={isAr} /> : null}
+                  {!['overview', 'company', 'account'].includes(active) ? (
+                    <RecordsPanel
+                      records={records}
+                      title={label(active, isAr)}
+                      isAr={isAr}
+                      active={active}
+                      onSelect={handleSelect}
+                    />
+                  ) : null}
+                </>
+              )}
             </>
           )}
         </section>

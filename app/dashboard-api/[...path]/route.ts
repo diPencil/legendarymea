@@ -5,6 +5,7 @@ const backendBaseUrl = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   'http://127.0.0.1:8001'
 ).replace(/\/+$/, '')
+const dashboardProxyTimeoutMs = Number(process.env.DASHBOARD_API_TIMEOUT_MS ?? 15_000)
 
 type RouteContext = {
   params: Promise<{ path: string[] }>
@@ -62,7 +63,20 @@ async function proxyDashboardRequest(request: NextRequest, context: RouteContext
     ...(body ? { duplex: 'half' } : {})
   }
 
-  const upstream = await fetch(target, fetchOptions)
+  let upstream: Response
+
+  try {
+    upstream = await fetch(target, {
+      ...fetchOptions,
+      signal: AbortSignal.timeout(Number.isFinite(dashboardProxyTimeoutMs) && dashboardProxyTimeoutMs > 0 ? dashboardProxyTimeoutMs : 15_000),
+    })
+  } catch (error) {
+    const message = error instanceof Error && error.name === 'TimeoutError'
+      ? 'Dashboard backend did not respond in time.'
+      : 'Dashboard backend request failed.'
+
+    return NextResponse.json({ message }, { status: 504 })
+  }
 
   const responseHeaders = new Headers()
   const passResponseHeaders = ['content-type', 'content-disposition', 'content-length', 'x-content-type-options']
