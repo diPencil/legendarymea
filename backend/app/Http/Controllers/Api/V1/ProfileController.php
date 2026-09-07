@@ -118,15 +118,17 @@ class ProfileController extends Controller
             'email' => $user->email,
             'status' => $user->status->value,
             'roles' => $user->getRoleNames(),
-            'avatar_url' => $user->avatar_media_id
-                ? "/dashboard-api/api/v1/public/media-files/{$user->avatar_media_id}/content"
-                : $this->avatarUrl($user->avatar_path),
+            'avatar_url' => $this->avatarUrl($user),
         ];
     }
 
-    private function avatarUrl(?string $path): ?string
+    private function avatarUrl(User $user): ?string
     {
-        return $path ? Storage::disk('public')->url($path) : null;
+        if ($user->avatar_media_id && $user->avatarMedia && Storage::disk($user->avatarMedia->disk)->exists($user->avatarMedia->path)) {
+            return "/dashboard-api/api/v1/public/media-files/{$user->avatar_media_id}/content";
+        }
+
+        return $user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null;
     }
 
     private function createAvatarMedia(Request $request): MediaFile
