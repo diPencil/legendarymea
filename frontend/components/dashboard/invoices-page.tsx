@@ -10,6 +10,7 @@ import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
 import { InvoiceForm } from '@/components/dashboard/invoice-form'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
+import { DashboardApiError } from '@/lib/dashboard/api'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { listEmployees, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { listUsers, type User } from '@/lib/dashboard/users'
@@ -59,6 +60,8 @@ export function InvoicesPage() {
   const canViewInvoices = canAccessPermission(user, ['view_invoices', 'manage_invoices'])
   const canCreateInvoices = canAccessPermission(user, ['create_invoices', 'manage_invoices'])
   const canUpdateInvoices = canAccessPermission(user, ['update_invoices', 'manage_invoices'])
+  const canViewUserOptions = canAccessPermission(user, ['view_users', 'manage_users'])
+  const canViewEmployeeOptions = canAccessPermission(user, ['view_employees', 'manage_employees'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -95,8 +98,18 @@ export function InvoicesPage() {
     try {
       const [invoiceResponse, userResponse, employeeResponse] = await Promise.all([
         listInvoices(query),
-        listUsers({ page: 1, per_page: 500, sort: 'name', direction: 'asc' }),
-        listEmployees({ page: 1, perPage: 500, search: '', status: '', department: '', managerId: '', sortBy: 'employee_code', sortOrder: 'asc' }),
+        canViewUserOptions
+          ? listUsers({ page: 1, per_page: 500, sort: 'name', direction: 'asc' }).catch((error: unknown) => {
+              if (error instanceof DashboardApiError && error.code === 401) throw error
+              return { data: [], meta: null }
+            })
+          : Promise.resolve({ data: [], meta: null }),
+        canViewEmployeeOptions
+          ? listEmployees({ page: 1, perPage: 500, search: '', status: '', department: '', managerId: '', sortBy: 'employee_code', sortOrder: 'asc' }).catch((error: unknown) => {
+              if (error instanceof DashboardApiError && error.code === 401) throw error
+              return { data: [], meta: null }
+            })
+          : Promise.resolve({ data: [], meta: null }),
       ])
 
       setInvoices(invoiceResponse.data)
@@ -115,7 +128,7 @@ export function InvoicesPage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [canViewInvoices, clearSession, copy.invoicesLoadError, query, router])
+  }, [canViewEmployeeOptions, canViewInvoices, canViewUserOptions, clearSession, copy.invoicesLoadError, query, router])
 
   useEffect(() => {
     void fetchList()

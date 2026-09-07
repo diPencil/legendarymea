@@ -65,8 +65,9 @@ export function ServiceCatalogPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const canView = canAccessPermission(user, ['view_settings', 'manage_settings'])
-  const canManage = canAccessPermission(user, 'manage_settings')
+  const canView = canAccessPermission(user, ['view_service_catalog', 'view_settings', 'manage_settings'])
+  const canCreate = canAccessPermission(user, ['create_service_catalog', 'manage_settings'])
+  const canUpdate = canAccessPermission(user, ['update_service_catalog', 'manage_settings'])
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
   const perPage = pageSizes.includes(perPageValue) ? perPageValue : 15
@@ -226,7 +227,7 @@ export function ServiceCatalogPage() {
           <h2>{labels.title}</h2>
           <p>{labels.description}</p>
         </div>
-        {canManage ? (
+        {canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
             <Plus aria-hidden="true" />
             {labels.create}
@@ -297,7 +298,7 @@ export function ServiceCatalogPage() {
                       <td><span className={cn(styles.statusBadge, service.active ? styles.status_active : styles.status_inactive)}>{service.active ? copy.active : copy.inactive}</span></td>
                       <td>
                         <div className={styles.rowActions}>
-                          {canManage ? (
+                          {canUpdate ? (
                             <button type="button" className={styles.iconButton} onClick={() => openEditDialog(service)} aria-label={`${labels.edit} ${service.name_en}`}>
                               <Edit aria-hidden="true" />
                             </button>
@@ -330,7 +331,7 @@ export function ServiceCatalogPage() {
                     <div><dt>{labels.invoice}</dt><dd><FlagBadge enabled={service.available_for_invoice} labels={labels} /></dd></div>
                   </dl>
                   <div className={styles.rowActions}>
-                    {canManage ? (
+                    {canUpdate ? (
                       <button type="button" className={styles.iconButton} onClick={() => openEditDialog(service)} aria-label={`${labels.edit} ${service.name_en}`}>
                         <Edit aria-hidden="true" />
                       </button>
