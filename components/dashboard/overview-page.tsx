@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
+import Link from 'next/link'
 import { Activity, BarChart3, BriefcaseBusiness, Building2, CalendarDays, Contact, FileText, Mail, ShieldCheck, UsersRound } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
@@ -232,7 +233,13 @@ export function DashboardOverviewPage() {
             <Activity aria-hidden="true" />
             <h2>{copy.recentActivity}</h2>
           </div>
-          <RecentActivityList items={data?.recentActivity ?? []} emptyTitle={copy.recentActivityEmpty} emptyBody={copy.recentActivityNeed} locale={locale} />
+          <RecentActivityList
+            items={data?.recentActivity ?? []}
+            emptyTitle={copy.recentActivityEmpty}
+            emptyBody={copy.recentActivityNeed}
+            locale={locale}
+            moreLabel={locale === 'ar' ? 'عرض المزيد من النشاط' : 'See more activity'}
+          />
         </article>
       </section>
 
@@ -261,11 +268,13 @@ function RecentActivityList({
   emptyTitle,
   emptyBody,
   locale,
+  moreLabel,
 }: {
   items: DashboardRecentActivity[]
   emptyTitle: string
   emptyBody: string
   locale: 'en' | 'ar'
+  moreLabel: string
 }) {
   if (!items.length) {
     return (
@@ -277,20 +286,25 @@ function RecentActivityList({
   }
 
   return (
-    <ul className={styles.recentActivityList}>
-      {items.map((item) => {
-        const title = localizedActivityText(item.title, locale, locale === 'ar' ? 'نشاط جديد' : 'New activity')
-        const description = localizedActivityText(item.description, locale)
-        return (
-          <li key={item.id}>
-            <span>{item.module || (locale === 'ar' ? 'النظام' : 'System')}</span>
-            <strong>{title}</strong>
-            {description ? <p>{description}</p> : null}
-            <time dateTime={item.created_at}>{formatActivityDate(item.created_at, locale)}</time>
-          </li>
-        )
-      })}
-    </ul>
+    <>
+      <ul className={styles.recentActivityList}>
+        {items.slice(0, 2).map((item) => {
+          const title = localizedActivityText(item.title, locale, locale === 'ar' ? 'نشاط جديد' : 'New activity')
+          const description = localizedActivityText(item.description, locale)
+          return (
+            <li key={item.id}>
+              <span>{item.module || (locale === 'ar' ? 'النظام' : 'System')}</span>
+              <strong>{title}</strong>
+              {description ? <p>{description}</p> : null}
+              <time dateTime={item.created_at}>{formatActivityDate(item.created_at, locale)}</time>
+            </li>
+          )
+        })}
+      </ul>
+      <Link href="/dashboard/notifications" className={styles.activityMoreLink}>
+        {moreLabel}
+      </Link>
+    </>
   )
 }
 

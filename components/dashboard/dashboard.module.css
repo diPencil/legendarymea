@@ -955,6 +955,28 @@
   color: #6d716f;
 }
 
+.activityMoreLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  margin-top: 14px;
+  color: #081d60;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid rgba(160, 127, 49, .34);
+  border-radius: 8px;
+}
+
+.activityMoreLink:hover {
+  color: #fff;
+  background: #081d60;
+  border-color: #081d60;
+}
+
 .centerState {
   display: grid;
   min-height: min(540px, 100dvh);
