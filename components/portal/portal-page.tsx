@@ -9,6 +9,7 @@ import { ArrowLeft, Bell, Building2, Download, FileText, LogOut, Printer, UserRo
 import { useLocale } from '@/components/i18n'
 import { LanguageToggle } from '@/components/ui/language-toggle'
 import { DashboardApiError, getCurrentUser, type DashboardUser } from '@/lib/dashboard/api'
+import { isClientRole } from '@/lib/dashboard/permissions'
 import { changePortalPassword, downloadPortalContractPdf, downloadPortalDocument, getPortalContract, getPortalDocument, getPortalInvoice, getPortalList, getPortalOverview, getPortalPayment, getPortalQuotation, getPortalRequest, getPortalService, portalLogout, updatePortalContractSignature, type PortalOverview, type PortalRecord } from '@/lib/portal'
 import type { ContractContentSection, ContractRecord } from '@/lib/dashboard/contracts'
 import type { Quotation, QuotationItem } from '@/lib/dashboard/quotations'
@@ -96,7 +97,7 @@ export function PortalPage() {
     async function boot() {
       try {
         const nextUser = await getCurrentUser()
-        if (!nextUser.roles.includes('client')) {
+        if (!isClientRole(nextUser)) {
           router.replace('/dashboard')
           return
         }

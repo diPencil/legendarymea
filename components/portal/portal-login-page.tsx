@@ -1,14 +1,14 @@
 "use client"
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Check, Eye, EyeOff, FileText, Lock, Mail, ShieldCheck } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { LanguageToggle } from '@/components/ui/language-toggle'
-import { DashboardApiError } from '@/lib/dashboard/api'
-import { isInternalDashboardUser } from '@/lib/dashboard/permissions'
+import { DashboardApiError, getCurrentUser } from '@/lib/dashboard/api'
+import { isClientRole, isInternalDashboardUser } from '@/lib/dashboard/permissions'
 import { portalLogin } from '@/lib/portal'
 
 import styles from './portal.module.css'
@@ -22,7 +22,39 @@ export function PortalLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
   const [accountClosed, setAccountClosed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function redirectExistingSession() {
+      try {
+        const user = await getCurrentUser()
+        if (cancelled) return
+
+        if (isInternalDashboardUser(user)) {
+          router.replace('/dashboard')
+          return
+        }
+
+        if (isClientRole(user)) {
+          router.replace('/portal')
+          return
+        }
+      } catch {
+        // A missing/expired session belongs on the login form.
+      }
+
+      if (!cancelled) setIsCheckingSession(false)
+    }
+
+    void redirectExistingSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [router])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -36,7 +68,7 @@ export function PortalLoginPage() {
         router.replace('/dashboard')
         return
       }
-      if (!user.roles.includes('client')) {
+      if (!isClientRole(user)) {
         setMessage(isAr ? 'هذا الحساب غير مخصص لبوابة العملاء.' : 'This account is not enabled for the client portal.')
         return
       }
@@ -52,6 +84,24 @@ export function PortalLoginPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isCheckingSession) {
+    return (
+      <main className={styles.loadingPage} dir={isAr ? 'rtl' : 'ltr'} aria-busy="true">
+        <section className={styles.loadingPanel} role="status" aria-live="polite">
+          <img className={styles.loadingBrand} src="/legendary-management.png" alt="Legendary Management MEA" />
+          <div className={styles.loadingMark} aria-hidden="true">
+            <span />
+          </div>
+          <div className={styles.loadingCopy}>
+            <span>{isAr ? 'بوابة العملاء' : 'CLIENT PORTAL'}</span>
+            <h1>{isAr ? 'جاري فحص الجلسة' : 'Checking your session'}</h1>
+            <p>{isAr ? 'نفتح مساحة شركتك إذا كان الحساب مسجلا بالفعل.' : 'Opening your company workspace if you are already signed in.'}</p>
+          </div>
+        </section>
+      </main>
+    )
   }
 
   return (
