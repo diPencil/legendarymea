@@ -90,7 +90,12 @@ export function DashboardOverviewPage() {
       const contractSnapshot = (response.contract_snapshot ?? [])
         .filter((item) => item.status !== 'denied')
         .map((item) => ({ ...item, label: contractStatusLabel(item.key, copy) }))
-      const financeTrend = response.finance_trend ?? null
+      const financeTrend = response.finance_trend && !Array.isArray(response.finance_trend)
+        ? {
+            currency: response.finance_trend.currency ?? null,
+            points: Array.isArray(response.finance_trend.points) ? response.finance_trend.points : [],
+          }
+        : null
       const quotationSnapshot = (response.quotation_snapshot ?? [])
         .filter((item) => item.status !== 'denied')
         .map((item) => ({ ...item, label: quotationStatusLabel(item.key, copy) }))
@@ -391,9 +396,10 @@ function FinanceTrendCard({
   fromLabel: string
   toLabel: string
 }) {
-  const [trend, setTrend] = useState<DashboardFinanceTrend>(initialTrend)
-  const [from, setFrom] = useState(initialTrend.points[0]?.key ?? '')
-  const [to, setTo] = useState(initialTrend.points[initialTrend.points.length - 1]?.key ?? '')
+  const initialPoints = Array.isArray(initialTrend.points) ? initialTrend.points : []
+  const [trend, setTrend] = useState<DashboardFinanceTrend>({ currency: initialTrend.currency ?? null, points: initialPoints })
+  const [from, setFrom] = useState(initialPoints[0]?.key ?? '')
+  const [to, setTo] = useState(initialPoints[initialPoints.length - 1]?.key ?? '')
   const [isRangeLoading, setIsRangeLoading] = useState(false)
   const [rangeError, setRangeError] = useState('')
 
@@ -404,10 +410,11 @@ function FinanceTrendCard({
     try {
       const data = await getFinanceTrend(nextFrom, nextTo)
       if (data) {
-        setTrend(data)
-        if (data.points.length) {
-          setFrom(data.points[0].key)
-          setTo(data.points[data.points.length - 1].key)
+        const nextPoints = Array.isArray(data.points) ? data.points : []
+        setTrend({ currency: data.currency ?? null, points: nextPoints })
+        if (nextPoints.length) {
+          setFrom(nextPoints[0].key)
+          setTo(nextPoints[nextPoints.length - 1].key)
         }
       }
     } catch {
@@ -441,7 +448,7 @@ function FinanceTrendCard({
   const padRight = 16
   const padTop = 16
   const padBottom = 32
-  const points = trend.points
+  const points = Array.isArray(trend.points) ? trend.points : []
   const currency = trend.currency ?? ''
   const maxValue = Math.max(1, ...points.map((point) => point.revenue))
   const stepX = points.length > 1 ? (width - padLeft - padRight) / (points.length - 1) : 0
