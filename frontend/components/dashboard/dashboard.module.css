@@ -914,6 +914,47 @@
   line-height: 1.55;
 }
 
+.recentActivityList {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recentActivityList li {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  background: #fbfaf7;
+  border: 1px solid rgba(8, 29, 96, .08);
+  border-radius: 8px;
+}
+
+.recentActivityList span,
+.recentActivityList time {
+  color: #a07f31;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.recentActivityList strong {
+  color: #081d60;
+  font-size: 13px;
+}
+
+.recentActivityList p {
+  margin: 0;
+  color: #626968;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.recentActivityList time {
+  color: #6d716f;
+}
+
 .centerState {
   display: grid;
   min-height: min(540px, 100dvh);
