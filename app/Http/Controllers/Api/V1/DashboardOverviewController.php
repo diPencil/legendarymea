@@ -53,6 +53,7 @@ class DashboardOverviewController extends Controller
                         LeadStatus::NEW->value,
                         LeadStatus::CONTACTED->value,
                         LeadStatus::QUALIFIED->value,
+                        LeadStatus::CONVERTED->value,
                     ])
                     : [],
                 'pipeline_snapshot' => PermissionAccess::canView($user, 'opportunities')

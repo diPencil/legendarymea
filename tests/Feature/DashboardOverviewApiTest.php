@@ -37,6 +37,7 @@ class DashboardOverviewApiTest extends TestCase
         Lead::factory()->create(['status' => LeadStatus::NEW]);
         Lead::factory()->create(['status' => LeadStatus::NEW, 'created_at' => now()->subDay()]);
         Lead::factory()->create(['status' => LeadStatus::QUALIFIED]);
+        Lead::factory()->create(['status' => LeadStatus::CONVERTED, 'created_at' => now()->subDay()]);
         Opportunity::factory()->create(['stage' => OpportunityStage::PROPOSAL]);
         ClientRequest::factory()->create(['company_id' => $company->id]);
         AuditLog::query()->create([
@@ -65,6 +66,7 @@ class DashboardOverviewApiTest extends TestCase
         $this->assertSame(Contact::query()->count(), $totals->firstWhere('key', 'contacts')['total']);
         $this->assertSame(2, collect($response->json('data.lead_snapshot'))->firstWhere('key', LeadStatus::NEW->value)['total']);
         $this->assertSame(1, collect($response->json('data.lead_snapshot'))->firstWhere('key', LeadStatus::QUALIFIED->value)['total']);
+        $this->assertSame(1, collect($response->json('data.lead_snapshot'))->firstWhere('key', LeadStatus::CONVERTED->value)['total']);
         $this->assertSame(1, collect($response->json('data.pipeline_snapshot'))->firstWhere('key', OpportunityStage::PROPOSAL->value)['total']);
         $this->assertSame('today', $response->json('data.period'));
         $this->assertSame(2, collect($response->json('data.activity_report'))->firstWhere('key', 'new_leads')['total']);
