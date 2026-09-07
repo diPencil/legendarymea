@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\User;
 use App\Enums\UserStatus;
 use App\Support\PermissionAccess;
+use App\Services\ReferenceGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -61,7 +62,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:8',
             'roles' => 'sometimes|array',
-            'roles.*' => 'string|exists:roles,name',
+            'roles.*' => 'string',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -70,8 +71,10 @@ class UserController extends Controller
         $user = User::create($validated);
 
         if ($request->has('roles')) {
-            $this->authorizeRoleManagement($request->user(), $request->input('roles', []), null);
-            $user->syncRoles($request->input('roles'));
+            $roles = $this->normalizeRoleNames($request->input('roles', []));
+            $this->authorizeRoleManagement($request->user(), $roles, null);
+            $user->syncRoles($roles);
+            $this->ensureEmployeeProfileForInternalRole($user, $roles);
         }
 
         return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
@@ -100,7 +103,7 @@ class UserController extends Controller
             'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8',
             'roles' => 'sometimes|array',
-            'roles.*' => 'string|exists:roles,name',
+            'roles.*' => 'string',
         ]);
 
         if (isset($validated['password'])) {
@@ -112,10 +115,11 @@ class UserController extends Controller
         $user->update($validated);
 
         if ($request->has('roles')) {
-            $nextRoles = $request->input('roles', []);
+            $nextRoles = $this->normalizeRoleNames($request->input('roles', []));
             $this->authorizeRoleManagement($request->user(), $nextRoles, $user);
             $this->assertSuperAdminProtection($user, $nextRoles, 'role');
             $user->syncRoles($nextRoles);
+            $this->ensureEmployeeProfileForInternalRole($user, $nextRoles);
         }
 
         return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
@@ -142,6 +146,7 @@ class UserController extends Controller
 
         return response()->json([
             'data' => Role::query()
+                ->whereRaw('LOWER(name) <> ?', ['client'])
                 ->orderBy('name')
                 ->get(['id', 'name']),
         ]);
@@ -192,18 +197,18 @@ class UserController extends Controller
             abort(403, 'You are not authorized to manage user roles.');
         }
 
-        if (!$actor->hasRole('super_admin') && in_array('super_admin', $roles, true)) {
+        if (!PermissionAccess::hasRole($actor, 'super_admin') && in_array('super_admin', $roles, true)) {
             abort(403, 'You are not authorized to assign Super Admin.');
         }
 
-        if ($target && $target->hasRole('super_admin') && !$actor->hasRole('super_admin')) {
+        if ($target && PermissionAccess::hasRole($target, 'super_admin') && !PermissionAccess::hasRole($actor, 'super_admin')) {
             abort(403, 'You are not authorized to change Super Admin roles.');
         }
     }
 
     private function assertSuperAdminProtection(User $target, ?array $nextRoles, string $action): void
     {
-        if (!$target->hasRole('super_admin')) {
+        if (!PermissionAccess::hasRole($target, 'super_admin')) {
             return;
         }
 
@@ -214,11 +219,56 @@ class UserController extends Controller
 
         $activeSuperAdmins = User::query()
             ->where('status', UserStatus::ACTIVE->value)
-            ->whereHas('roles', fn ($query) => $query->where('name', 'super_admin'))
+            ->whereHas('roles', fn ($query) => $query->whereRaw('LOWER(name) = ?', ['super_admin']))
             ->count();
 
         if ($activeSuperAdmins <= 1) {
             abort(422, 'The last active Super Admin cannot be removed, deactivated, or deleted.');
         }
+    }
+
+    private function normalizeRoleNames(array $roles): array
+    {
+        $canonicalNames = [
+            'super admin' => 'super_admin',
+            'super_admin' => 'super_admin',
+            'admin' => 'admin',
+            'manager' => 'manager',
+            'employee' => 'employee',
+            'client' => 'client',
+        ];
+
+        return collect($roles)
+            ->map(fn ($role) => strtolower(str_replace('_', ' ', (string) $role)))
+            ->map(fn (string $role) => $canonicalNames[$role] ?? str_replace(' ', '_', $role))
+            ->unique()
+            ->values()
+            ->each(function (string $role) {
+                if (!Role::query()->whereRaw('LOWER(name) = ?', [strtolower($role)])->exists()) {
+                    abort(422, "The selected role {$role} is invalid.");
+                }
+            })
+            ->all();
+    }
+
+    private function ensureEmployeeProfileForInternalRole(User $user, array $roles): void
+    {
+        if (!collect($roles)->intersect(['manager', 'employee'])->isNotEmpty()) {
+            return;
+        }
+
+        if ($user->employee()->exists()) {
+            return;
+        }
+
+        $employeeCode = app(ReferenceGeneratorService::class)
+            ->generate('LM-EMP-', 'employees', 'employee_code');
+
+        $user->employee()->create([
+            'name' => $user->name,
+            'employee_code' => $employeeCode,
+            'job_title' => in_array('manager', $roles, true) ? 'Manager' : null,
+            'status' => 'active',
+        ]);
     }
 }

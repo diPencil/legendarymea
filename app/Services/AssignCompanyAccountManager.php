@@ -7,8 +7,9 @@ use App\Services\SystemActivityService;
 use App\Models\Company;
 use App\Models\Employee;
 use App\Notifications\AccountManagerAssignedNotification;
+use App\Support\PermissionAccess;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 class AssignCompanyAccountManager
 {
@@ -23,8 +24,10 @@ class AssignCompanyAccountManager
 
             if ($employeeId !== null) {
                 $employee = Employee::find($employeeId);
-                if (!$employee || $employee->status !== 'active') {
-                    throw new InvalidArgumentException(__('Invalid or inactive account manager.'));
+                if (!$employee || $employee->status !== 'active' || !$employee->user || !PermissionAccess::hasRole($employee->user, 'manager')) {
+                    throw ValidationException::withMessages([
+                        'account_manager_id' => __('The selected account manager must be an active employee with the manager role.'),
+                    ]);
                 }
             } else {
                 $employee = null;

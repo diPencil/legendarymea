@@ -8,15 +8,34 @@ final class PermissionAccess
 {
     public static function can(User $user, string ...$permissions): bool
     {
-        if ($user->hasRole('super_admin')) {
+        if (self::hasRole($user, 'super_admin')) {
             return true;
         }
 
-        if ($user->hasRole('client') && ! $user->hasAnyRole(['admin', 'employee'])) {
+        if (self::hasRole($user, 'client') && ! self::hasAnyRole($user, ['admin', 'manager', 'employee', 'super_admin'])) {
             return false;
         }
 
         return $user->hasAnyPermission($permissions);
+    }
+
+    public static function hasRole(User $user, string $role): bool
+    {
+        return $user->getRoleNames()
+            ->map(fn (string $name) => strtolower($name))
+            ->contains(strtolower($role));
+    }
+
+    public static function hasAnyRole(User $user, array $roles): bool
+    {
+        $normalizedRoles = collect($roles)
+            ->map(fn (string $role) => strtolower($role))
+            ->all();
+
+        return $user->getRoleNames()
+            ->map(fn (string $name) => strtolower($name))
+            ->intersect($normalizedRoles)
+            ->isNotEmpty();
     }
 
     public static function canView(User $user, string $resource): bool

@@ -53,11 +53,7 @@ class UserApiTest extends TestCase
         ]);
 
         $user = User::query()->findOrFail($createdUserId);
-
-        Employee::factory()->create([
-            'user_id' => $user->id,
-            'employee_code' => 'LM-EMP-123456',
-        ]);
+        $employee = $user->employee()->firstOrFail();
 
         $this->actingAs($admin)->putJson("/api/v1/users/{$user->id}", [
             'name' => 'Updated User',
@@ -68,12 +64,44 @@ class UserApiTest extends TestCase
 
         $showResponse = $this->actingAs($admin)->getJson("/api/v1/users/{$user->id}")
             ->assertOk()
-            ->assertJsonPath('data.employee.employee_code', 'LM-EMP-123456')
+            ->assertJsonPath('data.employee.employee_code', $employee->employee_code)
             ->assertJsonFragment(['name' => 'Updated User'])
             ->assertJsonMissingPath('data.password');
 
         $this->assertContains('view_dashboard', $showResponse->json('data.permissions'));
         $this->assertContains('view_companies', $showResponse->json('data.role_permissions'));
+    }
+
+    public function test_assigning_manager_role_creates_employee_profile_and_manager_picker_entry(): void
+    {
+        $admin = $this->adminUser();
+        $user = User::factory()->create([
+            'name' => 'Operations Manager',
+            'email' => 'operations.manager@example.com',
+            'username' => 'operations.manager',
+        ]);
+
+        $this->assertFalse($user->employee()->exists());
+
+        $this->actingAs($admin)
+            ->putJson("/api/v1/users/{$user->id}", [
+                'name' => $user->name,
+                'email' => $user->email,
+                'username' => $user->username,
+                'roles' => ['Manager'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.roles.0', 'manager')
+            ->assertJsonPath('data.employee.job_title', 'Manager');
+
+        $user->refresh();
+        $employee = $user->employee()->firstOrFail();
+
+        $this->actingAs($admin)
+            ->getJson('/api/v1/employees/managers')
+            ->assertOk()
+            ->assertJsonFragment(['id' => $employee->id])
+            ->assertJsonPath('data.0.user.roles.0', 'manager');
     }
 
     public function test_index_returns_newly_created_user_on_first_page(): void
@@ -195,6 +223,11 @@ class UserApiTest extends TestCase
         $clientRole = Role::firstOrCreate(['name' => 'client', 'guard_name' => 'web']);
         $matrixResponse = $this->actingAs($admin)->getJson('/api/v1/roles-permissions');
         $this->assertNotContains('client', collect($matrixResponse->json('data.roles'))->pluck('name'));
+        $this->assertContains('manager', collect($matrixResponse->json('data.roles'))->pluck('name'));
+
+        $rolesResponse = $this->actingAs($admin)->getJson('/api/v1/users/roles')->assertOk();
+        $this->assertNotContains('client', collect($rolesResponse->json('data'))->pluck('name'));
+        $this->assertContains('manager', collect($rolesResponse->json('data'))->pluck('name'));
 
         $this->actingAs($admin)
             ->putJson("/api/v1/roles-permissions/{$clientRole->id}", [

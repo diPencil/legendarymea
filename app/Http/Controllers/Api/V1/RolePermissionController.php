@@ -24,16 +24,16 @@ class RolePermissionController extends Controller
 
         $roles = Role::query()
             ->with('permissions:id,name')
-            ->whereNotIn('name', self::EXCLUDED_MATRIX_ROLES)
+            ->whereRaw('LOWER(name) NOT IN (' . collect(self::EXCLUDED_MATRIX_ROLES)->map(fn () => '?')->implode(',') . ')', self::EXCLUDED_MATRIX_ROLES)
             ->orderBy('name')
             ->get()
             ->map(fn (Role $role) => [
                 'id' => $role->id,
-                'name' => $role->name,
-                'permissions' => $role->name === 'super_admin'
+                'name' => $this->roleName($role),
+                'permissions' => $this->roleName($role) === 'super_admin'
                     ? LegendaryPermissions::all()
                     : $this->matrixPermissionsOnly($role->permissions->pluck('name'), $allowed),
-                'locked' => $role->name === 'super_admin',
+                'locked' => $this->roleName($role) === 'super_admin',
             ])
             ->values();
 
@@ -53,7 +53,7 @@ class RolePermissionController extends Controller
     public function update(Request $request, Role $role)
     {
         abort_unless(PermissionAccess::can($request->user(), 'manage_roles_permissions', 'manage_user_roles', 'manage_roles'), 403);
-        abort_if(in_array($role->name, self::EXCLUDED_MATRIX_ROLES, true), 404);
+        abort_if(in_array($this->roleName($role), self::EXCLUDED_MATRIX_ROLES, true), 404);
 
         $this->ensureMatrixPermissionsExist();
 
@@ -63,7 +63,7 @@ class RolePermissionController extends Controller
             'permissions.*' => ['string'],
         ]);
 
-        $permissions = $role->name === 'super_admin'
+        $permissions = $this->roleName($role) === 'super_admin'
             ? $allowed
             : collect($validated['permissions'])
                 ->intersect($allowed)
@@ -80,13 +80,20 @@ class RolePermissionController extends Controller
         return response()->json([
             'data' => [
                 'id' => $role->id,
-                'name' => $role->name,
-                'permissions' => $role->name === 'super_admin'
+                'name' => $this->roleName($role),
+                'permissions' => $this->roleName($role) === 'super_admin'
                     ? $allowed
                     : $this->matrixPermissionsOnly($role->fresh('permissions')->permissions->pluck('name'), collect($allowed)),
-                'locked' => $role->name === 'super_admin',
+                'locked' => $this->roleName($role) === 'super_admin',
             ],
         ]);
+    }
+
+    private function roleName(Role $role): string
+    {
+        return strtolower($role->name) === 'super admin'
+            ? 'super_admin'
+            : strtolower($role->name);
     }
 
     private function matrixPermissionsOnly(Collection $permissions, Collection $allowed): array

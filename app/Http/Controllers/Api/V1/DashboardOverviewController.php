@@ -81,7 +81,7 @@ class DashboardOverviewController extends Controller
                     : [],
                 'finance_trend' => PermissionAccess::canView($user, 'payments')
                     ? $this->financeTrend()
-                    : [],
+                    : null,
                 'quotation_snapshot' => PermissionAccess::canView($user, 'quotations')
                     ? $this->breakdown(Quotation::class, 'status', [
                         QuotationStatus::DRAFT->value,
