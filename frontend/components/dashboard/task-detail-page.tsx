@@ -34,8 +34,9 @@ export function DashboardTaskDetailPage({ taskId }: { taskId: string | number })
   const [ownerId, setOwnerId] = useState('')
   const [targetStatus, setTargetStatus] = useState<TaskStatus | ''>('')
 
-  const canViewTasks = canAccessPermission(user, 'view_tasks') || canAccessPermission(user, 'manage_tasks')
-  const canManageTasks = canAccessPermission(user, 'manage_tasks')
+  const canViewTasks = canAccessPermission(user, ['view_tasks', 'manage_tasks'])
+  const canUpdateTasks = canAccessPermission(user, ['update_tasks', 'manage_tasks'])
+  const canDeleteTasks = canAccessPermission(user, ['delete_tasks', 'manage_tasks'])
   const canAssignTasks = canAccessPermission(user, 'assign_tasks')
 
   const handleDashboardError = useCallback((requestError: unknown) => {
@@ -210,14 +211,14 @@ export function DashboardTaskDetailPage({ taskId }: { taskId: string | number })
             <StageBadge stage={taskRecord.priority} />
           </div>
         </div>
-        {canManageTasks ? (
+        {canUpdateTasks || canDeleteTasks || canAssignTasks ? (
           <div className={styles.companyHeaderActions}>
-            {taskRecord.status === 'todo' && (
+            {canUpdateTasks && taskRecord.status === 'todo' && (
               <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('in_progress')} title={copy.start || 'Start'} aria-label={copy.start || 'Start'}>
                 <PlayCircle aria-hidden="true" />
               </button>
             )}
-            {taskRecord.status === 'in_progress' && (
+            {canUpdateTasks && taskRecord.status === 'in_progress' && (
               <>
                 <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('waiting')} title={copy.waiting || 'Set Waiting'} aria-label={copy.waiting || 'Set Waiting'}>
                   <Clock aria-hidden="true" />
@@ -227,7 +228,7 @@ export function DashboardTaskDetailPage({ taskId }: { taskId: string | number })
                 </button>
               </>
             )}
-            {taskRecord.status === 'waiting' && (
+            {canUpdateTasks && taskRecord.status === 'waiting' && (
               <>
                 <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('in_progress')} title={copy.resume || 'Resume'} aria-label={copy.resume || 'Resume'}>
                   <PlayCircle aria-hidden="true" />
@@ -237,28 +238,32 @@ export function DashboardTaskDetailPage({ taskId }: { taskId: string | number })
                 </button>
               </>
             )}
-            {(taskRecord.status === 'completed' || taskRecord.status === 'cancelled') && (
+            {canUpdateTasks && (taskRecord.status === 'completed' || taskRecord.status === 'cancelled') && (
               <button type="button" className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeStatusAction('todo')} title={copy.reopen || 'Reopen'} aria-label={copy.reopen || 'Reopen'}>
                 <RotateCcw aria-hidden="true" />
               </button>
             )}
-            {(taskRecord.status !== 'completed' && taskRecord.status !== 'cancelled') && (
+            {canUpdateTasks && (taskRecord.status !== 'completed' && taskRecord.status !== 'cancelled') && (
               <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} disabled={isSubmitting} onClick={() => void changeStatusAction('cancelled')} title={copy.cancelled || 'Cancel'} aria-label={copy.cancelled || 'Cancel'}>
                 <AlertTriangle aria-hidden="true" />
               </button>
             )}
 
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
-              <Pencil aria-hidden="true" />
-            </button>
+            {canUpdateTasks ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')} title={copy.edit} aria-label={copy.edit}>
+                <Pencil aria-hidden="true" />
+              </button>
+            ) : null}
             {canAssignTasks ? (
               <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('owner')} title={taskRecord.assignee ? (copy.reassignTask || 'Reassign') : (copy.assignTask || 'Assign')} aria-label={taskRecord.assignee ? (copy.reassignTask || 'Reassign') : (copy.assignTask || 'Assign')}>
                 <UserRoundPlus aria-hidden="true" />
               </button>
             ) : null}
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
-              <Trash2 aria-hidden="true" />
-            </button>
+            {canDeleteTasks ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')} title={copy.delete} aria-label={copy.delete}>
+                <Trash2 aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

@@ -6,6 +6,8 @@ use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Enums\UserStatus;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class Phase0Test extends TestCase
 {
@@ -48,9 +50,17 @@ class Phase0Test extends TestCase
     public function test_me_endpoint_authenticated()
     {
         $user = User::factory()->create(['status' => UserStatus::ACTIVE]);
+        $role = Role::firstOrCreate(['name' => 'employee', 'guard_name' => 'web']);
+        $permission = Permission::firstOrCreate(['name' => 'create_leads', 'guard_name' => 'web']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
+
         $this->actingAs($user);
         $response = $this->getJson('/api/v1/auth/me');
-        $response->assertStatus(200)->assertJsonPath('success', true);
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertContains('create_leads', $response->json('data.user.permissions'));
     }
 
     public function test_super_admin_bypass()

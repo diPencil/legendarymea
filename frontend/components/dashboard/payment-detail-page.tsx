@@ -34,7 +34,7 @@ export function PaymentDetailPage({ id }: { id: string }) {
   const [mutationError, setMutationError] = useState('')
 
   const canViewPayments = canAccessPermission(user, ['view_payments', 'manage_payments'])
-  const canManagePayments = canAccessPermission(user, 'manage_payments')
+  const canUpdatePayments = canAccessPermission(user, ['update_payments', 'manage_payments'])
 
   const fetchRecord = useCallback(async () => {
     if (!canViewPayments) return
@@ -123,7 +123,7 @@ export function PaymentDetailPage({ id }: { id: string }) {
           <span className={cn(styles.statusBadge, payment.status === 'reversed' ? styles.status_lost : styles.status_active)}>
             {payment.status === 'reversed' ? copy.reversed : copy.posted}
           </span>
-          {canManagePayments && payment.status === 'posted' ? (
+          {canUpdatePayments && payment.status === 'posted' ? (
             <button type="button" className={styles.secondaryButton} onClick={() => setShowReverseDialog(true)}>
               <RotateCcw aria-hidden="true" />
               {copy.reversePayment}

@@ -189,7 +189,7 @@ export function LeadForm({ mode, lead, onClose, onSuccess }: LeadFormProps) {
           {fieldErrors.company_name?.[0] && <small className={styles.fieldError}>{fieldErrors.company_name[0]}</small>}
         </label>
           <label className={styles.formField}>
-    <span>copy.email <em>{copy.optional}</em></span>
+    <span>{copy.email} <em>{copy.optional}</em></span>
     <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })}  />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
   </label>
@@ -218,7 +218,7 @@ export function LeadForm({ mode, lead, onClose, onSuccess }: LeadFormProps) {
           {fieldErrors.person_name?.[0] && <small className={styles.fieldError}>{fieldErrors.person_name[0]}</small>}
         </label>
           <label className={styles.formField}>
-    <span>copy.email <em>{copy.optional}</em></span>
+    <span>{copy.email} <em>{copy.optional}</em></span>
     <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })}  />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
   </label>
@@ -289,17 +289,17 @@ export function LeadForm({ mode, lead, onClose, onSuccess }: LeadFormProps) {
         <legend>{copy.opportunityDetails}</legend>
         <div className={styles.formGrid}>
         <label className={styles.formField}>
-    <span>copy.estimatedValue <em>{copy.optional}</em></span>
+    <span>{copy.estimatedValue} <em>{copy.optional}</em></span>
     <input type="number" value={String(form.estimated_value ?? '')} onChange={(e) => setForm({ ...form, estimated_value: e.target.value ? Number(e.target.value) : null })}  />
     {fieldErrors.estimated_value?.[0] && <small className={styles.fieldError}>{fieldErrors.estimated_value[0]}</small>}
   </label>
         <label className={styles.formField}>
-    <span>copy.currency <em>{copy.optional}</em></span>
+    <span>{copy.currency} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.currency ?? '')} onChange={(e) => setForm({ ...form, currency: e.target.value })}  />
     {fieldErrors.currency?.[0] && <small className={styles.fieldError}>{fieldErrors.currency[0]}</small>}
   </label>
         <label className={styles.formField}>
-    <span>copy.nextFollowUp <em>{copy.optional}</em></span>
+    <span>{copy.nextFollowUp} <em>{copy.optional}</em></span>
     <input type="date" value={String(form.next_follow_up_at ?? '')} onChange={(e) => setForm({ ...form, next_follow_up_at: e.target.value })}  />
     {fieldErrors.next_follow_up_at?.[0] && <small className={styles.fieldError}>{fieldErrors.next_follow_up_at[0]}</small>}
   </label>

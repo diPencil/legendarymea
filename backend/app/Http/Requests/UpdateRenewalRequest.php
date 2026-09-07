@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateRenewalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_renewals');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'update_renewals', 'manage_renewals');
     }
 
     public function rules(): array

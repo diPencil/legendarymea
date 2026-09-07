@@ -255,7 +255,7 @@ export function OpportunityForm({ mode, opportunity, onClose, onSuccess }: Oppor
         </label>
 
         <label className={styles.formField}>
-    <span>copy.currency <em>{copy.optional}</em></span>
+    <span>{copy.currency} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.currency ?? '')} onChange={(e) => setForm({ ...form, currency: e.target.value })}  />
     {fieldErrors.currency?.[0] && <small className={styles.fieldError}>{fieldErrors.currency[0]}</small>}
   </label>

@@ -70,6 +70,7 @@ export function SuppliersPage() {
 
   const canView = canAccessPermission(user, ['view_suppliers', 'manage_suppliers'])
   const canManage = canAccessPermission(user, 'manage_suppliers')
+const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_suppliers'])
   const canFund = canAccessPermission(user, 'fund_supplier_balances')
 
   const page = Math.max(Number(searchParams.get('page') ?? '1') || 1, 1)
@@ -230,7 +231,7 @@ export function SuppliersPage() {
           <h2>{labels.suppliers}</h2>
           <p>{labels.suppliersDescription}</p>
         </div>
-        {canManage ? (
+        {canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={openCreate}>
             <Plus aria-hidden="true" />
             {labels.suppliers}
@@ -361,7 +362,7 @@ export function SuppliersPage() {
             ) : null}
           </>
         ) : (
-          <DashboardState title="No suppliers yet" body="Create the first supplier to track prefunding and usage." actionLabel={canManage ? labels.suppliers : undefined} onAction={canManage ? openCreate : undefined} />
+          <DashboardState title="No suppliers yet" body="Create the first supplier to track prefunding and usage." actionLabel={canCreate ? labels.suppliers : undefined} onAction={canCreate ? openCreate : undefined} />
         )}
       </section>
 

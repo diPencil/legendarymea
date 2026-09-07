@@ -63,7 +63,9 @@ export function DashboardTasksPage() {
     || searchParams.get('created_to')
   ))
 
-  const canViewTasks = canAccessPermission(user, 'view_tasks') || canAccessPermission(user, 'manage_tasks')
+  const canViewTasks = canAccessPermission(user, ['view_tasks', 'manage_tasks'])
+  const canCreateTasks = canAccessPermission(user, ['create_tasks', 'manage_tasks'])
+  const canUpdateTasks = canAccessPermission(user, ['update_tasks', 'manage_tasks'])
   
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
@@ -140,11 +142,15 @@ export function DashboardTasksPage() {
   }, [canViewTasks, handleDashboardError, query])
 
   function handleCreate() {
+    if (!canCreateTasks) return
+
     setActiveTask(null)
     setModalMode('create')
   }
 
   async function handleEdit(taskRecord: TaskRecord) {
+    if (!canUpdateTasks) return
+
     try {
       setActiveTask(await getTask(taskRecord.id))
       setModalMode('edit')
@@ -209,7 +215,7 @@ export function DashboardTasksPage() {
           <h2>{copy.tasks}</h2>
           <p>{copy.tasksDescription}</p>
         </div>
-        {canAccessPermission(user, 'manage_tasks') && (
+        {canCreateTasks && (
           <button type="button" className={styles.primaryButton} onClick={handleCreate}>
             <Plus aria-hidden="true" />
             {copy.createTaskTitle || 'Create task'}
@@ -297,7 +303,7 @@ export function DashboardTasksPage() {
                           <Link href={`/dashboard/tasks/${taskRecord.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canAccessPermission(user, 'manage_tasks') && (
+                          {canUpdateTasks && (
                             <button type="button" className={styles.iconButton} aria-label={copy.edit} onClick={() => void handleEdit(taskRecord)}>
                               <Pencil aria-hidden="true" />
                             </button>
@@ -326,7 +332,7 @@ export function DashboardTasksPage() {
                       <Eye aria-hidden="true" />
                       {copy.view}
                     </Link>
-                    {canAccessPermission(user, 'manage_tasks') && (
+                    {canUpdateTasks && (
                       <button type="button" className={styles.secondaryButton} onClick={() => void handleEdit(taskRecord)}>
                         <Pencil aria-hidden="true" />
                         {copy.edit}
@@ -341,6 +347,8 @@ export function DashboardTasksPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingTasks : copy.noTasks}
             body={hasActiveQuery ? copy.noMatchingTasksBody : copy.noTasksBody}
+            actionLabel={canCreateTasks ? (copy.createTaskTitle || 'Create task') : undefined}
+            onAction={canCreateTasks ? handleCreate : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} /> : null}

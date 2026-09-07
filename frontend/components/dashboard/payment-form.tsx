@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Loader2, X } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
@@ -30,10 +30,16 @@ export function PaymentForm({
 
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isSearching, setIsSearching] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [search, setSearch] = useState('')
 
   const [invoiceId, setInvoiceId] = useState('')
+  const invoiceIdRef = useRef(invoiceId)
+  useEffect(() => {
+    invoiceIdRef.current = invoiceId
+  }, [invoiceId])
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState<PaymentMethod>('bank_transfer')
   const [transactionReference, setTransactionReference] = useState('')
@@ -43,18 +49,28 @@ export function PaymentForm({
   useEffect(() => {
     let mounted = true
 
-    async function load() {
+    async function load(query: string) {
       try {
-        const response = await listInvoices({ per_page: 500, sort_by: 'due_date', sort_order: 'asc' })
+        if (query) setIsSearching(true)
+        const response = await listInvoices({ per_page: 100, search: query || undefined, sort_by: 'due_date', sort_order: 'asc' })
 
         if (!mounted) return
 
-        setInvoices(
-          response.data.filter((invoice) =>
+        setInvoices((prev) => {
+          const filtered = response.data.filter((invoice) =>
             ['issued', 'partially_paid', 'overdue'].includes(invoice.status) &&
             Number(invoice.balance_due ?? invoice.total_amount) > 0,
-          ),
-        )
+          )
+          // Preserve currently selected invoice even if outside current search page
+          const currentInvoiceId = invoiceIdRef.current
+          if (currentInvoiceId) {
+            const selected = prev.find((entry) => entry.id === Number(currentInvoiceId))
+            if (selected && !filtered.some((entry) => entry.id === selected.id)) {
+              return [selected, ...filtered]
+            }
+          }
+          return filtered
+        })
       } catch {
         if (mounted) {
           setInvoices([])
@@ -62,16 +78,18 @@ export function PaymentForm({
       } finally {
         if (mounted) {
           setIsLoading(false)
+          setIsSearching(false)
         }
       }
     }
 
-    void load()
+    const timer = setTimeout(() => void load(search.trim()), search ? 350 : 0)
 
     return () => {
       mounted = false
+      clearTimeout(timer)
     }
-  }, [])
+  }, [search])
 
   const selectedInvoice = useMemo(
     () => invoices.find((invoice) => invoice.id === Number(invoiceId)) ?? null,
@@ -137,6 +155,16 @@ export function PaymentForm({
 
               <div className={styles.formSectionStack}>
                 <label className={styles.formField}>
+                  <span>{locale === 'ar' ? 'بحث برقم الفاتورة أو الشركة' : 'Search by invoice or company'} <em style={{ color: '#9ca3af', fontStyle: 'normal' }}>({copy.optional})</em></span>
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder={locale === 'ar' ? 'مثال: LM-INV-2026' : 'e.g. LM-INV-2026'}
+                    dir="ltr"
+                  />
+                </label>
+                <label className={styles.formField}>
                   <span>{copy.invoice} <em>{copy.required}</em></span>
                   <select value={invoiceId} onChange={(event) => setInvoiceId(event.target.value)} required>
                     <option value="">{copy.selectInvoice}</option>
@@ -147,6 +175,14 @@ export function PaymentForm({
                     ))}
                   </select>
                   <FieldError name="invoice_id" errors={errors} />
+                  {isSearching ? <small className={styles.mutedState}>{locale === 'ar' ? 'جار البحث...' : 'Searching...'}</small> : null}
+                  {!isLoading && !isSearching && invoices.length === 0 ? (
+                    <small className={styles.mutedState}>
+                      {locale === 'ar'
+                        ? 'لا توجد فواتير مستحقة مطابقة. جرّب البحث برقم الفاتورة أو اسم الشركة.'
+                        : 'No matching payable invoices. Try searching by invoice reference or company.'}
+                    </small>
+                  ) : null}
                 </label>
 
                 {selectedInvoice ? (

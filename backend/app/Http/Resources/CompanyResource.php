@@ -42,6 +42,18 @@ class CompanyResource extends JsonResource
             }),
             'contacts_count' => $this->whenCounted('contacts'),
             'primary_contact' => new ContactResource($this->whenLoaded('primaryContact')),
+            'portal_access' => $this->whenLoaded('clientUsers', function () {
+                $primaryClient = $this->clientUsers->sortBy('id')->first();
+
+                return [
+                    'enabled' => $primaryClient !== null && $primaryClient->portal_disabled_at === null && $primaryClient->status?->value !== 'inactive',
+                    'login_email' => $primaryClient?->email,
+                    'username' => $primaryClient?->username,
+                    'users_count' => $this->clientUsers->count(),
+                    'last_login_at' => $primaryClient?->last_login_at,
+                    'invite_status' => $primaryClient?->portal_invited_at ? 'sent' : ($primaryClient ? 'created' : null),
+                ];
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

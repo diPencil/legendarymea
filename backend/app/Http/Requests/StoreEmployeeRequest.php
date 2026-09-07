@@ -28,7 +28,7 @@ class StoreEmployeeRequest extends FormRequest
             'user_id' => ['nullable', 'required_if:system_access,link', 'exists:users,id'],
             'username' => ['nullable', 'required_if:system_access,create', 'string', 'max:40', 'regex:/^[a-zA-Z0-9.\-_]+$/', 'unique:users,username'],
             'email' => ['nullable', 'required_if:system_access,create', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['nullable', 'required_if:system_access,create', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:8'],
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string'],
             
@@ -36,6 +36,9 @@ class StoreEmployeeRequest extends FormRequest
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'country_code' => ['nullable', 'string', 'max:10'],
+            'personal_email' => ['nullable', 'email', 'max:255'],
+            'bank_account_number' => ['nullable', 'string', 'max:255'],
+            'national_address' => ['nullable', 'string', 'max:2000'],
             'status' => ['nullable', 'string', 'in:active,inactive,on_leave'],
             'is_sales_eligible' => ['sometimes', 'boolean'],
             'hire_date' => ['nullable', 'date'],

@@ -34,6 +34,12 @@ class Contract extends Model
         'scope_of_work_ar',
         'payment_terms_en',
         'payment_terms_ar',
+        'first_party_name_en',
+        'first_party_name_ar',
+        'first_party_date',
+        'second_party_name_en',
+        'second_party_name_ar',
+        'second_party_date',
     ];
 
     protected $casts = [
@@ -43,6 +49,8 @@ class Contract extends Model
         'signed_at' => 'datetime',
         'contract_value' => 'decimal:2',
         'contract_content' => 'array',
+        'first_party_date' => 'date',
+        'second_party_date' => 'date',
     ];
 
     public function company(): BelongsTo

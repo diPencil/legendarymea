@@ -48,6 +48,7 @@ function AccountPopupInner({ isAr, accountOpen, setAccountOpen }: { isAr: boolea
   if (user) {
     const isAdmin = user.roles.includes('super_admin') || user.roles.includes('admin')
     const isEmployee = user.roles.includes('employee')
+    const isClient = user.roles.includes('client')
     const showAdminDashboard = isAdmin
     const showUserDashboard = isEmployee
 
@@ -74,6 +75,12 @@ function AccountPopupInner({ isAr, accountOpen, setAccountOpen }: { isAr: boolea
           </Link>
         )}
 
+        {(!showAdminDashboard && !showUserDashboard && isClient) && (
+          <Link href="/portal" className="account-action primary" onClick={close}>
+            {isAr ? 'بوابة العملاء' : 'Client Portal'}
+          </Link>
+        )}
+
         <button className="account-action secondary" type="button" onClick={() => { logout(); close(); }}>
           <LogOut size={16} />{isAr ? 'تسجيل الخروج' : 'Sign Out'}
         </button>
@@ -86,7 +93,7 @@ function AccountPopupInner({ isAr, accountOpen, setAccountOpen }: { isAr: boolea
       <span className="account-eyebrow">{isAr ? 'الحساب' : 'ACCOUNT'}</span>
       <strong>{isAr ? 'سجّل الدخول إلى حسابك' : 'Sign in to your account'}</strong>
       <p>{isAr ? 'ادخل إلى حسابك لإدارة الخدمات المتاحة.' : 'Access your account and manage available services.'}</p>
-      <button className="account-signin-disabled" type="button" disabled><LogIn size={16}/>{isAr ? 'تسجيل الدخول' : 'Sign In'}</button>
+      <Link className="account-action primary" href="/portal/login" onClick={close}><LogIn size={16}/>{isAr ? 'تسجيل الدخول' : 'Sign In'}</Link>
       <div className="account-help"><span>{isAr ? 'تحتاج مساعدة؟' : 'Need help?'}</span><Link href="/contact" onClick={close}>{isAr ? 'تواصل معنا' : 'Contact us'}</Link></div>
     </div>
   )

@@ -1,4 +1,4 @@
-import { dashboardFetch, dashboardFetchEnvelope } from '@/lib/dashboard/api'
+import { dashboardFetch, dashboardFetchBlob, dashboardFetchEnvelope, dashboardFetchMultipart } from '@/lib/dashboard/api'
 
 export type EmployeeStatus = 'active' | 'inactive' | 'on_leave'
 
@@ -7,6 +7,13 @@ export type EmployeeUser = {
   name: string
   username: string
   email: string
+  status?: string
+  roles?: string[]
+  last_login_at?: string | null
+  must_change_password?: boolean
+  account_invite_status?: string | null
+  account_invited_at?: string | null
+  account_invite_failed_at?: string | null
 }
 
 export type EmployeeManager = {
@@ -23,11 +30,35 @@ export type EmployeeRecord = {
   department: string | null
   phone: string | null
   country_code: string | null
+  personal_email?: string | null
+  bank_account_number_masked?: string | null
+  bank_account_number?: string | null
+  national_address?: string | null
+  identity_document?: EmployeeIdentityDocument | null
+  documents?: EmployeeDocument[]
   status: EmployeeStatus
   is_sales_eligible?: boolean
   hire_date: string | null
   notes: string | null
   manager: EmployeeManager | null
+  created_at: string
+  updated_at: string
+}
+
+export type EmployeeIdentityDocument = {
+  original_name: string | null
+  mime_type: string | null
+  size: number | null
+  uploaded_at: string | null
+}
+
+export type EmployeeDocument = {
+  id: number
+  title: string
+  document_type: string | null
+  original_name: string
+  mime_type: string
+  size: number
   created_at: string
   updated_at: string
 }
@@ -60,8 +91,12 @@ export type EmployeeListResult = {
   meta: EmployeeListMeta
 }
 
+export type EmployeeSystemAccess = 'none' | 'create' | 'link'
+
 export type EmployeeCreateInput = {
   name: string
+  system_access: EmployeeSystemAccess
+  user_id: string
   username: string
   email: string
   password: string
@@ -69,13 +104,16 @@ export type EmployeeCreateInput = {
   department: string
   phone: string
   country_code: string
+  personal_email: string
+  bank_account_number: string
+  national_address: string
   status: EmployeeStatus
   hire_date: string
   manager_id: string
   notes: string
 }
 
-export type EmployeeUpdateInput = Omit<EmployeeCreateInput, 'password'>
+export type EmployeeUpdateInput = Omit<EmployeeCreateInput, 'password' | 'system_access' | 'user_id'>
 
 const employeeBasePath = '/api/v1/employees'
 
@@ -101,15 +139,17 @@ export async function listEmployees(query: EmployeeListQuery): Promise<EmployeeL
 }
 
 export async function listEmployeeManagers(): Promise<EmployeeRecord[]> {
-  const payload = await dashboardFetchEnvelope<EmployeeRecord[]>(
-    `${employeeBasePath}?${new URLSearchParams({ per_page: '100', sort_by: 'employee_code', sort_order: 'asc' }).toString()}`,
-  )
+  const payload = await dashboardFetchEnvelope<EmployeeRecord[]>(`${employeeBasePath}/managers`)
 
   return payload?.data ?? []
 }
 
 export async function getEmployee(id: number) {
   return dashboardFetch<EmployeeRecord>(`${employeeBasePath}/${id}`)
+}
+
+export async function getEmployeeWithSensitive(id: number) {
+  return dashboardFetch<EmployeeRecord>(`${employeeBasePath}/${id}?include_sensitive=1`)
 }
 
 export async function createEmployee(input: EmployeeCreateInput) {
@@ -128,6 +168,55 @@ export async function updateEmployee(id: number, input: EmployeeUpdateInput) {
 
 export async function deleteEmployee(id: number) {
   await dashboardFetch<{ message?: string }>(`${employeeBasePath}/${id}`, { method: 'DELETE' })
+}
+
+export async function resendEmployeeAccountInvite(id: number) {
+  return dashboardFetch<EmployeeRecord>(`${employeeBasePath}/${id}/account/resend-invite`, { method: 'POST' })
+}
+
+export async function resetEmployeeTemporaryPassword(id: number) {
+  return dashboardFetch<EmployeeRecord>(`${employeeBasePath}/${id}/account/reset-password`, { method: 'POST' })
+}
+
+export async function disableEmployeeAccount(id: number) {
+  return dashboardFetch<EmployeeRecord>(`${employeeBasePath}/${id}/account/disable`, { method: 'POST' })
+}
+
+export async function enableEmployeeAccount(id: number) {
+  return dashboardFetch<EmployeeRecord>(`${employeeBasePath}/${id}/account/enable`, { method: 'POST' })
+}
+
+export async function uploadEmployeeIdentityDocument(id: number, file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return dashboardFetchMultipart<EmployeeRecord>(`${employeeBasePath}/${id}/identity-document`, formData)
+}
+
+export async function uploadEmployeeDocument(id: number, input: { title: string; document_type?: string; file: File }) {
+  const formData = new FormData()
+  formData.append('title', input.title)
+  if (input.document_type) formData.append('document_type', input.document_type)
+  formData.append('file', input.file)
+
+  return dashboardFetchMultipart<EmployeeDocument>(`${employeeBasePath}/${id}/documents`, formData)
+}
+
+export async function replaceEmployeeDocument(employeeId: number, documentId: number, input: { title?: string; document_type?: string; file: File }) {
+  const formData = new FormData()
+  if (input.title) formData.append('title', input.title)
+  if (input.document_type) formData.append('document_type', input.document_type)
+  formData.append('file', input.file)
+
+  return dashboardFetchMultipart<EmployeeDocument>(`${employeeBasePath}/${employeeId}/documents/${documentId}`, formData)
+}
+
+export async function deleteEmployeeDocument(employeeId: number, documentId: number) {
+  await dashboardFetch<null>(`${employeeBasePath}/${employeeId}/documents/${documentId}`, { method: 'DELETE' })
+}
+
+export async function downloadEmployeePrivateFile(path: string) {
+  return dashboardFetchBlob(path)
 }
 
 function cleanCreatePayload(input: EmployeeCreateInput) {

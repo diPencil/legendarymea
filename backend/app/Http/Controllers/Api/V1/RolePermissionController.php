@@ -5,19 +5,26 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Support\LegendaryPermissions;
 use App\Support\PermissionAccess;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RolePermissionController extends Controller
 {
+    private const EXCLUDED_MATRIX_ROLES = ['client'];
+
     public function index(Request $request)
     {
         abort_unless(PermissionAccess::can($request->user(), 'view_roles_permissions', 'manage_user_roles', 'manage_roles'), 403);
 
+        $this->ensureMatrixPermissionsExist();
+
+        $allowed = collect(LegendaryPermissions::all());
+
         $roles = Role::query()
             ->with('permissions:id,name')
+            ->whereNotIn('name', self::EXCLUDED_MATRIX_ROLES)
             ->orderBy('name')
             ->get()
             ->map(fn (Role $role) => [
@@ -25,7 +32,7 @@ class RolePermissionController extends Controller
                 'name' => $role->name,
                 'permissions' => $role->name === 'super_admin'
                     ? LegendaryPermissions::all()
-                    : $role->permissions->pluck('name')->values(),
+                    : $this->matrixPermissionsOnly($role->permissions->pluck('name'), $allowed),
                 'locked' => $role->name === 'super_admin',
             ])
             ->values();
@@ -46,16 +53,22 @@ class RolePermissionController extends Controller
     public function update(Request $request, Role $role)
     {
         abort_unless(PermissionAccess::can($request->user(), 'manage_roles_permissions', 'manage_user_roles', 'manage_roles'), 403);
+        abort_if(in_array($role->name, self::EXCLUDED_MATRIX_ROLES, true), 404);
+
+        $this->ensureMatrixPermissionsExist();
 
         $allowed = LegendaryPermissions::all();
         $validated = $request->validate([
             'permissions' => ['required', 'array'],
-            'permissions.*' => ['string', Rule::in($allowed)],
+            'permissions.*' => ['string'],
         ]);
 
         $permissions = $role->name === 'super_admin'
             ? $allowed
-            : $validated['permissions'];
+            : collect($validated['permissions'])
+                ->intersect($allowed)
+                ->values()
+                ->all();
 
         $role->syncPermissions(
             Permission::query()
@@ -70,9 +83,27 @@ class RolePermissionController extends Controller
                 'name' => $role->name,
                 'permissions' => $role->name === 'super_admin'
                     ? $allowed
-                    : $role->fresh('permissions')->permissions->pluck('name')->values(),
+                    : $this->matrixPermissionsOnly($role->fresh('permissions')->permissions->pluck('name'), collect($allowed)),
                 'locked' => $role->name === 'super_admin',
             ],
         ]);
+    }
+
+    private function matrixPermissionsOnly(Collection $permissions, Collection $allowed): array
+    {
+        return $permissions
+            ->intersect($allowed)
+            ->values()
+            ->all();
+    }
+
+    private function ensureMatrixPermissionsExist(): void
+    {
+        foreach (LegendaryPermissions::all() as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => LegendaryPermissions::GUARD,
+            ]);
+        }
     }
 }

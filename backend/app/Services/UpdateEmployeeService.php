@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Services\SystemActivityService;
 
 use App\Models\Employee;
+use App\Enums\UserStatus;
 use Illuminate\Validation\ValidationException;
 
 class UpdateEmployeeService
@@ -27,6 +28,7 @@ class UpdateEmployeeService
 
                 // Prevent hierarchy cycles
                 $this->checkHierarchyCycle($employee->id, $newManagerId);
+                $this->ensureValidManager((int) $newManagerId);
             }
         }
 
@@ -51,12 +53,15 @@ class UpdateEmployeeService
             }
         } elseif ($systemAccess === 'create' || ($systemAccess === null && $employee->user_id)) {
             if (!$employee->user_id) {
+                $password = \Illuminate\Support\Str::password(18);
                 $user = \App\Models\User::create([
                     'name' => $data['name'],
                     'username' => $data['username'],
                     'email' => $data['email'],
-                    'password' => \Illuminate\Support\Facades\Hash::make($data['password']),
-                    'status' => 'active'
+                    'password' => \Illuminate\Support\Facades\Hash::make($password),
+                    'status' => UserStatus::INVITED->value,
+                    'must_change_password' => true,
+                    'account_invite_status' => 'pending',
                 ]);
                 if (!empty($data['roles'])) {
                     $user->syncRoles($data['roles']);
@@ -64,6 +69,8 @@ class UpdateEmployeeService
                     $user->assignRole('employee');
                 }
                 $data['user_id'] = $user->id;
+                $newUserForInvite = $user;
+                $newUserTemporaryPassword = $password;
             } else {
                 $userUpdates = [];
                 foreach (['name', 'username', 'email'] as $field) {
@@ -96,15 +103,27 @@ class UpdateEmployeeService
         $newValues = $employee->getChanges();
 
         if (!empty($newValues)) {
+            $sensitiveFields = ['bank_account_number', 'national_address', 'identity_document_path'];
+            $safeOldValues = collect($oldValues)->only(array_keys($newValues))->except($sensitiveFields)->toArray();
+            $safeNewValues = collect($newValues)->except($sensitiveFields)->toArray();
+
+            if (empty($safeNewValues)) {
+                return $employee;
+            }
+
             \App\Services\SystemActivityService::record(
             actor: auth()->user(),
             action: 'updated',
             module: 'Employee',
             entity: $employee,
-            oldValues: collect($oldValues)->only(array_keys($newValues))->toArray(),
-            newValues: $newValues,
+            oldValues: $safeOldValues,
+            newValues: $safeNewValues,
             metadata: []
         );
+        }
+
+        if (isset($newUserForInvite, $newUserTemporaryPassword)) {
+            app(EmployeeAccountAccessService::class)->sendInvite($employee, $newUserForInvite, $newUserTemporaryPassword, auth()->user());
         }
 
         return $employee;
@@ -137,6 +156,23 @@ class UpdateEmployeeService
             }
 
             $currentManagerId = $manager->manager_id;
+        }
+    }
+
+    private function ensureValidManager(int $managerId): void
+    {
+        $isManager = Employee::query()
+            ->whereKey($managerId)
+            ->where('status', 'active')
+            ->whereHas('user.roles', function ($query) {
+                $query->whereRaw('LOWER(name) = ?', ['manager']);
+            })
+            ->exists();
+
+        if (!$isManager) {
+            throw ValidationException::withMessages([
+                'manager_id' => __('The selected manager must be an active employee with the manager role.'),
+            ]);
         }
     }
 }

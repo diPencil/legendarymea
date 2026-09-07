@@ -84,8 +84,13 @@ export function ContractDetailPage({ id }: { id: string }) {
     }
   }, [])
 
-  const canManage = canAccessPermission(user, 'manage_contracts')
-  const canView = canAccessPermission(user, 'view_contracts') || canManage
+  const canView = canAccessPermission(user, ['view_contracts', 'manage_contracts'])
+  const canUpdate = canAccessPermission(user, ['update_contracts', 'manage_contracts'])
+  const canDelete = canAccessPermission(user, ['delete_contracts', 'manage_contracts'])
+  const canActivate = canAccessPermission(user, ['activate_contracts', 'manage_contracts'])
+  const canExpire = canAccessPermission(user, ['expire_contracts', 'manage_contracts'])
+  const canTerminate = canAccessPermission(user, ['terminate_contracts', 'manage_contracts'])
+  const canCancel = canAccessPermission(user, ['cancel_contracts', 'manage_contracts'])
   const contractPages = contract?.contract_content ? groupContractContentByPage(contract.contract_content) : []
 
   const fetchRecord = useCallback(async () => {
@@ -216,38 +221,48 @@ export function ContractDetailPage({ id }: { id: string }) {
             <Download aria-hidden="true" />
           </button>
 
-          {canManage && contract.status === 'draft' && (
+          {(canUpdate || canActivate || canCancel) && contract.status === 'draft' && (
             <>
               <button type="button" className={styles.secondaryButton} onClick={() => window.print()} title="Print" aria-label="Print">
                 <Printer aria-hidden="true" />
               </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)} title={copy.edit} aria-label={copy.edit}>
-                <PenLine aria-hidden="true" />
-              </button>
-              <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('activate')} title={copy.activate} aria-label={copy.activate}>
-                <Power aria-hidden="true" />
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')} title={copy.cancel} aria-label={copy.cancel}>
-                <XCircle aria-hidden="true" />
-              </button>
+              {canUpdate ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)} title={copy.edit} aria-label={copy.edit}>
+                  <PenLine aria-hidden="true" />
+                </button>
+              ) : null}
+              {canActivate ? (
+                <button type="button" className={styles.primaryButton} onClick={() => setShowLifecycleDialog('activate')} title={copy.activate} aria-label={copy.activate}>
+                  <Power aria-hidden="true" />
+                </button>
+              ) : null}
+              {canCancel ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('cancel')} title={copy.cancel} aria-label={copy.cancel}>
+                  <XCircle aria-hidden="true" />
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && contract.status === 'active' && (
+          {(canExpire || canTerminate) && contract.status === 'active' && (
             <>
               <button type="button" className={styles.secondaryButton} onClick={() => window.print()} title="Print" aria-label="Print">
                 <Printer aria-hidden="true" />
               </button>
-              <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('expire')} title={copy.expire} aria-label={copy.expire}>
-                <ClockAlert aria-hidden="true" />
-              </button>
-              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setShowLifecycleDialog('terminate')} title={copy.terminate} aria-label={copy.terminate}>
-                <AlertTriangle aria-hidden="true" />
-              </button>
+              {canExpire ? (
+                <button type="button" className={styles.secondaryButton} onClick={() => setShowLifecycleDialog('expire')} title={copy.expire} aria-label={copy.expire}>
+                  <ClockAlert aria-hidden="true" />
+                </button>
+              ) : null}
+              {canTerminate ? (
+                <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setShowLifecycleDialog('terminate')} title={copy.terminate} aria-label={copy.terminate}>
+                  <AlertTriangle aria-hidden="true" />
+                </button>
+              ) : null}
             </>
           )}
 
-          {canManage && (contract.status === 'draft' || contract.status === 'cancelled') && (
+          {canDelete && (contract.status === 'draft' || contract.status === 'cancelled') && (
             <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setShowLifecycleDialog('delete')} title={copy.delete} aria-label={copy.delete}>
               <Trash2 aria-hidden="true" />
             </button>
@@ -374,18 +389,45 @@ export function ContractDetailPage({ id }: { id: string }) {
                             </div>
                           ) : null}
                           <div className={styles.contractAgreementClauses}>
-                            {section.clauses?.map((clause, clauseIndex) => (
-                              <div key={`${section.key}-${clauseIndex}`} className={styles.contractAgreementClause}>
-                                <p dir="ltr">
-                                  {section.kind === 'signatures' ? null : <span aria-hidden="true" />}
-                                  {clause.en}
-                                </p>
-                                <p dir="rtl">
-                                  {section.kind === 'signatures' ? null : <span aria-hidden="true" />}
-                                  {clause.ar}
-                                </p>
+                            {section.kind === 'signatures' && (contract.first_party_name_en || contract.first_party_name_ar || contract.first_party_date || contract.second_party_name_en || contract.second_party_name_ar || contract.second_party_date) ? (
+                              <div className={styles.contractAgreementClause} style={{ display: 'block' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, width: '100%' }}>
+                                  <div dir="ltr" style={{ background: '#b69338', color: '#fff', padding: 16, borderRadius: 8, textAlign: 'left' }}>
+                                    <strong>First Party</strong>
+                                    <p style={{ margin: '8px 0 0', fontSize: '0.92rem', textAlign: 'left' }}>Name: Legendary Management MEA</p>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.92rem', textAlign: 'left' }}>Date: {contract.first_party_date || '—'}</p>
+                                    <p style={{ margin: '4px 0 12px', fontSize: '0.92rem', textAlign: 'left' }}>Sign: Legendary Management MEA</p>
+                                    <strong>Second Party</strong>
+                                    <p style={{ margin: '8px 0 0', fontSize: '0.92rem', textAlign: 'left' }}>Name: {contract.second_party_name_en || contract.company.name}</p>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.92rem', textAlign: 'left' }}>Date: {contract.second_party_date || '—'}</p>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.92rem', textAlign: 'left' }}>Sign: {contract.second_party_name_en || contract.company.name}</p>
+                                  </div>
+                                  <div dir="rtl" style={{ background: '#b69338', color: '#fff', padding: 16, borderRadius: 8, textAlign: 'right' }}>
+                                    <strong>الطرف الأول</strong>
+                                    <p style={{ margin: '8px 0 0', fontSize: '0.92rem' }}>الاسم: شركة ليجينداري مانجمنت مي إي إيه</p>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.92rem' }}>التاريخ: {contract.first_party_date || '—'}</p>
+                                    <p style={{ margin: '4px 0 12px', fontSize: '0.92rem' }}>التوقيع: شركة ليجينداري مانجمنت مي إي إيه</p>
+                                    <strong>الطرف الثاني</strong>
+                                    <p style={{ margin: '8px 0 0', fontSize: '0.92rem' }}>الاسم: {contract.second_party_name_ar || contract.company.legal_name || contract.company.name}</p>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.92rem' }}>التاريخ: {contract.second_party_date || '—'}</p>
+                                    <p style={{ margin: '4px 0 0', fontSize: '0.92rem' }}>التوقيع: {contract.second_party_name_ar || contract.company.legal_name || contract.company.name}</p>
+                                  </div>
+                                </div>
                               </div>
-                            ))}
+                            ) : (
+                              section.clauses?.map((clause, clauseIndex) => (
+                                <div key={`${section.key}-${clauseIndex}`} className={styles.contractAgreementClause}>
+                                  <p dir="ltr">
+                                    {section.kind === 'signatures' ? null : <span aria-hidden="true" />}
+                                    {clause.en}
+                                  </p>
+                                  <p dir="rtl">
+                                    {section.kind === 'signatures' ? null : <span aria-hidden="true" />}
+                                    {clause.ar}
+                                  </p>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </section>
                       </Fragment>

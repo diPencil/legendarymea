@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateEmployeeService
@@ -44,12 +45,15 @@ class CreateEmployeeService
                     ]);
                 }
             } elseif ($systemAccess === 'create') {
+                $password = Str::password(18);
                 $user = User::create([
                     'name' => $data['name'],
                     'username' => $data['username'],
                     'email' => $data['email'],
-                    'password' => Hash::make($data['password']),
-                    'status' => 'active'
+                    'password' => Hash::make($password),
+                    'status' => 'invited',
+                    'must_change_password' => true,
+                    'account_invite_status' => 'pending',
                 ]);
                 $userId = $user->id;
                 
@@ -60,16 +64,8 @@ class CreateEmployeeService
                 }
             }
 
-            // Verify manager doesn't cause cycle (not possible on create since they have no reports, just need to ensure they don't manage themselves)
-            // But they don't have an ID yet, so they can't manage themselves.
-            // Just check manager exists.
             if (!empty($data['manager_id'])) {
-                $manager = Employee::find($data['manager_id']);
-                if (!$manager) {
-                    throw ValidationException::withMessages([
-                        'manager_id' => 'Invalid manager.'
-                    ]);
-                }
+                $this->ensureValidManager((int) $data['manager_id']);
             }
 
             $employeeCode = $this->referenceGenerator->generate('LM-EMP-', 'employees', 'employee_code');
@@ -82,6 +78,9 @@ class CreateEmployeeService
                 'department' => $data['department'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'country_code' => $data['country_code'] ?? null,
+                'personal_email' => $data['personal_email'] ?? null,
+                'bank_account_number' => $data['bank_account_number'] ?? null,
+                'national_address' => $data['national_address'] ?? null,
                 'status' => $data['status'] ?? 'active',
                 'is_sales_eligible' => isset($data['department']) && $data['department'] === 'Sales',
                 'hire_date' => $data['hire_date'] ?? null,
@@ -95,11 +94,47 @@ class CreateEmployeeService
             module: 'Employee',
             entity: $employee,
             oldValues: [],
-            newValues: collect($employee->toArray())->except(['password'])->toArray(),
+            newValues: collect($employee->toArray())->except([
+                'password',
+                'bank_account_number',
+                'national_address',
+                'identity_document_path',
+            ])->toArray(),
             metadata: []
         );
+
+            if (isset($user, $password) && $systemAccess === 'create') {
+                \App\Services\SystemActivityService::record(
+                    actor: auth()->user(),
+                    action: 'employee_user_provisioned',
+                    module: 'Employee',
+                    entity: $employee,
+                    oldValues: [],
+                    newValues: ['user_id' => $user->id, 'email' => $user->email],
+                    metadata: []
+                );
+
+                app(EmployeeAccountAccessService::class)->sendInvite($employee, $user, $password, auth()->user());
+            }
             
             return $employee;
         });
+    }
+
+    private function ensureValidManager(int $managerId): void
+    {
+        $isManager = Employee::query()
+            ->whereKey($managerId)
+            ->where('status', 'active')
+            ->whereHas('user.roles', function ($query) {
+                $query->whereRaw('LOWER(name) = ?', ['manager']);
+            })
+            ->exists();
+
+        if (!$isManager) {
+            throw ValidationException::withMessages([
+                'manager_id' => 'The selected manager must be an active employee with the manager role.',
+            ]);
+        }
     }
 }

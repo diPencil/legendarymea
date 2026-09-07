@@ -57,7 +57,8 @@ export function InvoicesPage() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
 
   const canViewInvoices = canAccessPermission(user, ['view_invoices', 'manage_invoices'])
-  const canManageInvoices = canAccessPermission(user, 'manage_invoices')
+  const canCreateInvoices = canAccessPermission(user, ['create_invoices', 'manage_invoices'])
+  const canUpdateInvoices = canAccessPermission(user, ['update_invoices', 'manage_invoices'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -165,7 +166,7 @@ export function InvoicesPage() {
           <h2>{copy.invoices}</h2>
           <p>{copy.invoicesDescription}</p>
         </div>
-        {canManageInvoices ? (
+        {canCreateInvoices ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.createInvoice}
@@ -274,7 +275,7 @@ export function InvoicesPage() {
                           <Link href={`/dashboard/invoices/${invoice.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canEditInvoiceRecord(invoice, user, canManageInvoices) ? (
+                          {canEditInvoiceRecord(invoice, user, canUpdateInvoices) ? (
                             <button type="button" className={styles.iconButton} onClick={() => setEditingInvoice(invoice)} aria-label={copy.edit}>
                               <PenLine aria-hidden="true" />
                             </button>
@@ -312,7 +313,7 @@ export function InvoicesPage() {
                     <Link href={`/dashboard/invoices/${invoice.id}`} className={styles.iconButton} aria-label={copy.view}>
                       <Eye aria-hidden="true" />
                     </Link>
-                    {canEditInvoiceRecord(invoice, user, canManageInvoices) ? (
+                    {canEditInvoiceRecord(invoice, user, canUpdateInvoices) ? (
                       <button type="button" className={styles.iconButton} onClick={() => setEditingInvoice(invoice)} aria-label={copy.edit}>
                         <PenLine aria-hidden="true" />
                       </button>
@@ -329,8 +330,8 @@ export function InvoicesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingInvoices : copy.noInvoices}
             body={hasActiveQuery ? copy.noMatchingInvoicesBody : copy.noInvoicesBody}
-            actionLabel={canManageInvoices ? copy.createInvoice : undefined}
-            onAction={canManageInvoices ? () => setShowCreateModal(true) : undefined}
+            actionLabel={canCreateInvoices ? copy.createInvoice : undefined}
+            onAction={canCreateInvoices ? () => setShowCreateModal(true) : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} paginationFrom={paginationFrom} paginationTo={paginationTo} copy={copy} page={page} updateParams={updateParams} /> : null}

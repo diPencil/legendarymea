@@ -31,8 +31,9 @@ export function NotesPage() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   
-  const canManage = canAccessPermission(user, 'manage_notes')
-  const canView = canManage || canAccessPermission(user, 'view_notes')
+const canView = canAccessPermission(user, ['view_notes', 'manage_notes'])
+const canCreate = canAccessPermission(user, ['create_notes', 'manage_notes'])
+const canUpdate = canAccessPermission(user, ['update_notes', 'manage_notes'])
   
   const [companies, setCompanies] = useState<CompanyRecord[]>([])
   
@@ -136,11 +137,15 @@ export function NotesPage() {
   }, [rawQuery.search, searchInput, setQueryParam])
 
   function openCreate() {
+    if (!canCreate) return
+
     setActiveNote(undefined)
     setModalMode('create')
   }
 
   async function openEdit(noteRecord: Note) {
+    if (!canUpdate) return
+
     try {
       const freshNote = await notesApi.getNote(noteRecord.id)
       setActiveNote(freshNote)
@@ -171,7 +176,7 @@ export function NotesPage() {
           <h2>{copy.notes}</h2>
           <p>{copy.notesDescription}</p>
         </div>
-        {canManage ? (
+        {canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={openCreate}>
             <Plus aria-hidden="true" />
             {copy.createNote}
@@ -252,7 +257,7 @@ export function NotesPage() {
                           <Link href={`/dashboard/notes/${record.id}`} className={styles.iconButton} aria-label={copy.viewNote}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canManage && (
+                          {canUpdate && (
                             <button type="button" className={styles.iconButton} onClick={() => openEdit(record)} aria-label={copy.edit}>
                               <Pencil aria-hidden="true" />
                             </button>
@@ -287,7 +292,7 @@ export function NotesPage() {
                       <Eye aria-hidden="true" />
                       {copy.viewNote}
                     </Link>
-                    {canManage && (
+                    {canUpdate && (
                       <button type="button" className={styles.secondaryButton} onClick={() => openEdit(record)}>
                         <Pencil aria-hidden="true" />
                         {copy.edit}
@@ -302,8 +307,8 @@ export function NotesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingNotes : copy.noNotes}
             body={hasActiveQuery ? copy.noMatchingNotesBody : copy.noNotesBody}
-            onAction={!hasActiveQuery && canManage ? openCreate : undefined}
-            actionLabel={!hasActiveQuery && canManage ? copy.createNote : undefined}
+            onAction={!hasActiveQuery && canCreate ? openCreate : undefined}
+            actionLabel={!hasActiveQuery && canCreate ? copy.createNote : undefined}
             actionIcon={Plus}
             inline
           />

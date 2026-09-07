@@ -204,10 +204,10 @@ export function InvoiceForm({
 
     async function load() {
       try {
-        const [companyResponse, contractResponse, serviceResponse, userResponse, employeeResponse, supplierResponse, catalogResponse] = await Promise.all([
+        const [companyResponse, userResponse, employeeResponse, supplierResponse, catalogResponse] = await Promise.all([
           listCompanies({
             page: 1,
-            perPage: 500,
+            perPage: 100,
             search: '',
             status: '',
             relationship: '',
@@ -216,19 +216,15 @@ export function InvoiceForm({
             sortBy: 'name',
             sortOrder: 'asc',
           }),
-          listContracts({ page: 1, per_page: 500, search: '', sort_by: 'created_at', sort_order: 'desc' }),
-          listActiveServices({ page: 1, per_page: 500, search: '', sort: 'created_at', direction: 'desc' }),
-          listUsers({ page: 1, per_page: 500, sort: 'name', direction: 'asc' }),
-          listEmployees({ page: 1, perPage: 500, search: '', status: 'active', department: 'Sales', managerId: '', sortBy: 'employee_code', sortOrder: 'asc' }),
-          listSuppliers({ page: 1, per_page: 500 }),
+          listUsers({ page: 1, per_page: 100, sort: 'name', direction: 'asc' }),
+          listEmployees({ page: 1, perPage: 100, search: '', status: 'active', department: 'Sales', managerId: '', sortBy: 'employee_code', sortOrder: 'asc' }),
+          listSuppliers({ page: 1, per_page: 100 }),
           listServiceCatalog({ available_for_invoice: 1, active: 1 }),
         ])
 
         if (!mounted) return
 
         setCompanies(companyResponse.data)
-        setContracts(contractResponse.data)
-        setActiveServices(serviceResponse.data)
         setUsers(userResponse.data.filter((user) => user.roles.some((role) => (typeof role === 'string' ? role : role.name) === 'client')))
         setEmployees(employeeResponse.data.filter((employee) => employee.status === 'active' && employee.department === 'Sales'))
         setSuppliers(supplierResponse.data.filter((supplier) => supplier.status === 'active'))
@@ -246,6 +242,38 @@ export function InvoiceForm({
   }, [])
 
   useEffect(() => {
+    let mounted = true
+
+    async function loadScoped() {
+      if (customerType !== 'company' || !companyId) {
+        setContracts([])
+        setActiveServices([])
+        return
+      }
+
+      try {
+        const [contractResponse, serviceResponse] = await Promise.all([
+          listContracts({ page: 1, per_page: 100, search: '', company_id: Number(companyId), sort_by: 'created_at', sort_order: 'desc' }),
+          listActiveServices({ page: 1, per_page: 100, search: '', company_id: Number(companyId), contract_id: contractId ? Number(contractId) : undefined, sort: 'created_at', direction: 'desc' }),
+        ])
+
+        if (!mounted) return
+
+        setContracts(contractResponse.data)
+        setActiveServices(serviceResponse.data)
+      } catch {
+        // Keep form usable; scoped lists stay empty on failure.
+      }
+    }
+
+    void loadScoped()
+
+    return () => {
+      mounted = false
+    }
+  }, [customerType, companyId, contractId])
+
+  useEffect(() => {
     if (customerType === 'company') {
       setCustomerUserId('')
     } else {
@@ -254,6 +282,24 @@ export function InvoiceForm({
       setActiveServiceId('')
     }
   }, [customerType])
+
+  useEffect(() => {
+    if (!companyId) return
+    const numericCompanyId = Number(companyId)
+    if (contractId) {
+      const selected = contracts.find((entry) => entry.id === Number(contractId))
+      if (selected && selected.company?.id !== numericCompanyId) {
+        setContractId('')
+        setActiveServiceId('')
+      }
+    }
+    if (activeServiceId) {
+      const selectedService = activeServices.find((entry) => entry.id === Number(activeServiceId))
+      if (selectedService && selectedService.company.id !== numericCompanyId) {
+        setActiveServiceId('')
+      }
+    }
+  }, [companyId, contracts, activeServices, contractId, activeServiceId])
 
   const visibleContracts = companyId
     ? contracts.filter((entry) => entry.company?.id === Number(companyId))

@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreApprovalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_approvals');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'create_approvals', 'manage_approvals');
     }
 
     public function rules(): array

@@ -42,10 +42,16 @@ export interface User {
   preferred_locale?: string | null
   timezone?: string | null
   last_login_at?: string | null
+  company_id?: number | null
+  must_change_password?: boolean | null
+  portal_invited_at?: string | null
+  portal_disabled_at?: string | null
   created_at: string
   updated_at: string
   roles: Array<{ id: number; name: string } | string>
   permissions: Array<{ id: number; name: string } | string>
+  direct_permissions?: Array<{ id: number; name: string } | string>
+  role_permissions?: Array<{ id: number; name: string } | string>
   employee?: {
     id: number
     employee_code?: string | null

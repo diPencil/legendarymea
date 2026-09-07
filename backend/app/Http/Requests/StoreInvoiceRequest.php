@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\InvoiceCustomerType;
+use App\Support\PermissionAccess;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -10,7 +11,9 @@ class StoreInvoiceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage_invoices');
+        $user = $this->user();
+
+        return $user && PermissionAccess::can($user, 'create_invoices', 'manage_invoices');
     }
 
     public function rules(): array

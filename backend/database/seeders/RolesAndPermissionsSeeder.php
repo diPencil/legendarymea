@@ -63,6 +63,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => LegendaryPermissions::GUARD]);
         $admin->syncPermissions(Permission::all());
 
+        Role::firstOrCreate(['name' => 'manager', 'guard_name' => LegendaryPermissions::GUARD]);
+
         $employee = Role::firstOrCreate(['name' => 'employee', 'guard_name' => LegendaryPermissions::GUARD]);
         $employee->syncPermissions([
             'view_dashboard',

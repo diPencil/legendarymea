@@ -30,6 +30,8 @@ class StoreCompanyRequest extends FormRequest
             'relationship_types' => ['nullable', 'array'],
             'relationship_types.*' => ['string', 'in:lead,prospect,client,partner,supplier'],
             'account_manager_id' => ['nullable', 'exists:employees,id'],
+            'portal_access_enabled' => ['nullable', 'boolean'],
+            'portal_email' => ['required_if:portal_access_enabled,true', 'nullable', 'email', 'max:255'],
         ];
     }
 }

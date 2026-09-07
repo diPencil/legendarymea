@@ -66,11 +66,14 @@ class UserApiTest extends TestCase
             'roles' => ['employee', 'client'],
         ])->assertOk();
 
-        $this->actingAs($admin)->getJson("/api/v1/users/{$user->id}")
+        $showResponse = $this->actingAs($admin)->getJson("/api/v1/users/{$user->id}")
             ->assertOk()
             ->assertJsonPath('data.employee.employee_code', 'LM-EMP-123456')
             ->assertJsonFragment(['name' => 'Updated User'])
             ->assertJsonMissingPath('data.password');
+
+        $this->assertContains('view_dashboard', $showResponse->json('data.permissions'));
+        $this->assertContains('view_companies', $showResponse->json('data.role_permissions'));
     }
 
     public function test_index_returns_newly_created_user_on_first_page(): void
@@ -189,6 +192,16 @@ class UserApiTest extends TestCase
             ->assertJsonFragment(['view_invoices'])
             ->assertJsonFragment(['manage_roles_permissions']);
 
+        $clientRole = Role::firstOrCreate(['name' => 'client', 'guard_name' => 'web']);
+        $matrixResponse = $this->actingAs($admin)->getJson('/api/v1/roles-permissions');
+        $this->assertNotContains('client', collect($matrixResponse->json('data.roles'))->pluck('name'));
+
+        $this->actingAs($admin)
+            ->putJson("/api/v1/roles-permissions/{$clientRole->id}", [
+                'permissions' => ['view_dashboard'],
+            ])
+            ->assertNotFound();
+
         $this->actingAs($admin)
             ->putJson("/api/v1/roles-permissions/{$role->id}", [
                 'permissions' => ['view_dashboard', 'view_invoices', 'create_invoices'],
@@ -200,6 +213,34 @@ class UserApiTest extends TestCase
         $this->assertTrue($role->fresh()->hasPermissionTo('view_invoices'));
         $this->assertTrue($role->fresh()->hasPermissionTo('create_invoices'));
         $this->assertFalse($role->fresh()->hasPermissionTo('delete_invoices'));
+    }
+
+    public function test_roles_permissions_matrix_creates_missing_permissions_before_syncing(): void
+    {
+        $admin = $this->adminUser();
+        $role = Role::firstOrCreate(['name' => 'email_creator', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'send_sales_emails', 'guard_name' => 'web']);
+        $role->givePermissionTo('send_sales_emails');
+
+        Permission::query()
+            ->where('name', 'create_emails')
+            ->where('guard_name', 'web')
+            ->delete();
+
+        $this->assertDatabaseMissing('permissions', ['name' => 'create_emails', 'guard_name' => 'web']);
+
+        $this->actingAs($admin)
+            ->putJson("/api/v1/roles-permissions/{$role->id}", [
+                'permissions' => ['view_emails', 'create_emails'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'email_creator');
+
+        $role->forgetCachedPermissions();
+
+        $this->assertDatabaseHas('permissions', ['name' => 'create_emails', 'guard_name' => 'web']);
+        $this->assertTrue($role->fresh()->hasPermissionTo('create_emails'));
+        $this->assertFalse($role->fresh()->hasPermissionTo('send_sales_emails'));
     }
 
     public function test_super_admin_role_is_seeded_with_all_permissions(): void

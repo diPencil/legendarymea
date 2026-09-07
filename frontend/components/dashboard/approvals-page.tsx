@@ -84,6 +84,7 @@ export function DashboardApprovalsPage() {
     || canAccessPermission(user, 'manage_approvals')
     || canAccessPermission(user, 'decide_approvals')
   const canManageApprovals = canAccessPermission(user, 'manage_approvals')
+const canCreateApprovals = canAccessPermission(user, ['create_approvals', 'manage_approvals'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -228,7 +229,7 @@ export function DashboardApprovalsPage() {
         title={copy.approvals}
         description={copy.approvalsDescription}
         action={
-          canManageApprovals ? (
+          canCreateApprovals ? (
             <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
               <Plus aria-hidden="true" />
               {copy.requestApproval}
@@ -400,8 +401,8 @@ export function DashboardApprovalsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingApprovals : copy.noApprovals}
             body={hasActiveQuery ? copy.noMatchingApprovalsBody : (canManageApprovals ? copy.noApprovalsBody : copy.noApprovalsViewOnlyBody)}
-            actionLabel={canManageApprovals && !hasActiveQuery ? copy.requestApproval : undefined}
-            onAction={canManageApprovals && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
+actionLabel={canCreateApprovals && !hasActiveQuery ? copy.requestApproval : undefined}
+onAction={canCreateApprovals && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
           />
         )}
 

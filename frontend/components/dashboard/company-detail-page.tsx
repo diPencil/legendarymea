@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { AlertTriangle, ArrowLeft, Building2, ChevronLeft, ChevronRight, Pencil, Trash2, X, Eye } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
+import { CountryPhoneFields } from '@/components/country-phone-fields'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
@@ -17,6 +18,9 @@ import {
   deleteCompany,
   getCompany,
   listCompanyContacts,
+  resendCompanyPortalInvite,
+  resetCompanyPortalPassword,
+  disableCompanyPortalAccess,
   updateCompany,
   type CompanyContact,
   type CompanyInput,
@@ -29,7 +33,7 @@ import { cn } from '@/lib/utils'
 
 import styles from './dashboard.module.css'
 
-type DialogMode = 'edit' | 'delete' | 'manager'
+type DialogMode = 'edit' | 'delete' | 'manager' | 'disablePortal'
 type FieldErrors = Record<string, string[]>
 
 const statusOptions: CompanyStatus[] = ['active', 'inactive', 'archived']
@@ -55,9 +59,11 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
   const [managerId, setManagerId] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
 
-  const canViewCompanies = canAccessPermission(user, 'view_companies') || canAccessPermission(user, 'manage_companies')
-  const canManageCompanies = canAccessPermission(user, 'manage_companies')
+  const canViewCompanies = canAccessPermission(user, ['view_companies', 'manage_companies'])
+  const canUpdateCompanies = canAccessPermission(user, ['update_companies', 'manage_companies'])
+  const canDeleteCompanies = canAccessPermission(user, ['delete_companies', 'manage_companies'])
 
   const handleDashboardError = useCallback((requestError: unknown) => {
     if (requestError instanceof DashboardApiError && requestError.code === 401) {
@@ -169,17 +175,23 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
             <RelationshipBadges relationships={currentCompany.relationships ?? []} />
           </div>
         </div>
-        {canManageCompanies ? (
+        {canUpdateCompanies || canDeleteCompanies ? (
           <div className={styles.companyHeaderActions}>
-            <button type="button" className={styles.secondaryButton} onClick={openEditDialog}>
-              <Pencil aria-hidden="true" />{copy.edit}
-            </button>
-            <button type="button" className={styles.secondaryButton} onClick={openManagerDialog}>
-              {currentCompany.account_manager ? copy.reassignAccountManager : copy.assignAccountManager}
-            </button>
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
-              <Trash2 aria-hidden="true" />{copy.delete}
-            </button>
+            {canUpdateCompanies ? (
+              <>
+                <button type="button" className={styles.secondaryButton} onClick={openEditDialog}>
+                  <Pencil aria-hidden="true" />{copy.edit}
+                </button>
+                <button type="button" className={styles.secondaryButton} onClick={openManagerDialog}>
+                  {currentCompany.account_manager ? copy.reassignAccountManager : copy.assignAccountManager}
+                </button>
+              </>
+            ) : null}
+            {canDeleteCompanies ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
+                <Trash2 aria-hidden="true" />{copy.delete}
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>
@@ -219,6 +231,25 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
               : copy.contactsCountUnavailable}
           </p>
         </article>
+
+        <article className={styles.detailPanel}>
+          <div className={styles.cardTitle}><h2>{copy.clientPortalAccess ?? 'Client Portal Access'}</h2></div>
+          <dl className={styles.detailList}>
+            <Detail label={copy.status} value={currentCompany.portal_access?.enabled ? 'Enabled' : 'Disabled'} />
+            <Detail label={copy.loginEmail ?? 'Login Email'} value={currentCompany.portal_access?.login_email} ltr />
+            <Detail label="Username" value={currentCompany.portal_access?.username} ltr />
+            <Detail label="Client users" value={String(currentCompany.portal_access?.users_count ?? 0)} ltr />
+            <Detail label="Last login" value={currentCompany.portal_access?.last_login_at ? formatDate(currentCompany.portal_access.last_login_at) : copy.none} ltr />
+            <Detail label="Invite" value={currentCompany.portal_access?.invite_status ?? copy.none} />
+          </dl>
+          {canUpdateCompanies && currentCompany.portal_access?.users_count ? (
+            <div className={styles.dialogActions}>
+              <button type="button" className={styles.secondaryButton} onClick={() => void handlePortalAction('resend')}>Resend invite</button>
+              <button type="button" className={styles.secondaryButton} onClick={() => void handlePortalAction('reset')}>Reset password</button>
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('disablePortal')}>Disable portal access</button>
+            </div>
+          ) : null}
+        </article>
       </section>
 
       <section className={styles.detailPanel}>
@@ -246,6 +277,72 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
             {dialogMode === 'edit' && form ? <CompanyForm /> : null}
             {dialogMode === 'manager' ? <ManagerForm /> : null}
             {dialogMode === 'delete' ? <DeleteConfirmation /> : null}
+            {dialogMode === 'disablePortal' ? <DisablePortalConfirmation /> : null}
+          </section>
+        </div>
+      ) : null}
+      {showWelcome ? (
+        <div
+          className={styles.modalLayer}
+          role="presentation"
+          onMouseDown={(e) => e.target === e.currentTarget && setShowWelcome(false)}
+          style={{ display: 'grid', placeItems: 'center', padding: 20 }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="welcome-title"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 'min(92%, 520px)',
+              background: '#fff',
+              borderRadius: 20,
+              overflow: 'hidden',
+              boxShadow: '0 28px 80px rgba(8,29,96,0.22)',
+              border: '1px solid #e7e1d7',
+              textAlign: locale === 'ar' ? 'right' : 'left',
+              direction: locale === 'ar' ? 'rtl' : 'ltr',
+              animation: 'popIn 0.4s cubic-bezier(0.22,1,0.36,1)',
+            }}
+          >
+            <div style={{ background: 'linear-gradient(135deg, #081D60 0%, #0f2a85 100%)', padding: '26px 28px', display: 'flex', alignItems: 'center', gap: 14, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(300px 200px at 85% 20%, rgba(160,127,49,0.18), transparent 60%)' }} />
+              <img src="/legendary-management.png" alt="Legendary" style={{ height: 38, filter: 'brightness(0) invert(1)', position: 'relative' }} />
+              <div style={{ position: 'relative' }}>
+                <div style={{ color: '#A07F31', fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.12em' }}>{locale === 'ar' ? 'بوابة العملاء' : 'CLIENT PORTAL'}</div>
+                <div id="welcome-title" style={{ color: '#fff', fontWeight: 800, fontSize: '1.15rem', marginTop: 2, lineHeight: 1.2 }}>
+                  {locale === 'ar' ? `تم فتح حساب ${currentCompany.name}!` : `Account opened for ${currentCompany.name}!`}
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowWelcome(false)} aria-label={copy.close} style={{ marginInlineStart: 'auto', background: 'rgba(255,255,255,0.12)', border: 0, color: '#fff', width: 32, height: 32, borderRadius: '50%', display: 'grid', placeItems: 'center', cursor: 'pointer', position: 'relative' }}>
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div style={{ padding: '26px 28px', display: 'grid', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#ecfdf5', display: 'grid', placeItems: 'center', color: '#065f46', fontSize: '1.2rem' }}>✓</div>
+              <h3 style={{ margin: 0, color: '#081D60', fontSize: '1.08rem', fontWeight: 800, lineHeight: 1.3 }}>
+                {locale === 'ar' ? 'مرحباً — حساب الشركة جاهز' : 'Welcome — company account is ready'}
+              </h3>
+              <p style={{ margin: 0, color: '#6d716f', fontSize: '0.9rem', lineHeight: 1.7 }}>
+                {locale === 'ar'
+                  ? `تم تفعيل وصول ${currentCompany.name} (${currentCompany.reference}) إلى بوابة العملاء بنجاح. تم إرسال دعوة بالبريد الإلكتروني ويمكن للشركة تسجيل الدخول الآن.`
+                  : `Portal access for ${currentCompany.name} (${currentCompany.reference}) has been activated successfully. An invite email has been sent and the company can now sign in.`}
+              </p>
+              <div style={{ background: '#fbfaf7', border: '1px solid #e7e1d7', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ color: '#a07f31', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em' }}>{locale === 'ar' ? 'بيانات الدخول' : 'Login details'}</span>
+                <span style={{ color: '#081D60', fontWeight: 600, fontSize: '0.88rem' }} dir="ltr">{currentCompany.portal_access?.login_email || currentCompany.email || '—'}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowWelcome(false)}
+                  style={{ flex: 1, background: '#081D60', color: '#fff', border: 0, borderRadius: 10, padding: '13px 18px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(8,29,96,0.18)' }}
+                >
+                  {locale === 'ar' ? 'متابعة' : 'Continue'}
+                </button>
+              </div>
+              <div style={{ textAlign: 'center', color: '#a07f31', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.04em' }}>www.legendarymea.com</div>
+            </div>
           </section>
         </div>
       ) : null}
@@ -282,6 +379,7 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
   function dialogTitle() {
     if (dialogMode === 'edit') return copy.editCompanyTitle
     if (dialogMode === 'manager') return currentCompany.account_manager ? copy.reassignAccountManager : copy.assignAccountManager
+    if (dialogMode === 'disablePortal') return locale === 'ar' ? 'إغلاق حساب الشركة' : 'Close company account'
     return copy.deleteCompanyTitle
   }
 
@@ -332,6 +430,24 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
     }
   }
 
+  async function handlePortalAction(action: 'resend' | 'reset' | 'disable') {
+    setIsSubmitting(true)
+    try {
+      const updated = action === 'resend'
+        ? await resendCompanyPortalInvite(currentCompany.id)
+        : action === 'reset'
+          ? await resetCompanyPortalPassword(currentCompany.id)
+          : await disableCompanyPortalAccess(currentCompany.id)
+      setCompany(updated)
+      setNotice(action === 'disable' ? 'Client portal access disabled.' : 'Client portal invite sent.')
+      if (action === 'resend' || action === 'reset') setShowWelcome(true)
+    } catch (requestError) {
+      handleDashboardError(requestError)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   function CompanyForm() {
     if (!form) return null
     return (
@@ -366,30 +482,34 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
         <fieldset className={styles.formSection}>
           <legend>{copy.locationContact}</legend>
           <div className={styles.formGrid}>
-            <label className={styles.formField}>
-    <span>copy.countryCode <em>{copy.optional}</em></span>
-    <input type="text" value={String(form.country_code ?? '')} onChange={(e) => setForm({ ...form, country_code: e.target.value })}  />
-    {fieldErrors.country_code?.[0] && <small className={styles.fieldError}>{fieldErrors.country_code[0]}</small>}
-  </label>
+            <CountryPhoneFields
+              isAr={locale === 'ar'}
+              countryLabel={`${copy.countryCode} ${copy.optional}`}
+              phoneLabel={`${copy.phone} ${copy.optional}`}
+              variant="dashboard"
+              fieldClassName={styles.formField}
+              countryCode={form.country_code ?? ''}
+              onCountryCodeChange={(code) => setForm((current) => current ? { ...current, country_code: code } : current)}
+              phoneValue={form.phone ?? ''}
+              onPhoneChange={(phone) => setForm((current) => current ? { ...current, phone } : current)}
+            >
+              {fieldErrors.country_code?.[0] && <small className={styles.fieldError}>{fieldErrors.country_code[0]}</small>}
+            </CountryPhoneFields>
+            {fieldErrors.phone?.[0] && <small className={styles.fieldError}>{fieldErrors.phone[0]}</small>}
             <label className={styles.formField}>
           <span>{copy.city} <em>{copy.optional}</em></span>
           <input type="text" value={String(form.city ?? "")} onChange={(e) => setForm({ ...form, city: e.target.value })} />
           {fieldErrors.city?.[0] && <small className={styles.fieldError}>{fieldErrors.city[0]}</small>}
         </label>
             <label className={styles.formField}>
-    <span>copy.website <em>{copy.optional}</em></span>
+    <span>{copy.website} <em>{copy.optional}</em></span>
     <input type="url" value={String(form.website ?? '')} onChange={(e) => setForm({ ...form, website: e.target.value })}  />
     {fieldErrors.website?.[0] && <small className={styles.fieldError}>{fieldErrors.website[0]}</small>}
   </label>
             <label className={styles.formField}>
-    <span>copy.email <em>{copy.optional}</em></span>
+    <span>{copy.email} <em>{copy.optional}</em></span>
     <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })}  />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
-  </label>
-            <label className={styles.formField}>
-    <span>copy.phone <em>{copy.optional}</em></span>
-    <input type="text" value={String(form.phone ?? '')} onChange={(e) => setForm({ ...form, phone: e.target.value })}  />
-    {fieldErrors.phone?.[0] && <small className={styles.fieldError}>{fieldErrors.phone[0]}</small>}
   </label>
           </div>
         </fieldset>
@@ -409,12 +529,12 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
           <legend>{copy.registrationTax}</legend>
           <div className={styles.formGrid}>
             <label className={styles.formField}>
-    <span>copy.registrationNumber <em>{copy.optional}</em></span>
+    <span>{copy.registrationNumber} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.registration_number ?? '')} onChange={(e) => setForm({ ...form, registration_number: e.target.value })}  />
     {fieldErrors.registration_number?.[0] && <small className={styles.fieldError}>{fieldErrors.registration_number[0]}</small>}
   </label>
             <label className={styles.formField}>
-    <span>copy.taxNumber <em>{copy.optional}</em></span>
+    <span>{copy.taxNumber} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.tax_number ?? '')} onChange={(e) => setForm({ ...form, tax_number: e.target.value })}  />
     {fieldErrors.tax_number?.[0] && <small className={styles.fieldError}>{fieldErrors.tax_number[0]}</small>}
   </label>
@@ -466,6 +586,34 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
         <div className={styles.dialogActions}>
           <button type="button" className={styles.secondaryButton} onClick={closeDialog}>{copy.cancel}</button>
           <button type="button" className={cn(styles.primaryButton, styles.dangerButton)} disabled={isSubmitting} onClick={() => void confirmDelete()}>{isSubmitting ? copy.saving : copy.delete}</button>
+        </div>
+      </div>
+    )
+  }
+
+  function DisablePortalConfirmation() {
+    const isAr = locale === 'ar'
+    return (
+      <div className={styles.confirmDialog} style={{ textAlign: isAr ? 'right' : 'left' } as React.CSSProperties}>
+        <div style={{ width: '100%', background: '#081D60', borderRadius: 12, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+          <img src="/legendary-management.png" alt="Legendary Management MEA" style={{ height: 36, width: 'auto', filter: 'brightness(0) invert(1)' }} />
+          <div>
+            <div style={{ color: '#A07F31', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{isAr ? 'ليجنداري مانجمنت' : 'LEGENDARY MANAGEMENT MEA'}</div>
+            <div style={{ color: '#fff', fontWeight: 800, marginTop: 2 }}>{isAr ? 'تأكيد إغلاق حساب الشركة' : 'Confirm closing company account'}</div>
+          </div>
+        </div>
+        <p style={{ color: '#6d716f', lineHeight: 1.7, fontSize: '0.92rem' }}>
+          {isAr
+            ? `سيتم إغلاق وصول ${currentCompany.name} (${currentCompany.reference}) إلى بوابة العملاء وسيتم تسجيل خروج جميع مستخدمي الشركة فوراً. لن يتمكنوا من الدخول حتى تعيد تفعيل الحساب.`
+            : `This will close portal access for ${currentCompany.name} (${currentCompany.reference}) and immediately log out all company users. They will not be able to sign in until you reactivate.`}
+        </p>
+        <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: 8, padding: '10px 12px', marginTop: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <AlertTriangle size={16} style={{ color: '#d97706', flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+          <span style={{ color: '#92400e', fontSize: '0.82rem', fontWeight: 600 }}>{isAr ? 'سيتم تسجيل خروج الشركة من البورتال فوراً.' : 'The company will be logged out of the portal immediately.'}</span>
+        </div>
+        <div className={styles.dialogActions} style={{ marginTop: 18 }}>
+          <button type="button" className={styles.secondaryButton} onClick={closeDialog}>{copy.cancel}</button>
+          <button type="button" className={cn(styles.primaryButton, styles.dangerButton)} disabled={isSubmitting} onClick={async () => { await handlePortalAction('disable'); closeDialog() }}>{isSubmitting ? copy.saving : isAr ? 'إغلاق الحساب وتسجيل الخروج' : 'Close account & log out'}</button>
         </div>
       </div>
     )

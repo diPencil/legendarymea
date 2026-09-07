@@ -39,7 +39,20 @@ class ReferenceGeneratorService
                 $nextNumber = 1;
             } else {
                 $lastCode = $latest->$column;
-                $numberPart = (int) str_replace($prefix, '', $lastCode);
+                // Robust extraction: take numeric suffix after last '-' to handle both
+                // legacy codes (LM-CNT-2026196290) and current dash format (LM-CNT-2026-000001)
+                if (str_contains($lastCode, '-')) {
+                    $segments = explode('-', $lastCode);
+                    $numberPart = (int) end($segments);
+                } else {
+                    $numberPart = (int) str_replace($prefix, '', $lastCode);
+                }
+                // Fallback if extraction fails (e.g. non-numeric suffix)
+                if ($numberPart === 0 && ! str_ends_with($lastCode, '0')) {
+                    $numberPart = (int) filter_var($lastCode, FILTER_SANITIZE_NUMBER_INT);
+                    // Keep only last $padding digits if year included
+                    $numberPart = $numberPart % (int) pow(10, $padding);
+                }
                 $nextNumber = $numberPart + 1;
             }
 

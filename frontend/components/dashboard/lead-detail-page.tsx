@@ -36,8 +36,9 @@ export function DashboardLeadDetailPage({ leadId }: { leadId: string | number })
   const [dialogMode, setDialogMode] = useState<'edit' | 'delete' | 'assign' | 'convert' | null>(null)
   const [assignedToId, setAssignedToId] = useState('')
 
-  const canViewLeads = canAccessPermission(user, 'view_leads') || canAccessPermission(user, 'manage_leads')
-  const canManageLeads = canAccessPermission(user, 'manage_leads')
+  const canViewLeads = canAccessPermission(user, ['view_leads', 'manage_leads'])
+  const canUpdateLeads = canAccessPermission(user, ['update_leads', 'manage_leads'])
+  const canDeleteLeads = canAccessPermission(user, ['delete_leads', 'manage_leads'])
   const canConvertLeads = canAccessPermission(user, 'convert_leads')
 
   const handleDashboardError = useCallback((requestError: unknown) => {
@@ -61,7 +62,7 @@ export function DashboardLeadDetailPage({ leadId }: { leadId: string | number })
     try {
       const [leadData, managerList] = await Promise.all([
         getLead(leadId),
-        canManageLeads ? listEmployeeManagers().catch(() => []) : Promise.resolve([]),
+        canUpdateLeads ? listEmployeeManagers().catch(() => []) : Promise.resolve([]),
       ])
       setLead(leadData)
       setManagers(managerList)
@@ -71,7 +72,7 @@ export function DashboardLeadDetailPage({ leadId }: { leadId: string | number })
     } finally {
       setIsLoading(false)
     }
-  }, [canManageLeads, canViewLeads, handleDashboardError, leadId])
+  }, [canUpdateLeads, canViewLeads, handleDashboardError, leadId])
 
   useEffect(() => {
     void refreshLead()
@@ -166,7 +167,7 @@ export function DashboardLeadDetailPage({ leadId }: { leadId: string | number })
           </div>
         </div>
 
-        {canManageLeads ? (
+        {canUpdateLeads || canDeleteLeads || canConvertLeads ? (
           <div className={styles.companyHeaderActions}>
             {canConvertLeads && lead.status !== 'converted' ? (
               <button type="button" className={styles.primaryButton} onClick={() => setDialogMode('convert')}>
@@ -174,18 +175,24 @@ export function DashboardLeadDetailPage({ leadId }: { leadId: string | number })
                 {copy.convertLeadTitle}
               </button>
             ) : null}
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('assign')}>
-              <UserIcon aria-hidden="true" />
-              {lead.assigned_employee ? copy.reassignEmployee : copy.assignEmployee}
-            </button>
-            <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')}>
-              <Pencil aria-hidden="true" />
-              {copy.editLeadTitle}
-            </button>
-            <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
-              <Trash2 aria-hidden="true" />
-              {copy.deleteLeadTitle}
-            </button>
+            {canUpdateLeads ? (
+              <>
+                <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('assign')}>
+                  <UserIcon aria-hidden="true" />
+                  {lead.assigned_employee ? copy.reassignEmployee : copy.assignEmployee}
+                </button>
+                <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode('edit')}>
+                  <Pencil aria-hidden="true" />
+                  {copy.editLeadTitle}
+                </button>
+              </>
+            ) : null}
+            {canDeleteLeads ? (
+              <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialogMode('delete')}>
+                <Trash2 aria-hidden="true" />
+                {copy.deleteLeadTitle}
+              </button>
+            ) : null}
           </div>
         ) : null}
       </section>

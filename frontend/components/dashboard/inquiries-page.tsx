@@ -55,6 +55,7 @@ export function InquiriesPage() {
 
   const canView = canAccessPermission(user, ['view_inquiries', 'manage_inquiries'])
   const canManage = canAccessPermission(user, 'manage_inquiries')
+const canCreate = canAccessPermission(user, ['create_inquiries', 'manage_inquiries'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -170,7 +171,7 @@ export function InquiriesPage() {
           <h2>{copy.inquiries}</h2>
           <p>{copy.inquiriesDescription}</p>
         </div>
-        {canManage ? (
+        {canCreate ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.createInquiry}
@@ -309,8 +310,8 @@ export function InquiriesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingInquiries : copy.noInquiries}
             body={hasActiveQuery ? copy.noMatchingInquiriesBody : copy.noInquiriesBody}
-            actionLabel={canManage && !hasActiveQuery ? copy.createInquiry : undefined}
-            onAction={canManage && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
+            actionLabel={canCreate && !hasActiveQuery ? copy.createInquiry : undefined}
+            onAction={canCreate && !hasActiveQuery ? () => setShowCreateModal(true) : undefined}
           />
         )}
 

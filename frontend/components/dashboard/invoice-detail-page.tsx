@@ -71,8 +71,12 @@ export function InvoiceDetailPage({ id }: { id: string }) {
   const didAutoPrintRef = useRef(false)
   const shouldAutoPrint = searchParams.get('print') === '1'
 
-  const canManage = canAccessPermission(user, 'manage_invoices')
   const canView = canAccessPermission(user, ['view_invoices', 'manage_invoices'])
+  const canUpdate = canAccessPermission(user, ['update_invoices', 'manage_invoices'])
+  const canDelete = canAccessPermission(user, ['delete_invoices', 'manage_invoices'])
+  const canIssue = canAccessPermission(user, ['issue_invoices', 'manage_invoices'])
+  const canCancel = canAccessPermission(user, ['cancel_invoices', 'manage_invoices'])
+  const canPrint = canAccessPermission(user, ['print_invoices', 'manage_invoices'])
 
   const fetchRecord = useCallback(async () => {
     if (!canView) return
@@ -161,7 +165,7 @@ export function InvoiceDetailPage({ id }: { id: string }) {
   const isIssued = invoice.status === 'issued'
   const isPartiallyPaid = invoice.status === 'partially_paid'
   const isCancelled = invoice.status === 'cancelled'
-  const canEditInvoice = canEditInvoiceRecord(invoice, user, canManage)
+  const canEditInvoice = canEditInvoiceRecord(invoice, user, canUpdate)
   const issuerName = settings?.general?.company_display_name?.trim() || settings?.general?.legal_name?.trim() || 'Legendary Management MEA'
   const issuerEmail = settings?.contact?.public_email?.trim() || 'info@legendarymea.com'
   const issuerPhone = settings?.contact?.phone?.trim() || settings?.contact?.whatsapp?.trim() || '+966 53 314 4910'
@@ -232,14 +236,16 @@ export function InvoiceDetailPage({ id }: { id: string }) {
 
         <div className={styles.invoiceAdminActions}>
           <InvoiceStatusBadge status={invoice.status} copy={copy} />
-          <button type="button" className={styles.secondaryButton} onClick={() => window.print()} title={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'} aria-label={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'}>
-            <Printer aria-hidden="true" />
-          </button>
+          {canPrint ? (
+            <button type="button" className={styles.secondaryButton} onClick={() => window.print()} title={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'} aria-label={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'}>
+              <Printer aria-hidden="true" />
+            </button>
+          ) : null}
           {canEditInvoice ? <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)} title={copy.edit} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
-          {canManage && (isDraft || isCancelled) ? <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setShowDialog('delete')} title={copy.delete} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
-          {canManage && isDraft ? <button type="button" className={styles.secondaryButton} onClick={() => setShowDialog('cancel')} title={copy.cancelInvoice} aria-label={copy.cancelInvoice}><XCircle aria-hidden="true" /></button> : null}
-          {canManage && (isIssued || isPartiallyPaid) && invoice.due_date ? <button type="button" className={styles.secondaryButton} onClick={() => setShowDialog('mark_overdue')} title={copy.markOverdue} aria-label={copy.markOverdue}><AlertTriangle aria-hidden="true" /></button> : null}
-          {canManage && isDraft ? <button type="button" className={styles.primaryButton} onClick={() => setShowDialog('issue')} title={copy.issueInvoice} aria-label={copy.issueInvoice}><SendHorizonal aria-hidden="true" /></button> : null}
+          {canDelete && (isDraft || isCancelled) ? <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setShowDialog('delete')} title={copy.delete} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
+          {canCancel && isDraft ? <button type="button" className={styles.secondaryButton} onClick={() => setShowDialog('cancel')} title={copy.cancelInvoice} aria-label={copy.cancelInvoice}><XCircle aria-hidden="true" /></button> : null}
+          {canUpdate && (isIssued || isPartiallyPaid) && invoice.due_date ? <button type="button" className={styles.secondaryButton} onClick={() => setShowDialog('mark_overdue')} title={copy.markOverdue} aria-label={copy.markOverdue}><AlertTriangle aria-hidden="true" /></button> : null}
+          {canIssue && isDraft ? <button type="button" className={styles.primaryButton} onClick={() => setShowDialog('issue')} title={copy.issueInvoice} aria-label={copy.issueInvoice}><SendHorizonal aria-hidden="true" /></button> : null}
         </div>
       </header>
 

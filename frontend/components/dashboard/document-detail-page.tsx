@@ -51,8 +51,9 @@ export function DocumentDetailPage({ id }: { id: string }) {
   
   const [downloading, setDownloading] = useState(false)
 
-  const canManage = canAccessPermission(user, 'manage_documents')
-  const canView = canAccessPermission(user, 'view_documents')
+  const canView = canAccessPermission(user, ['view_documents', 'manage_documents'])
+  const canUpdate = canAccessPermission(user, ['update_documents', 'manage_documents'])
+  const canDelete = canAccessPermission(user, ['delete_documents', 'manage_documents'])
 
   const fetchRecord = useCallback(async () => {
     if (isNaN(parsedId)) {
@@ -187,14 +188,14 @@ export function DocumentDetailPage({ id }: { id: string }) {
             {copy.download || 'Download'}
           </button>
 
-          {canManage && (
+          {canUpdate && (
             <button type="button" className={styles.secondaryButton} onClick={() => setModalMode('edit')} title={copy.edit} aria-label={copy.edit}>
               <Pencil aria-hidden="true" />
               {copy.edit}
             </button>
           )}
 
-          {canManage && (
+          {canDelete && (
             <button type="button" className={styles.destructiveButton} onClick={() => setModalMode('delete')} title={copy.delete} aria-label={copy.delete}>
               <Trash2 aria-hidden="true" />
               {copy.delete}

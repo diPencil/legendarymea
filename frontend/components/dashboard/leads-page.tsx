@@ -61,8 +61,9 @@ export function DashboardLeadsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState<LeadRecord | null>(null)
 
-  const canViewLeads = canAccessPermission(user, 'view_leads') || canAccessPermission(user, 'manage_leads')
-  const canManageLeads = canAccessPermission(user, 'manage_leads')
+  const canViewLeads = canAccessPermission(user, ['view_leads', 'manage_leads'])
+  const canCreateLeads = canAccessPermission(user, ['create_leads', 'manage_leads'])
+  const canUpdateLeads = canAccessPermission(user, ['update_leads', 'manage_leads'])
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
 
@@ -158,16 +159,20 @@ export function DashboardLeadsPage() {
   }, [query.search, searchInput, setQueryParam])
 
   const openCreateDialog = useCallback(() => {
+    if (!canCreateLeads) return
+
     setDialogMode('create')
     setSelectedLead(null)
     setIsDialogOpen(true)
-  }, [])
+  }, [canCreateLeads])
 
   const openEditDialog = useCallback((lead: LeadRecord) => {
+    if (!canUpdateLeads) return
+
     setDialogMode('edit')
     setSelectedLead(lead)
     setIsDialogOpen(true)
-  }, [])
+  }, [canUpdateLeads])
 
   const closeDialog = useCallback(() => {
     setIsDialogOpen(false)
@@ -191,7 +196,7 @@ export function DashboardLeadsPage() {
         title={copy.leads}
         description={copy.leadsDescription}
         action={
-          canManageLeads ? (
+          canCreateLeads ? (
             <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
               <Plus aria-hidden="true" />
               {copy.createLeadTitle}
@@ -300,8 +305,8 @@ export function DashboardLeadsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingLeads : copy.noLeads}
             body={hasActiveQuery ? copy.noMatchingLeadsBody : copy.noLeadsBody}
-            actionLabel={canManageLeads ? copy.createLeadTitle : undefined}
-            onAction={canManageLeads ? openCreateDialog : undefined}
+            actionLabel={canCreateLeads ? copy.createLeadTitle : undefined}
+            onAction={canCreateLeads ? openCreateDialog : undefined}
           />
         )}
 
@@ -359,7 +364,7 @@ export function DashboardLeadsPage() {
         <Link className={styles.iconButton} aria-label={`${copy.view} ${lead.reference}`} href={`/dashboard/leads/${lead.id}`}>
           <Eye aria-hidden="true" />
         </Link>
-        {canManageLeads ? (
+        {canUpdateLeads ? (
           <button type="button" className={styles.iconButton} aria-label={`${copy.editLeadTitle} ${lead.reference}`} onClick={() => openEditDialog(lead)}>
             <Pencil aria-hidden="true" />
           </button>

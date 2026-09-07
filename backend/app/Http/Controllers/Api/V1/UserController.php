@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\UserResource;
 use App\Models\Employee;
 use App\Models\User;
 use App\Enums\UserStatus;
@@ -22,7 +23,7 @@ class UserController extends Controller
     {
         Gate::authorize('viewAny', User::class);
 
-        $query = User::query()->with('roles', 'permissions', 'employee');
+        $query = User::query()->with('roles.permissions', 'permissions', 'employee');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -44,7 +45,7 @@ class UserController extends Controller
         $perPage = (int) $request->input('per_page', 15);
         if ($perPage < 1 || $perPage > 100) $perPage = 15;
 
-        return response()->json($query->paginate($perPage));
+        return UserResource::collection($query->paginate($perPage));
     }
 
     /**
@@ -73,7 +74,7 @@ class UserController extends Controller
             $user->syncRoles($request->input('roles'));
         }
 
-        return response()->json(['data' => $user->load('roles', 'permissions', 'employee')], 201);
+        return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
     }
 
     /**
@@ -83,7 +84,7 @@ class UserController extends Controller
     {
         Gate::authorize('view', $user);
         
-        return response()->json(['data' => $user->load('roles', 'permissions', 'employee')]);
+        return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
     }
 
     /**
@@ -117,7 +118,7 @@ class UserController extends Controller
             $user->syncRoles($nextRoles);
         }
 
-        return response()->json(['data' => $user->load('roles', 'permissions', 'employee')]);
+        return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
     }
 
     /**
@@ -152,7 +153,7 @@ class UserController extends Controller
 
         $user->update(['status' => UserStatus::ACTIVE->value]);
 
-        return response()->json(['data' => $user->load('roles', 'permissions', 'employee')]);
+        return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
     }
 
     public function deactivate(Request $request, User $user)
@@ -167,7 +168,7 @@ class UserController extends Controller
 
         $user->update(['status' => UserStatus::INACTIVE->value]);
 
-        return response()->json(['data' => $user->load('roles', 'permissions', 'employee')]);
+        return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
     }
 
     public function resetPassword(Request $request, User $user)
@@ -182,7 +183,7 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return response()->json(['data' => $user->load('roles', 'permissions', 'employee')]);
+        return new UserResource($user->load('roles.permissions', 'permissions', 'employee'));
     }
 
     private function authorizeRoleManagement(User $actor, array $roles, ?User $target): void

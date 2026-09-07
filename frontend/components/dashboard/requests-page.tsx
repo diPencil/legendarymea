@@ -67,7 +67,9 @@ export function DashboardRequestsPage() {
     )
   )
 
-  const canViewRequests = canAccessPermission(user, 'view_requests') || canAccessPermission(user, 'manage_requests')
+  const canViewRequests = canAccessPermission(user, ['view_requests', 'manage_requests'])
+  const canCreateRequests = canAccessPermission(user, ['create_requests', 'manage_requests'])
+  const canUpdateRequests = canAccessPermission(user, ['update_requests', 'manage_requests'])
   
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
@@ -147,11 +149,15 @@ export function DashboardRequestsPage() {
   }, [canViewRequests, handleDashboardError, query])
 
   function handleCreate() {
+    if (!canCreateRequests) return
+
     setActiveRequest(null)
     setModalMode('create')
   }
 
   function handleEdit(requestRecord: RequestRecord) {
+    if (!canUpdateRequests) return
+
     setActiveRequest(requestRecord)
     setModalMode('edit')
   }
@@ -218,7 +224,7 @@ export function DashboardRequestsPage() {
           <h2>{copy.requests}</h2>
           <p>{copy.requestsDescription}</p>
         </div>
-        {canAccessPermission(user, 'manage_requests') && (
+        {canCreateRequests && (
           <button type="button" className={styles.primaryButton} onClick={handleCreate}>
             <Plus aria-hidden="true" />
             {copy.createRequestTitle || 'Create request'}
@@ -319,7 +325,7 @@ export function DashboardRequestsPage() {
                           <Link href={`/dashboard/requests/${requestRecord.id}`} className={styles.iconButton} aria-label={copy.view || 'View'}>
                             <Eye aria-hidden="true" />
                           </Link>
-                          {canAccessPermission(user, 'manage_requests') && (
+                          {canUpdateRequests && (
                             <button type="button" className={styles.iconButton} aria-label={copy.edit} onClick={() => handleEdit(requestRecord)}>
                               <Edit aria-hidden="true" />
                             </button>
@@ -349,7 +355,7 @@ export function DashboardRequestsPage() {
                       <Eye aria-hidden="true" />
                       {copy.view || 'View'}
                     </Link>
-                    {canAccessPermission(user, 'manage_requests') && (
+                    {canUpdateRequests && (
                       <button type="button" className={styles.secondaryButton} onClick={() => handleEdit(requestRecord)}>
                         <Edit aria-hidden="true" />
                         {copy.edit}
@@ -364,6 +370,8 @@ export function DashboardRequestsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingRequests : copy.noRequests}
             body={hasActiveQuery ? copy.noMatchingRequestsBody : copy.noRequestsBody}
+            actionLabel={canCreateRequests ? (copy.createRequestTitle || 'Create request') : undefined}
+            onAction={canCreateRequests ? handleCreate : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} /> : null}

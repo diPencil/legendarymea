@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { AlertTriangle, Building2, ChevronLeft, ChevronRight, ChevronsUpDown, Eye, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
+import { CountryPhoneFields } from '@/components/country-phone-fields'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
@@ -54,6 +55,8 @@ const emptyCompanyForm: CompanyInput = {
   source: '',
   notes: '',
   relationship_types: ['lead'],
+  portal_access_enabled: true,
+  portal_email: '',
 }
 
 export function DashboardCompaniesPage() {
@@ -78,8 +81,10 @@ export function DashboardCompaniesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '')
 
-  const canViewCompanies = canAccessPermission(user, 'view_companies') || canAccessPermission(user, 'manage_companies')
-  const canManageCompanies = canAccessPermission(user, 'manage_companies')
+  const canViewCompanies = canAccessPermission(user, ['view_companies', 'manage_companies'])
+  const canCreateCompanies = canAccessPermission(user, ['create_companies', 'manage_companies'])
+  const canUpdateCompanies = canAccessPermission(user, ['update_companies', 'manage_companies'])
+  const canDeleteCompanies = canAccessPermission(user, ['delete_companies', 'manage_companies'])
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
   const query: CompanyListQuery = useMemo(() => ({
@@ -190,7 +195,7 @@ export function DashboardCompaniesPage() {
           <h2>{copy.companies}</h2>
           <p>{copy.companiesDescription}</p>
         </div>
-        {canManageCompanies ? (
+        {canCreateCompanies ? (
           <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
             <Plus aria-hidden="true" />
             {copy.createCompany}
@@ -199,7 +204,7 @@ export function DashboardCompaniesPage() {
       </section>
 
       {notice ? <p className={styles.successAlert} role="status">{notice}</p> : null}
-      {managerLoadRestricted ? <p className={styles.inlineAlert}>{copy.contactsRestricted}</p> : null}
+      {managerLoadRestricted ? <p className={styles.inlineAlert}>{copy.managersRestricted}</p> : null}
 
       <section className={styles.companyToolbar} aria-label={copy.searchCompaniesLabel}>
         <label className={styles.searchControl}>
@@ -285,8 +290,8 @@ export function DashboardCompaniesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingCompanies : copy.noCompanies}
             body={hasActiveQuery ? copy.noMatchingCompaniesBody : copy.noCompaniesBody}
-            actionLabel={canManageCompanies ? copy.createCompany : undefined}
-            onAction={canManageCompanies ? openCreateDialog : undefined}
+            actionLabel={canCreateCompanies ? copy.createCompany : undefined}
+            onAction={canCreateCompanies ? openCreateDialog : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} /> : null}
@@ -305,7 +310,7 @@ export function DashboardCompaniesPage() {
               </button>
             </div>
             {dialogMode === 'delete' && selectedCompany ? <DeleteConfirmation company={selectedCompany} /> : null}
-            {(dialogMode === 'create' || dialogMode === 'edit') ? <CompanyForm mode={dialogMode} /> : null}
+            {(dialogMode === 'create' || dialogMode === 'edit') ? renderCompanyForm(dialogMode) : null}
           </section>
         </div>
       ) : null}
@@ -324,6 +329,8 @@ export function DashboardCompaniesPage() {
   }
 
   function openCreateDialog() {
+    if (!canCreateCompanies) return
+
     setSelectedCompany(null)
     setForm(emptyCompanyForm)
     setFieldErrors({})
@@ -331,6 +338,8 @@ export function DashboardCompaniesPage() {
   }
 
   function openEditDialog(company: CompanyRecord) {
+    if (!canUpdateCompanies) return
+
     setSelectedCompany(company)
     setForm(formFromCompany(company))
     setFieldErrors({})
@@ -338,6 +347,8 @@ export function DashboardCompaniesPage() {
   }
 
   function openDeleteDialog(company: CompanyRecord) {
+    if (!canDeleteCompanies) return
+
     setSelectedCompany(company)
     setFieldErrors({})
     setDialogMode('delete')
@@ -408,21 +419,21 @@ export function DashboardCompaniesPage() {
         <Link className={styles.iconButton} aria-label={`${copy.view} ${company.name}`} href={`/dashboard/companies/${company.id}`}>
           <Eye aria-hidden="true" />
         </Link>
-        {canManageCompanies ? (
-          <>
+        {canUpdateCompanies ? (
             <button type="button" className={styles.iconButton} aria-label={`${copy.edit} ${company.name}`} onClick={() => openEditDialog(company)}>
               <Pencil aria-hidden="true" />
             </button>
+        ) : null}
+        {canDeleteCompanies ? (
             <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} aria-label={`${copy.delete} ${company.name}`} onClick={() => openDeleteDialog(company)}>
               <Trash2 aria-hidden="true" />
             </button>
-          </>
         ) : null}
       </div>
     )
   }
 
-  function CompanyForm({ mode }: { mode: 'create' | 'edit' }) {
+  function renderCompanyForm(mode: 'create' | 'edit') {
     return (
       <form className={styles.companyForm} onSubmit={submitCompany}>
         <fieldset className={styles.formSection}>
@@ -455,30 +466,38 @@ export function DashboardCompaniesPage() {
         <fieldset className={styles.formSection}>
         <legend>{copy.locationContact}</legend>
         <div className={styles.formGrid}>
-          <label className={styles.formField}>
-    <span>copy.countryCode <em>{copy.optional}</em></span>
-    <input type="text" value={String(form.country_code ?? '')} onChange={(e) => setForm({ ...form, country_code: e.target.value })}  />
-    {fieldErrors.country_code?.[0] && <small className={styles.fieldError}>{fieldErrors.country_code[0]}</small>}
-  </label>
+          <CountryPhoneFields
+            isAr={locale === 'ar'}
+            countryLabel={`${copy.countryCode} ${copy.optional}`}
+            phoneLabel={`${copy.phone} ${copy.optional}`}
+            variant="dashboard"
+            fieldClassName={styles.formField}
+            countryCode={form.country_code ?? ''}
+            onCountryCodeChange={(code) => setForm((current) => ({ ...current, country_code: code }))}
+            phoneValue={form.phone ?? ''}
+            onPhoneChange={(phone) => setForm((current) => ({ ...current, phone }))}
+          >
+            {fieldErrors.country_code?.[0] && <small className={styles.fieldError}>{fieldErrors.country_code[0]}</small>}
+          </CountryPhoneFields>
+          {fieldErrors.phone?.[0] && <small className={styles.fieldError}>{fieldErrors.phone[0]}</small>}
           <label className={styles.formField}>
           <span>{copy.city} <em>{copy.optional}</em></span>
           <input type="text" value={String(form.city ?? "")} onChange={(e) => setForm({ ...form, city: e.target.value })} />
           {fieldErrors.city?.[0] && <small className={styles.fieldError}>{fieldErrors.city[0]}</small>}
         </label>
           <label className={styles.formField}>
-    <span>copy.website <em>{copy.optional}</em></span>
+    <span>{copy.website} <em>{copy.optional}</em></span>
     <input type="url" value={String(form.website ?? '')} onChange={(e) => setForm({ ...form, website: e.target.value })}  />
     {fieldErrors.website?.[0] && <small className={styles.fieldError}>{fieldErrors.website[0]}</small>}
   </label>
           <label className={styles.formField}>
-    <span>copy.email <em>{copy.optional}</em></span>
-    <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })}  />
+    <span>{copy.email} <em>{copy.optional}</em></span>
+    <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm((current) => ({
+      ...current,
+      email: e.target.value,
+      portal_email: current.portal_email || e.target.value,
+    }))}  />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
-  </label>
-          <label className={styles.formField}>
-    <span>copy.phone <em>{copy.optional}</em></span>
-    <input type="text" value={String(form.phone ?? '')} onChange={(e) => setForm({ ...form, phone: e.target.value })}  />
-    {fieldErrors.phone?.[0] && <small className={styles.fieldError}>{fieldErrors.phone[0]}</small>}
   </label>
         </div>
       </fieldset>
@@ -504,12 +523,12 @@ export function DashboardCompaniesPage() {
         <legend>{copy.registrationTax}</legend>
         <div className={styles.formGrid}>
           <label className={styles.formField}>
-    <span>copy.registrationNumber <em>{copy.optional}</em></span>
+    <span>{copy.registrationNumber} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.registration_number ?? '')} onChange={(e) => setForm({ ...form, registration_number: e.target.value })}  />
     {fieldErrors.registration_number?.[0] && <small className={styles.fieldError}>{fieldErrors.registration_number[0]}</small>}
   </label>
           <label className={styles.formField}>
-    <span>copy.taxNumber <em>{copy.optional}</em></span>
+    <span>{copy.taxNumber} <em>{copy.optional}</em></span>
     <input type="text" value={String(form.tax_number ?? '')} onChange={(e) => setForm({ ...form, tax_number: e.target.value })}  />
     {fieldErrors.tax_number?.[0] && <small className={styles.fieldError}>{fieldErrors.tax_number[0]}</small>}
   </label>
@@ -520,6 +539,37 @@ export function DashboardCompaniesPage() {
         </label>
         </div>
       </fieldset>
+        {mode === 'create' ? (
+          <fieldset className={styles.formSection}>
+            <legend>{copy.clientPortalAccess ?? 'Client Portal Access'}</legend>
+            <div className={styles.formGrid}>
+              <label className={styles.checkPill}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.portal_access_enabled)}
+                  onChange={(event) => setForm((current) => ({
+                    ...current,
+                    portal_access_enabled: event.target.checked,
+                    portal_email: current.portal_email || current.email,
+                  }))}
+                />
+                <span>{copy.enableClientPortal ?? 'Enable client portal access'}</span>
+              </label>
+              <label className={styles.formField}>
+                <span>{copy.loginEmail ?? 'Login Email'} <em>{form.portal_access_enabled ? copy.required : copy.optional}</em></span>
+                <input
+                  type="email"
+                  value={String(form.portal_email ?? '')}
+                  onChange={(event) => setForm((current) => ({ ...current, portal_email: event.target.value }))}
+                  required={Boolean(form.portal_access_enabled)}
+                  disabled={!form.portal_access_enabled}
+                  dir="ltr"
+                />
+                {fieldErrors.portal_email?.[0] && <small className={styles.fieldError}>{fieldErrors.portal_email[0]}</small>}
+              </label>
+            </div>
+          </fieldset>
+        ) : null}
         <label className={styles.formField}>
           <span>{copy.internalNotes} <em>{copy.optional}</em></span>
           <textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />

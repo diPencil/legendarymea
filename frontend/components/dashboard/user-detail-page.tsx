@@ -149,6 +149,8 @@ export function UserDetailPage({ id }: { id: string }) {
             <Detail label={copy.preferredLocale} value={user.preferred_locale ?? '—'} ltr />
             <Detail label={copy.timezone} value={user.timezone ?? '—'} ltr />
             <Detail label={copy.lastLoginAt} value={user.last_login_at ?? '—'} ltr />
+            {user.portal_invited_at ? <Detail label={copy.invitationSentAt} value={user.portal_invited_at} ltr /> : null}
+            {user.must_change_password ? <Detail label={copy.passwordChangeRequired} value={copy.yes} /> : null}
             <Detail label={copy.linkedEmployee} value={user.employee?.employee_code ?? '—'} ltr />
             <Detail label={copy.createdAt} value={user.created_at} ltr />
             <Detail label={copy.updatedAt} value={user.updated_at} ltr />

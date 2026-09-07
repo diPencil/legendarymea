@@ -61,7 +61,9 @@ export function FollowUpsPage() {
     || searchParams.get('created_to')
   ))
 
-  const canViewFollowUps = canAccessPermission(user, 'view_follow_ups') || canAccessPermission(user, 'manage_follow_ups')
+  const canViewFollowUps = canAccessPermission(user, ['view_follow_ups', 'manage_follow_ups'])
+  const canCreateFollowUps = canAccessPermission(user, ['create_follow_ups', 'manage_follow_ups'])
+  const canUpdateFollowUps = canAccessPermission(user, ['update_follow_ups', 'manage_follow_ups'])
   
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
@@ -193,7 +195,7 @@ export function FollowUpsPage() {
           <h2>{copy.followUps}</h2>
           <p>{copy.followUpsDescription}</p>
         </div>
-        {canAccessPermission(user, 'manage_follow_ups') && (
+        {canCreateFollowUps && (
           <button type="button" className={styles.primaryButton} onClick={() => { setActiveFollowUp(null); setModalMode('create') }}>
             <Plus aria-hidden="true" />
             {copy.createFollowUpTitle || 'Create follow-up'}
@@ -290,7 +292,7 @@ export function FollowUpsPage() {
                             <Link href={`/dashboard/follow-ups/${record.id}`} className={styles.iconButton} aria-label={copy.view} title={copy.view}>
                               <Eye aria-hidden="true" />
                             </Link>
-                          {canAccessPermission(user, 'manage_follow_ups') && (
+                          {canUpdateFollowUps && (
                             <button type="button" className={styles.iconButton} onClick={() => void openEditDialog(record)} aria-label={copy.edit} title={copy.edit}>
                               <Pencil aria-hidden="true" />
                             </button>
@@ -330,7 +332,7 @@ export function FollowUpsPage() {
                       <Link href={`/dashboard/follow-ups/${record.id}`} className={styles.secondaryButton}>
                         <Eye aria-hidden="true" /> {copy.view}
                       </Link>
-                      {canAccessPermission(user, 'manage_follow_ups') && (
+                      {canUpdateFollowUps && (
                         <button type="button" className={styles.secondaryButton} onClick={() => void openEditDialog(record)}>
                           <Pencil aria-hidden="true" /> {copy.edit}
                         </button>
@@ -345,6 +347,8 @@ export function FollowUpsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingFollowUps : copy.noFollowUps}
             body={hasActiveQuery ? copy.noMatchingFollowUpsBody : copy.noFollowUpsBody}
+            actionLabel={canCreateFollowUps ? (copy.createFollowUpTitle || 'Create follow-up') : undefined}
+            onAction={canCreateFollowUps ? () => { setActiveFollowUp(null); setModalMode('create') } : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} /> : null}

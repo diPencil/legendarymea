@@ -154,7 +154,7 @@ export function ContactForm({ mode, contact, onClose, onSuccess }: ContactFormPr
         <legend>{copy.locationContact}</legend>
         <div className={styles.formGrid}>
         <label className={styles.formField}>
-    <span>copy.email <em>{copy.optional}</em></span>
+    <span>{copy.email} <em>{copy.optional}</em></span>
     <input type="email" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })}  />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
   </label>

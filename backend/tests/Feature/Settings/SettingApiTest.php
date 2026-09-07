@@ -149,6 +149,20 @@ class SettingApiTest extends TestCase
         ]);
     }
 
+    public function test_can_update_settings_with_access_matrix_update_permission()
+    {
+        $this->employee->givePermissionTo('view_settings', 'update_settings');
+
+        $this->actingAs($this->employee)
+            ->putJson('/api/v1/settings/general', [
+                'settings' => [
+                    'company_display_name' => 'Matrix Permission Name',
+                ],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.company_display_name', 'Matrix Permission Name');
+    }
+
     public function test_rejects_unknown_group_and_keys()
     {
         // Unknown group

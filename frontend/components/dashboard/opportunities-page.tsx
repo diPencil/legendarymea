@@ -68,7 +68,9 @@ export function DashboardOpportunitiesPage() {
     || searchParams.get('created_from')
     || searchParams.get('created_to')
   ))
-  const canViewOpportunities = canAccessPermission(user, 'view_opportunities') || canAccessPermission(user, 'manage_opportunities')
+  const canViewOpportunities = canAccessPermission(user, ['view_opportunities', 'manage_opportunities'])
+  const canCreateOpportunities = canAccessPermission(user, ['create_opportunities', 'manage_opportunities'])
+  const canUpdateOpportunities = canAccessPermission(user, ['update_opportunities', 'manage_opportunities'])
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPage = pageSizes.includes(positiveNumber(searchParams.get('per_page'), 15)) ? positiveNumber(searchParams.get('per_page'), 15) : 15
   
@@ -224,16 +226,20 @@ export function DashboardOpportunitiesPage() {
   }, [query.search, searchInput, setQueryParam])
 
   const openCreateDialog = useCallback(() => {
+    if (!canCreateOpportunities) return
+
     setDialogMode('create')
     setSelectedOpportunity(null)
     setIsDialogOpen(true)
-  }, [])
+  }, [canCreateOpportunities])
 
   const openEditDialog = useCallback((opportunity: OpportunityRecord) => {
+    if (!canUpdateOpportunities) return
+
     setDialogMode('edit')
     setSelectedOpportunity(opportunity)
     setIsDialogOpen(true)
-  }, [])
+  }, [canUpdateOpportunities])
 
   const closeDialog = useCallback(() => {
     setIsDialogOpen(false)
@@ -271,7 +277,7 @@ export function DashboardOpportunitiesPage() {
           <h2>{copy.opportunities}</h2>
           <p>{copy.opportunitiesDescription}</p>
         </div>
-        {canAccessPermission(user, 'manage_opportunities') && (
+        {canCreateOpportunities && (
           <button type="button" className={styles.primaryButton} onClick={openCreateDialog}>
             <Plus aria-hidden="true" />
             {copy.createOpportunityTitle}
@@ -395,6 +401,8 @@ export function DashboardOpportunitiesPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingOpportunities : copy.noOpportunities}
             body={hasActiveQuery ? copy.noMatchingOpportunitiesBody : copy.noOpportunitiesBody}
+            actionLabel={canCreateOpportunities ? copy.createOpportunityTitle : undefined}
+            onAction={canCreateOpportunities ? openCreateDialog : undefined}
           />
         )}
         {meta ? <Pagination meta={meta} /> : null}
@@ -447,7 +455,7 @@ export function DashboardOpportunitiesPage() {
         <Link className={styles.iconButton} aria-label={`${copy.view} ${opportunity.name}`} href={`/dashboard/opportunities/${opportunity.id}`}>
           <Eye aria-hidden="true" />
         </Link>
-        {canAccessPermission(user, 'manage_opportunities') && (
+        {canUpdateOpportunities && (
           <button type="button" className={styles.iconButton} aria-label={`${copy.editOpportunityTitle} ${opportunity.name}`} onClick={() => openEditDialog(opportunity)}>
             <Pencil aria-hidden="true" />
           </button>

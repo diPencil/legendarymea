@@ -131,8 +131,8 @@ export interface Invoice {
   updated_at: string
 }
 
-export function canEditInvoiceRecord(invoice: Pick<Invoice, 'status'>, user: DashboardUser | null, canManageInvoices: boolean) {
-  if (!canManageInvoices) return false
+export function canEditInvoiceRecord(invoice: Pick<Invoice, 'status'>, user: DashboardUser | null, canUpdateInvoices: boolean) {
+  if (!canUpdateInvoices) return false
   if (invoice.status === 'draft') return true
   if (invoice.status !== 'issued') return false
 

@@ -17,7 +17,11 @@ class CreateCompanyService
 
     public function execute(array $data): Company
     {
-        return DB::transaction(function () use ($data) {
+        $portalAccessEnabled = (bool) ($data['portal_access_enabled'] ?? true);
+        $portalEmail = $data['portal_email'] ?? $data['email'] ?? null;
+        unset($data['portal_access_enabled'], $data['portal_email']);
+
+        $company = DB::transaction(function () use ($data) {
             $data['reference'] = $this->referenceGenerator->generate('LM-CMP-' . date('Y') . '-', 'companies', 'reference', 6);
             $data['created_by'] = auth()->id();
 
@@ -54,5 +58,11 @@ class CreateCompanyService
 
             return $company;
         });
+
+        if ($portalAccessEnabled && filled($portalEmail)) {
+            app(ClientPortalAccessService::class)->provisionPrimaryUser($company, (string) $portalEmail, auth()->user());
+        }
+
+        return $company;
     }
 }

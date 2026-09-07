@@ -47,7 +47,7 @@ export function PaymentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
 
   const canViewPayments = canAccessPermission(user, ['view_payments', 'manage_payments'])
-  const canManagePayments = canAccessPermission(user, 'manage_payments')
+  const canCreatePayments = canAccessPermission(user, ['create_payments', 'manage_payments'])
 
   const page = positiveNumber(searchParams.get('page'), 1)
   const perPageValue = positiveNumber(searchParams.get('per_page'), 15)
@@ -154,7 +154,7 @@ export function PaymentsPage() {
           <h2>{copy.payments}</h2>
           <p>{copy.paymentsDescription}</p>
         </div>
-        {canManagePayments ? (
+        {canCreatePayments ? (
           <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
             <Plus aria-hidden="true" />
             {copy.recordPayment}
@@ -294,8 +294,8 @@ export function PaymentsPage() {
           <DashboardState
             title={hasActiveQuery ? copy.noMatchingPayments : copy.noPayments}
             body={hasActiveQuery ? copy.noMatchingPaymentsBody : copy.noPaymentsBody}
-            actionLabel={canManagePayments ? copy.recordPayment : undefined}
-            onAction={canManagePayments ? () => setShowCreateModal(true) : undefined}
+            actionLabel={canCreatePayments ? copy.recordPayment : undefined}
+            onAction={canCreatePayments ? () => setShowCreateModal(true) : undefined}
           />
         )}
       </section>

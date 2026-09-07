@@ -31,8 +31,12 @@ export function RenewalDetailPage({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false)
   const [dialog, setDialog] = useState<'due' | 'complete' | 'decline' | 'cancel' | 'delete' | null>(null)
 
-  const canManage = canAccessPermission(user, 'manage_renewals')
   const canView = canAccessPermission(user, ['view_renewals', 'manage_renewals'])
+  const canUpdate = canAccessPermission(user, ['update_renewals', 'manage_renewals'])
+  const canDelete = canAccessPermission(user, ['delete_renewals', 'manage_renewals'])
+  const canComplete = canAccessPermission(user, ['complete_renewals', 'manage_renewals'])
+  const canDecline = canAccessPermission(user, ['decline_renewals', 'manage_renewals'])
+  const canCancel = canAccessPermission(user, ['cancel_renewals', 'manage_renewals'])
 
   const fetchRecord = useCallback(async () => {
     if (!canView) return
@@ -112,32 +116,32 @@ export function RenewalDetailPage({ id }: { id: string }) {
           </div>
         </div>
         <div className={styles.invoiceAdminActions}>
-          {canManage && ['upcoming', 'due'].includes(renewal.status) ? (
+          {canUpdate && ['upcoming', 'due'].includes(renewal.status) ? (
             <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)} title={copy.edit} aria-label={copy.edit}>
               <PenLine aria-hidden="true" />
             </button>
           ) : null}
-          {canManage && renewal.status === 'upcoming' ? (
+          {canUpdate && renewal.status === 'upcoming' ? (
             <button type="button" className={styles.secondaryButton} onClick={() => setDialog('due')} title={copy.markDue} aria-label={copy.markDue}>
               <ClockAlert aria-hidden="true" />
             </button>
           ) : null}
-          {canManage && ['upcoming', 'due'].includes(renewal.status) ? (
+          {canComplete && ['upcoming', 'due'].includes(renewal.status) ? (
             <button type="button" className={styles.primaryButton} onClick={() => setDialog('complete')} title={copy.complete} aria-label={copy.complete}>
               <Power aria-hidden="true" />
             </button>
           ) : null}
-          {canManage && ['upcoming', 'due'].includes(renewal.status) ? (
+          {canDecline && ['upcoming', 'due'].includes(renewal.status) ? (
             <button type="button" className={styles.secondaryButton} onClick={() => setDialog('decline')} title={copy.decline} aria-label={copy.decline}>
               <XCircle aria-hidden="true" />
             </button>
           ) : null}
-          {canManage && ['upcoming', 'due'].includes(renewal.status) ? (
+          {canCancel && ['upcoming', 'due'].includes(renewal.status) ? (
             <button type="button" className={styles.secondaryButton} onClick={() => setDialog('cancel')} title={copy.cancel} aria-label={copy.cancel}>
               <XCircle aria-hidden="true" />
             </button>
           ) : null}
-          {canManage && ['upcoming', 'cancelled'].includes(renewal.status) ? (
+          {canDelete && ['upcoming', 'cancelled'].includes(renewal.status) ? (
             <button type="button" className={cn(styles.secondaryButton, styles.dangerTextButton)} onClick={() => setDialog('delete')} title={copy.delete} aria-label={copy.delete}>
               <Trash2 aria-hidden="true" />
             </button>

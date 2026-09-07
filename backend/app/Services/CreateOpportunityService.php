@@ -18,7 +18,7 @@ class CreateOpportunityService
     public function execute(array $data, ?int $createdBy = null): Opportunity
     {
         return DB::transaction(function () use ($data, $createdBy) {
-            $data['reference'] = $this->referenceGenerator->generate('LM-OPP-' . date('Y'), 'opportunities', 'reference', 6);
+            $data['reference'] = $this->referenceGenerator->generate('LM-OPP-' . date('Y') . '-', 'opportunities', 'reference', 6);
             $data['created_by'] = $createdBy;
             $data['stage'] = $data['stage'] ?? OpportunityStage::QUALIFICATION->value;
 
