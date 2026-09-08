@@ -68,18 +68,18 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
 
   const [form, setForm] = useState<QuotationFormState>(
     mode === 'edit' && quotation ? {
-      company_id: quotation.company.id,
+      company_id: quotation.company?.id ?? null,
       contact_id: quotation.contact?.id ?? null,
       opportunity_id: quotation.opportunity?.id ?? null,
       request_id: quotation.request?.id ?? null,
-      currency: quotation.currency,
+      currency: quotation.currency || 'USD',
       discount_amount: quotation.discount_amount ?? '',
       tax_amount: quotation.tax_amount ?? '',
       issue_date: quotation.issue_date ?? null,
       valid_until: quotation.valid_until ?? null,
       notes: quotation.notes ?? null,
       terms: quotation.terms ?? null,
-      items: quotation.items.map(item => ({
+      items: (quotation.items?.length ? quotation.items : emptyForm.items).map(item => ({
         id: item.id,
         description: item.description,
         quantity: String(item.quantity),

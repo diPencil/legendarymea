@@ -144,6 +144,10 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
   const issuerEmail = settings?.contact?.public_email?.trim() || 'info@legendarymea.com'
   const issuerPhone = settings?.contact?.phone?.trim() || settings?.contact?.whatsapp?.trim() || '+966 53 314 4910'
   const issuerAddress = (locale === 'ar' ? settings?.contact?.address_ar : settings?.contact?.address_en)?.trim()
+  const companyName = quotationRecord.company?.name?.trim() || copy.company
+  const companyReference = quotationRecord.company?.reference?.trim() || '-'
+  const quotationItems = quotationRecord.items?.length ? quotationRecord.items : []
+  const creatorName = quotationRecord.creator?.name?.trim() || '-'
 
   return (
     <div className={styles.invoicePage}>
@@ -157,8 +161,8 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
           </div>
           <h2 dir="ltr">{quotationRecord.reference}</h2>
           <div className={styles.companyHeaderMeta}>
-            <strong>{quotationRecord.company.name}</strong>
-            <span className={cn(styles.statusBadge, styles[`status_${quotationRecord.status}`])}>{statusMap[quotationRecord.status] || quotationRecord.status}</span>
+            <strong>{companyName}</strong>
+            <span className={cn(styles.statusBadge, quotationRecord.status && styles[`status_${quotationRecord.status}`])}>{statusMap[quotationRecord.status] || quotationRecord.status}</span>
           </div>
         </div>
         <div className={styles.invoiceAdminActions}>
@@ -197,7 +201,7 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
           <div className={styles.invoiceDocumentMark}>
             <span>QUOTATION</span>
             <h1 dir="ltr">{quotationRecord.reference}</h1>
-            <span className={cn(styles.statusBadge, styles[`status_${quotationRecord.status}`])}>{statusMap[quotationRecord.status] || quotationRecord.status}</span>
+            <span className={cn(styles.statusBadge, quotationRecord.status && styles[`status_${quotationRecord.status}`])}>{statusMap[quotationRecord.status] || quotationRecord.status}</span>
           </div>
         </header>
 
@@ -206,9 +210,9 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
           <div className={styles.invoiceBillGrid}>
             <article className={styles.invoicePartyCard}>
               <div className={styles.invoicePartyKicker}>{locale === 'ar' ? 'العميل' : 'Bill To'}</div>
-              <div className={styles.invoicePartyName}>{quotationRecord.company.name}</div>
+              <div className={styles.invoicePartyName}>{companyName}</div>
               <dl className={styles.invoicePartyLines}>
-                <div>{quotationRecord.company.reference}</div>
+                <div>{companyReference}</div>
                 {quotationRecord.contact ? <div>{quotationRecord.contact.full_name} ({quotationRecord.contact.reference})</div> : null}
                 {quotationRecord.opportunity ? <div>{quotationRecord.opportunity.name} ({quotationRecord.opportunity.reference})</div> : null}
                 {quotationRecord.request ? <div>{quotationRecord.request.title} ({quotationRecord.request.reference})</div> : null}
@@ -218,7 +222,7 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
               <div className={styles.invoicePartyKicker}>{locale === 'ar' ? 'تفاصيل عرض السعر' : 'Quotation Details'}</div>
               <dl className={styles.invoiceDetailsGrid}>
                 <div><dt>{copy.reference}</dt><dd dir="ltr">{quotationRecord.reference}</dd></div>
-                <div><dt>{copy.createdBy}</dt><dd>{quotationRecord.creator.name}</dd></div>
+                <div><dt>{copy.createdBy}</dt><dd>{creatorName}</dd></div>
                 <div><dt>Issue Date</dt><dd dir="ltr">{formatDate(quotationRecord.issue_date)}</dd></div>
                 <div><dt>{copy.validUntil}</dt><dd dir="ltr">{formatDate(quotationRecord.valid_until)}</dd></div>
                 <div><dt>{copy.createdAt}</dt><dd dir="ltr">{formatDate(quotationRecord.created_at)}</dd></div>
@@ -235,14 +239,19 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
             <table className={styles.employeeTable}>
               <thead><tr><th>{locale === 'ar' ? 'الوصف' : 'Description'}</th><th>{locale === 'ar' ? 'الكمية' : 'Quantity'}</th><th>{locale === 'ar' ? 'سعر الوحدة' : 'Unit Price'}</th><th>{copy.lineTotal}</th></tr></thead>
               <tbody>
-                {quotationRecord.items.map((item) => (
-                  <tr key={item.id || item.description}>
-                    <td data-label="Description"><div className={styles.invoiceCellMain}><strong>{item.description}</strong></div></td>
+                {quotationItems.map((item, index) => (
+                  <tr key={item.id || item.description || index}>
+                    <td data-label="Description"><div className={styles.invoiceCellMain}><strong>{item.description || '-'}</strong></div></td>
                     <td dir="ltr" data-label="Quantity">{item.quantity}</td>
                     <td dir="ltr" data-label="Unit Price"><span className={styles.invoiceMoneyValue}>{formatMoney(item.unit_price, quotationRecord.currency)}</span></td>
                     <td dir="ltr" data-label="Line Total"><span className={styles.invoiceMoneyValue}>{item.line_total ? formatMoney(item.line_total, quotationRecord.currency) : '-'}</span></td>
                   </tr>
                 ))}
+                {quotationItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className={styles.mutedState}>{locale === 'ar' ? 'لا توجد بنود محفوظة.' : 'No line items saved.'}</td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>
@@ -285,11 +294,11 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
         <article className={styles.detailPanel}>
           <div className={styles.cardTitle}><Briefcase aria-hidden="true" /><h2>{copy.quotationSummary}</h2></div>
           <dl className={styles.detailList}>
-            <Detail label={copy.company} value={<Link href={`/dashboard/companies/${quotationRecord.company.id}`} className={styles.textLink}>{quotationRecord.company.name} <span dir="ltr">({quotationRecord.company.reference})</span></Link>} />
+            <Detail label={copy.company} value={quotationRecord.company?.id ? <Link href={`/dashboard/companies/${quotationRecord.company.id}`} className={styles.textLink}>{companyName} <span dir="ltr">({companyReference})</span></Link> : companyName} />
             <Detail label={copy.contact} value={quotationRecord.contact ? <Link href={`/dashboard/contacts/${quotationRecord.contact.id}`} className={styles.textLink}>{quotationRecord.contact.full_name} <span dir="ltr">({quotationRecord.contact.reference})</span></Link> : null} />
             <Detail label={copy.opportunity} value={quotationRecord.opportunity ? <Link href={`/dashboard/opportunities/${quotationRecord.opportunity.id}`} className={styles.textLink}>{quotationRecord.opportunity.name} <span dir="ltr">({quotationRecord.opportunity.reference})</span></Link> : null} />
             <Detail label={copy.request} value={quotationRecord.request ? <Link href={`/dashboard/requests/${quotationRecord.request.id}`} className={styles.textLink}>{quotationRecord.request.title} <span dir="ltr">({quotationRecord.request.reference})</span></Link> : null} />
-            <Detail label={copy.createdBy} value={quotationRecord.creator.name} />
+            <Detail label={copy.createdBy} value={creatorName} />
             <Detail label="Issue Date" value={formatDate(quotationRecord.issue_date)} ltr />
             <Detail label={copy.validUntil} value={formatDate(quotationRecord.valid_until)} ltr />
           </dl>
@@ -342,9 +351,28 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
   }
   function formatDate(value: string | null) {
     if (!value) return null
-    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(new Date(value))
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return null
+    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(date)
   }
-  function formatMoney(amount: string | number, currencyCode: string) {
-    return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: currencyCode }).format(Number(amount))
+  function formatMoney(amount: string | number | null | undefined, currencyCode: string | null | undefined) {
+    const numericAmount = Number(amount)
+    if (!Number.isFinite(numericAmount)) return '-'
+
+    const normalizedCurrency = normalizeCurrency(currencyCode)
+    if (!normalizedCurrency) {
+      return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 2 }).format(numericAmount)
+    }
+
+    try {
+      return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: normalizedCurrency }).format(numericAmount)
+    } catch {
+      return `${new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 2 }).format(numericAmount)} ${normalizedCurrency}`
+    }
   }
+}
+
+function normalizeCurrency(currency: string | null | undefined) {
+  const value = currency?.trim().toUpperCase()
+  return value && /^[A-Z]{3}$/.test(value) ? value : null
 }
