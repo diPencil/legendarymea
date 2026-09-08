@@ -21,6 +21,8 @@ class PublicTeamMemberResource extends JsonResource
             'slug' => $this->publicSlug(),
             'display_name' => $displayName,
             'initials' => $this->initials($displayName),
+            'employee_code' => $this->employee_code,
+            'email' => $this->user?->email,
             'job_title' => $this->job_title,
             'department' => $this->department,
             'photo_url' => $this->photoUrl(),

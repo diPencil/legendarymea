@@ -68,6 +68,12 @@ class CreateEmployeeService
                 $this->ensureValidManager((int) $data['manager_id']);
             }
 
+            if (($data['show_on_team'] ?? false) && !$userId) {
+                throw ValidationException::withMessages([
+                    'show_on_team' => 'A public team profile requires a linked login account.',
+                ]);
+            }
+
             $employeeCode = $this->referenceGenerator->generate('LM-EMP-', 'employees', 'employee_code');
 
             $employee = Employee::create([
@@ -83,6 +89,7 @@ class CreateEmployeeService
                 'national_address' => $data['national_address'] ?? null,
                 'status' => $data['status'] ?? 'active',
                 'is_sales_eligible' => isset($data['department']) && $data['department'] === 'Sales',
+                'show_on_team' => (bool) ($data['show_on_team'] ?? false),
                 'hire_date' => $data['hire_date'] ?? null,
                 'manager_id' => $data['manager_id'] ?? null,
                 'notes' => $data['notes'] ?? null,

@@ -27,6 +27,7 @@ class EmployeeFactory extends Factory
             'country_code' => $this->faker->countryCode,
             'status' => 'active',
             'is_sales_eligible' => false,
+            'show_on_team' => false,
             'hire_date' => $this->faker->date(),
         ];
     }

@@ -50,15 +50,29 @@ export default function TeamExperience() {
 
   const loadTeam = useCallback(() => {
     const controller = new AbortController()
+    let active = true
+
     setLoading(true)
     setError('')
 
     fetchPublicTeam(controller.signal)
-      .then(setMembers)
-      .catch(() => setError(c.unavailable))
-      .finally(() => setLoading(false))
+      .then(nextMembers => {
+        if (!active) return
+        setMembers(nextMembers)
+        setError('')
+      })
+      .catch(error => {
+        if (!active || error instanceof DOMException && error.name === 'AbortError') return
+        setError(c.unavailable)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
 
-    return () => controller.abort()
+    return () => {
+      active = false
+      controller.abort()
+    }
   }, [c.unavailable])
 
   useEffect(loadTeam, [loadTeam])

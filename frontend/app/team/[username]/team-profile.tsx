@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, MapPin, RefreshCw, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, Hash, Mail, MapPin, RefreshCw, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { PageShell } from '@/components/site'
 import { useLocale } from '@/components/i18n'
@@ -17,8 +17,11 @@ const copy = {
     role: 'Role',
     department: 'Focus',
     profile: 'Public profile',
+    employeeCode: 'Employee no.',
+    email: 'Email',
     fallbackRole: 'Legendary team member',
     fallbackDepartment: 'Legendary Management MEA',
+    fallbackValue: 'Not available',
     loading: 'Loading profile',
     unavailable: 'This public team profile could not be loaded.',
     retry: 'Retry',
@@ -30,8 +33,11 @@ const copy = {
     role: 'الدور',
     department: 'التخصص',
     profile: 'ملف عام',
+    employeeCode: 'رقم الموظف',
+    email: 'البريد الإلكتروني',
     fallbackRole: 'عضو في فريق ليجندري',
     fallbackDepartment: 'ليجندري مانجمنت الشرق الأوسط وأفريقيا',
+    fallbackValue: 'غير متاح',
     loading: 'جاري تحميل الملف',
     unavailable: 'تعذر تحميل ملف عضو الفريق.',
     retry: 'إعادة المحاولة',
@@ -49,20 +55,32 @@ export default function TeamProfile({ username }: { username: string }) {
 
   const loadProfile = useCallback(() => {
     const controller = new AbortController()
+    let active = true
+
     setLoading(true)
     setError('')
 
     fetchPublicTeamMember(username, controller.signal)
       .then(result => {
+        if (!active) return
         if (!result) {
           notFound()
         }
         setMember(result)
+        setError('')
       })
-      .catch(() => setError(c.unavailable))
-      .finally(() => setLoading(false))
+      .catch(error => {
+        if (!active || error instanceof DOMException && error.name === 'AbortError') return
+        setError(c.unavailable)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
 
-    return () => controller.abort()
+    return () => {
+      active = false
+      controller.abort()
+    }
   }, [username, c.unavailable])
 
   useEffect(loadProfile, [loadProfile])
@@ -89,6 +107,8 @@ export default function TeamProfile({ username }: { username: string }) {
                 <div><dt><BriefcaseBusiness size={17} />{c.role}</dt><dd>{member.job_title || c.fallbackRole}</dd></div>
                 <div><dt><MapPin size={17} />{c.department}</dt><dd>{member.department || c.fallbackDepartment}</dd></div>
                 <div><dt><ShieldCheck size={17} />{c.profile}</dt><dd>{member.slug}</dd></div>
+                <div><dt><Hash size={17} />{c.employeeCode}</dt><dd>{member.employee_code || c.fallbackValue}</dd></div>
+                <div><dt><Mail size={17} />{c.email}</dt><dd>{member.email || c.fallbackValue}</dd></div>
               </dl>
             </div>
           </div>

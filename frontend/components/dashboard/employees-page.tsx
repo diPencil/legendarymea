@@ -63,6 +63,7 @@ const emptyCreateForm: EmployeeCreateInput = {
   bank_account_number: '',
   national_address: '',
   status: 'active',
+  show_on_team: false,
   hire_date: '',
   manager_id: '',
   notes: '',
@@ -535,7 +536,11 @@ export function DashboardEmployeesPage() {
       value={form.system_access}
       onChange={(e) => {
         const next = e.target.value as EmployeeCreateInput['system_access']
-        setForm((current) => next === 'create' ? { ...current, system_access: next } : { ...current, system_access: next, username: '', email: '' })
+        if (next !== 'create') {
+          setForm((current) => ({ ...current, system_access: next, username: '', email: '', show_on_team: false }))
+        } else {
+          setForm((current) => ({ ...current, system_access: next }))
+        }
       }}
       required
     >
@@ -558,6 +563,11 @@ export function DashboardEmployeesPage() {
                   <span>{copy.password}</span>
                   <small>{copy.temporaryPasswordGenerated}</small>
                 </div>
+                <label className={styles.checkboxField}>
+                  <input type="checkbox" checked={form.show_on_team} disabled={form.system_access !== 'create'} onChange={(e) => setForm({ ...form, show_on_team: e.target.checked })} />
+                  <span>{copy.showOnTeam}</span>
+                  {fieldErrors.show_on_team?.[0] && <small className={styles.fieldError}>{fieldErrors.show_on_team[0]}</small>}
+                </label>
               </div>
             ) : (
               <div className={styles.formGrid}>
@@ -576,9 +586,15 @@ export function DashboardEmployeesPage() {
     <input type="email" dir="ltr" value={String(form.email ?? '')} onChange={(e) => setForm({ ...form, email: e.target.value })} />
     {fieldErrors.email?.[0] && <small className={styles.fieldError}>{fieldErrors.email[0]}</small>}
   </label>
-                <div />
+                <label className={styles.checkboxField}>
+                  <input type="checkbox" checked={form.show_on_team} disabled={!selectedEmployee?.user} onChange={(e) => setForm({ ...form, show_on_team: e.target.checked })} />
+                  <span>{copy.showOnTeam}</span>
+                  {fieldErrors.show_on_team?.[0] && <small className={styles.fieldError}>{fieldErrors.show_on_team[0]}</small>}
+                </label>
               </div>
             )}
+
+        <small className={styles.fieldHint}>{copy.showOnTeamHint}</small>
 
         <div className={styles.formGrid}>
           <label className={styles.formField}>
@@ -781,6 +797,7 @@ function formFromEmployee(employee: EmployeeRecord): EmployeeCreateInput {
     bank_account_number: employee.bank_account_number ?? '',
     national_address: employee.national_address ?? '',
     status: employee.status,
+    show_on_team: employee.show_on_team ?? false,
     hire_date: employee.hire_date ?? '',
     manager_id: employee.manager ? String(employee.manager.id) : '',
     notes: employee.notes ?? '',
@@ -800,6 +817,7 @@ function updatePayload(form: EmployeeCreateInput): EmployeeUpdateInput {
     bank_account_number: form.bank_account_number,
     national_address: form.national_address,
     status: form.status,
+    show_on_team: form.show_on_team,
     hire_date: form.hire_date,
     manager_id: form.manager_id,
     notes: form.notes,

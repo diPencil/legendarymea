@@ -14,6 +14,7 @@ class PublicTeamController extends Controller
         $employees = Employee::query()
             ->with(['user.avatarMedia'])
             ->where('status', 'active')
+            ->where('show_on_team', true)
             ->whereHas('user', fn ($query) => $query->whereNotNull('username')->where('username', '!=', ''))
             ->orderBy('name')
             ->get();
@@ -26,6 +27,7 @@ class PublicTeamController extends Controller
         $employee = Employee::query()
             ->with(['user.avatarMedia'])
             ->where('status', 'active')
+            ->where('show_on_team', true)
             ->whereHas('user', fn ($query) => $query->where('username', $username))
             ->firstOrFail();
 
