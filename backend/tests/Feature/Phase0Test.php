@@ -22,7 +22,13 @@ class Phase0Test extends TestCase
     public function test_health_endpoint()
     {
         $response = $this->getJson('/api/v1/health');
-        $response->assertStatus(200)->assertJson(['success' => true, 'data' => ['status' => 'ok']]);
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => ['status' => 'ok', 'ready' => true],
+            ])
+            ->assertJsonPath('data.required_routes.api/v1/portal/overview', true)
+            ->assertJsonPath('data.required_routes.api/v1/employees/managers', true);
     }
 
     public function test_login_success()
