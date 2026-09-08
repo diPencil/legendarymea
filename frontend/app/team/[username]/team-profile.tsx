@@ -39,7 +39,7 @@ const copy = {
   },
 } as const
 
-export default function TeamProfile({ slug }: { slug: string }) {
+export default function TeamProfile({ username }: { username: string }) {
   const { locale } = useLocale()
   const c = copy[locale]
   const isAr = locale === 'ar'
@@ -52,7 +52,7 @@ export default function TeamProfile({ slug }: { slug: string }) {
     setLoading(true)
     setError('')
 
-    fetchPublicTeamMember(slug, controller.signal)
+    fetchPublicTeamMember(username, controller.signal)
       .then(result => {
         if (!result) {
           notFound()
@@ -63,7 +63,7 @@ export default function TeamProfile({ slug }: { slug: string }) {
       .finally(() => setLoading(false))
 
     return () => controller.abort()
-  }, [slug, c.unavailable])
+  }, [username, c.unavailable])
 
   useEffect(loadProfile, [loadProfile])
 

@@ -42,7 +42,7 @@ Route::prefix('v1')->group(function () {
     Route::post('public/careers/{career}/apply', [\App\Http\Controllers\Api\V1\PublicCareerController::class, 'apply'])
         ->middleware('throttle:5,1');
     Route::get('public/team', [\App\Http\Controllers\Api\V1\PublicTeamController::class, 'index']);
-    Route::get('public/team/{slug}', [\App\Http\Controllers\Api\V1\PublicTeamController::class, 'show']);
+    Route::get('public/team/{username}', [\App\Http\Controllers\Api\V1\PublicTeamController::class, 'show']);
 
     Route::get('public/pages/{slug}', [\App\Http\Controllers\Api\V1\PublicWebPageController::class, 'show']);
     Route::get('public/media-slots', [\App\Http\Controllers\Api\V1\PublicWebsiteMediaController::class, 'index']);

@@ -47,8 +47,8 @@ export async function fetchPublicTeam(signal?: AbortSignal): Promise<PublicTeamM
   return (payload.data ?? []).map(normalizeMember).filter((member): member is PublicTeamMember => Boolean(member))
 }
 
-export async function fetchPublicTeamMember(slug: string, signal?: AbortSignal): Promise<PublicTeamMember | null> {
-  const response = await fetch(normalizeTeamUrl(`/${encodeURIComponent(slug)}`), {
+export async function fetchPublicTeamMember(username: string, signal?: AbortSignal): Promise<PublicTeamMember | null> {
+  const response = await fetch(normalizeTeamUrl(`/${encodeURIComponent(username)}`), {
     headers: { accept: 'application/json' },
     cache: 'no-store',
     signal,

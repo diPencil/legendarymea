@@ -15,7 +15,9 @@ class PublicTeamApiTest extends TestCase
 
     public function test_public_team_lists_only_active_employees_with_safe_fields(): void
     {
-        $active = Employee::factory()->create([
+        $activeUser = User::factory()->create(['username' => 'nehal']);
+        Employee::factory()->create([
+            'user_id' => $activeUser->id,
             'name' => 'Nour Hassan',
             'job_title' => 'Operations Lead',
             'department' => 'Operations',
@@ -46,12 +48,19 @@ class PublicTeamApiTest extends TestCase
             $this->assertArrayNotHasKey($key, $payload);
         }
 
-        $this->assertStringEndsWith('-' . base_convert((string) $active->id, 10, 36), $payload['slug']);
+        $this->assertSame('nehal', $payload['slug']);
+        $this->assertSame('/team/nehal', $payload['profile_url']);
     }
 
-    public function test_public_team_show_returns_active_profile_by_slug(): void
+    public function test_public_team_show_returns_active_profile_by_username(): void
     {
-        Employee::factory()->create(['name' => 'Aly Samir', 'status' => 'active', 'job_title' => 'Travel Consultant']);
+        $user = User::factory()->create(['username' => 'aly']);
+        Employee::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Aly Samir',
+            'status' => 'active',
+            'job_title' => 'Travel Consultant',
+        ]);
 
         $slug = $this->getJson('/api/v1/public/team')->json('data.0.slug');
 
@@ -66,15 +75,16 @@ class PublicTeamApiTest extends TestCase
 
     public function test_public_team_does_not_show_inactive_or_soft_deleted_profiles(): void
     {
-        $inactive = Employee::factory()->create(['name' => 'Hidden User', 'status' => 'inactive']);
-        $deleted = Employee::factory()->create(['name' => 'Removed User', 'status' => 'active']);
-        $deletedId = $deleted->id;
+        $inactiveUser = User::factory()->create(['username' => 'hidden-user']);
+        $deletedUser = User::factory()->create(['username' => 'removed-user']);
+        Employee::factory()->create(['user_id' => $inactiveUser->id, 'name' => 'Hidden User', 'status' => 'inactive']);
+        $deleted = Employee::factory()->create(['user_id' => $deletedUser->id, 'name' => 'Removed User', 'status' => 'active']);
         $deleted->delete();
 
-        $this->getJson('/api/v1/public/team/hidden-user-' . base_convert((string) $inactive->id, 10, 36))
+        $this->getJson('/api/v1/public/team/hidden-user')
             ->assertNotFound();
 
-        $this->getJson('/api/v1/public/team/removed-user-' . base_convert((string) $deletedId, 10, 36))
+        $this->getJson('/api/v1/public/team/removed-user')
             ->assertNotFound();
     }
 
@@ -97,6 +107,7 @@ class PublicTeamApiTest extends TestCase
 
         $user = User::factory()->create([
             'name' => 'Nour Hassan',
+            'username' => 'nour',
             'avatar_media_id' => $media->id,
             'avatar_path' => 'legacy/avatar.png',
         ]);
@@ -110,6 +121,27 @@ class PublicTeamApiTest extends TestCase
         $this->getJson('/api/v1/public/team')
             ->assertOk()
             ->assertJsonPath('data.0.photo_url', "/dashboard-api/api/v1/public/media-files/{$media->id}/content");
+    }
+
+    public function test_public_team_profile_url_tracks_linked_user_username_changes(): void
+    {
+        $user = User::factory()->create(['username' => 'nehal']);
+        Employee::factory()->create(['user_id' => $user->id, 'name' => 'Nehal Ahmed', 'status' => 'active']);
+
+        $this->getJson('/api/v1/public/team')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'nehal')
+            ->assertJsonPath('data.0.profile_url', '/team/nehal');
+
+        $this->getJson('/api/v1/public/team/nehal')->assertOk();
+
+        $user->update(['username' => 'nehal-ahmed']);
+
+        $this->getJson('/api/v1/public/team/nehal')->assertNotFound();
+        $this->getJson('/api/v1/public/team/nehal-ahmed')
+            ->assertOk()
+            ->assertJsonPath('data.slug', 'nehal-ahmed')
+            ->assertJsonPath('data.profile_url', '/team/nehal-ahmed');
     }
 
     /**
