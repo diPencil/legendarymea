@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class PublicTeamMemberResource extends JsonResource
 {
@@ -31,9 +30,7 @@ class PublicTeamMemberResource extends JsonResource
 
     public function publicSlug(): string
     {
-        $base = Str::slug(collect([$this->publicName(), $this->job_title])->filter()->implode(' '));
-
-        return ($base ?: 'team-member') . '-' . base_convert((string) $this->id, 10, 36);
+        return (string) $this->user?->username;
     }
 
     private function publicName(): string

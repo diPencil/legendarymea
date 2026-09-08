@@ -14,22 +14,20 @@ class PublicTeamController extends Controller
         $employees = Employee::query()
             ->with(['user.avatarMedia'])
             ->where('status', 'active')
+            ->whereHas('user', fn ($query) => $query->whereNotNull('username')->where('username', '!=', ''))
             ->orderBy('name')
             ->get();
 
         return PublicTeamMemberResource::collection($employees);
     }
 
-    public function show(string $slug): PublicTeamMemberResource
+    public function show(string $username): PublicTeamMemberResource
     {
-        abort_unless(preg_match('/-([a-z0-9]+)$/i', $slug, $matches), 404);
-
         $employee = Employee::query()
             ->with(['user.avatarMedia'])
             ->where('status', 'active')
-            ->findOrFail((int) base_convert(strtolower($matches[1]), 36, 10));
-
-        abort_unless((new PublicTeamMemberResource($employee))->publicSlug() === $slug, 404);
+            ->whereHas('user', fn ($query) => $query->where('username', $username))
+            ->firstOrFail();
 
         return new PublicTeamMemberResource($employee);
     }
