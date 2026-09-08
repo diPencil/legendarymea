@@ -64,6 +64,12 @@ export const staticSeo = {
     arTitle: 'عن ليجندري مانجمنت الشرق الأوسط وأفريقيا',
     arDescription: 'تعرف على طريقة عمل ليجندري في تشغيل السفر والعلاقات التجارية وتقنية السفر في الشرق الأوسط وأفريقيا.',
   },
+  team: {
+    title: 'Team | Legendary Management MEA',
+    description: 'Meet the active Legendary Management MEA team supporting travel operations, partnerships and client relationships.',
+    arTitle: 'فريق العمل | ليجندري مانجمنت الشرق الأوسط وأفريقيا',
+    arDescription: 'تعرف على فريق ليجندري مانجمنت النشط في دعم التشغيل والشراكات وعلاقات العملاء.',
+  },
   partners: {
     title: 'Business Partnerships | Legendary Management MEA',
     description: 'Commercial relationship models for travel agencies, tour operators, companies and hospitality businesses.',

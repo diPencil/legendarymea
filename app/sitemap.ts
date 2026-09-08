@@ -6,7 +6,7 @@ import { absoluteUrl } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
-const staticPaths = ['/', '/about', '/solutions', '/partners', '/platform', '/faq', '/contact', '/request', '/company-profile', '/help-center']
+const staticPaths = ['/', '/about', '/team', '/solutions', '/partners', '/platform', '/faq', '/contact', '/request', '/company-profile', '/help-center']
 const partnerSlugs = ['travel-agencies', 'tour-operators', 'corporate-travel', 'hospitality-partners']
 
 export default function sitemap(): MetadataRoute.Sitemap {
