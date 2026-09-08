@@ -121,9 +121,11 @@ function AccountMenu({ isAr }: { isAr: boolean }) {
   return (
     <div className="account-menu" ref={accountRef} dir={isAr ? 'rtl' : 'ltr'}>
       <button className="account-avatar" type="button" aria-label={isAr ? 'فتح قائمة الحساب' : 'Open account menu'} aria-expanded={accountOpen} aria-haspopup="menu" onClick={() => setAccountOpen(value => !value)}><User size={19} strokeWidth={1.8}/></button>
-      <DashboardAuthProvider>
-        <AccountPopupInner isAr={isAr} accountOpen={accountOpen} setAccountOpen={setAccountOpen} />
-      </DashboardAuthProvider>
+      {accountOpen && (
+        <DashboardAuthProvider>
+          <AccountPopupInner isAr={isAr} accountOpen={accountOpen} setAccountOpen={setAccountOpen} />
+        </DashboardAuthProvider>
+      )}
     </div>
   )
 }

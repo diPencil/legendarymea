@@ -2,6 +2,8 @@ export type PublicTeamMember = {
   slug: string
   display_name: string
   initials: string
+  employee_code: string | null
+  email: string | null
   job_title: string | null
   department: string | null
   photo_url: string | null
@@ -25,6 +27,8 @@ function normalizeMember(input: Partial<PublicTeamMember>): PublicTeamMember | n
     slug: input.slug,
     display_name: input.display_name,
     initials: input.initials || 'LM',
+    employee_code: input.employee_code ?? null,
+    email: input.email ?? null,
     job_title: input.job_title ?? null,
     department: input.department ?? null,
     photo_url: input.photo_url ?? null,

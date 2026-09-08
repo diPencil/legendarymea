@@ -38,6 +38,7 @@ export type EmployeeRecord = {
   documents?: EmployeeDocument[]
   status: EmployeeStatus
   is_sales_eligible?: boolean
+  show_on_team?: boolean
   hire_date: string | null
   notes: string | null
   manager: EmployeeManager | null
@@ -108,6 +109,7 @@ export type EmployeeCreateInput = {
   bank_account_number: string
   national_address: string
   status: EmployeeStatus
+  show_on_team: boolean
   hire_date: string
   manager_id: string
   notes: string
