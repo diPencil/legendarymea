@@ -81,7 +81,7 @@ const dashboardOverviewCache: Record<string, { data: DashboardOverviewResponse; 
 const dashboardOverviewRequest: Record<string, Promise<DashboardOverviewResponse> | null> = {}
 const dashboardOverviewCacheMs = 30_000
 
-export type DashboardApiErrorCode = 400 | 401 | 403 | 409 | 422 | 500
+export type DashboardApiErrorCode = 400 | 401 | 403 | 404 | 409 | 422 | 500
 
 export class DashboardApiError extends Error {
   code: DashboardApiErrorCode
@@ -209,7 +209,7 @@ export async function dashboardFetchMultipart<T>(path: string, formData: FormDat
   const payload = await parseJson<ApiEnvelope<T>>(response)
 
   if (!response.ok) {
-    const code = [400, 401, 403, 409, 422].includes(response.status) ? response.status : 500
+    const code = [400, 401, 403, 404, 409, 422].includes(response.status) ? response.status : 500
     throw new DashboardApiError(
       messageFromPayload(payload, response.statusText || 'Dashboard request failed.'),
       code as DashboardApiErrorCode,
@@ -240,7 +240,7 @@ export async function dashboardFetchEnvelope<T>(path: string, init: RequestInit 
   const payload = await parseJson<ApiEnvelope<T>>(response)
 
   if (!response.ok) {
-    const code = [400, 401, 403, 409, 422].includes(response.status) ? response.status : 500
+    const code = [400, 401, 403, 404, 409, 422].includes(response.status) ? response.status : 500
     throw new DashboardApiError(
       messageFromPayload(payload, response.statusText || 'Dashboard request failed.'),
       code as DashboardApiErrorCode,
@@ -264,7 +264,7 @@ export async function dashboardFetchBlob(path: string, init: RequestInit = {}): 
 
   if (!response.ok) {
     const payload = await parseJson<ApiEnvelope<unknown>>(response)
-    const code = [400, 401, 403, 409, 422].includes(response.status) ? response.status : 500
+    const code = [400, 401, 403, 404, 409, 422].includes(response.status) ? response.status : 500
     throw new DashboardApiError(
       messageFromPayload(payload, response.statusText || 'Dashboard request failed.'),
       code as DashboardApiErrorCode,

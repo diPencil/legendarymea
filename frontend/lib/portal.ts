@@ -1,4 +1,4 @@
-import { dashboardFetch, dashboardFetchBlob, dashboardFetchEnvelope, login, logout, type DashboardUser } from '@/lib/dashboard/api'
+import { DashboardApiError, dashboardFetch, dashboardFetchBlob, dashboardFetchEnvelope, login, logout, type DashboardUser } from '@/lib/dashboard/api'
 
 export type PortalOverview = {
   company: {
@@ -20,6 +20,8 @@ export type PortalOverview = {
   totals: Record<'contracts' | 'quotations' | 'invoices' | 'services' | 'requests' | 'documents', number>
   must_change_password: boolean
 }
+
+type PortalCompany = NonNullable<PortalOverview['company']>
 
 export type PortalListResult<T> = {
   data: T[]
@@ -49,7 +51,50 @@ export async function portalLogout() {
 }
 
 export async function getPortalOverview() {
-  return dashboardFetch<PortalOverview>('/api/v1/portal/overview')
+  try {
+    return await dashboardFetch<PortalOverview>('/api/v1/portal/overview')
+  } catch (error) {
+    if (!isMissingPortalOverviewRoute(error)) {
+      throw error
+    }
+
+    return getPortalOverviewFallback()
+  }
+}
+
+function isMissingPortalOverviewRoute(error: unknown) {
+  return error instanceof DashboardApiError
+    && error.code === 404
+    && /portal\/overview|portal\\overview|route .*portal.*overview/i.test(error.message)
+}
+
+async function getPortalOverviewFallback(): Promise<PortalOverview> {
+  const company = await dashboardFetch<PortalCompany>('/api/v1/portal/company')
+  const [contracts, quotations, invoices, services, requests, documents] = await Promise.all([
+    getPortalCount('contracts'),
+    getPortalCount('quotations'),
+    getPortalCount('invoices'),
+    getPortalCount('services'),
+    getPortalCount('requests'),
+    getPortalCount('documents'),
+  ])
+
+  return {
+    company,
+    totals: { contracts, quotations, invoices, services, requests, documents },
+    must_change_password: false,
+  }
+}
+
+async function getPortalCount(path: string) {
+  try {
+    const payload = await dashboardFetchEnvelope<{ data?: PortalRecord[]; total?: number }>(`/api/v1/portal/${path}?page=1&per_page=1`)
+    const paginator = payload?.data
+
+    return paginator?.total ?? payload?.meta?.total ?? 0
+  } catch {
+    return 0
+  }
 }
 
 export async function getPortalList(path: string): Promise<PortalListResult<PortalRecord>> {
