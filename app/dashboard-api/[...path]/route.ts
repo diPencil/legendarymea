@@ -79,7 +79,7 @@ async function proxyDashboardRequest(request: NextRequest, context: RouteContext
   }
 
   const responseHeaders = new Headers()
-  const passResponseHeaders = ['content-type', 'content-disposition', 'content-length', 'x-content-type-options']
+  const passResponseHeaders = ['content-type', 'content-disposition', 'x-content-type-options']
   passResponseHeaders.forEach((name) => {
     const value = upstream.headers.get(name)
     if (value) responseHeaders.set(name, value)
