@@ -23,7 +23,7 @@ class CompanyController extends Controller
     {
         Gate::authorize('viewAny', Company::class);
 
-        $query = Company::with(['companyRelationships', 'accountManager.user']);
+        $query = Company::with(['companyRelationships', 'accountManager.user', 'primaryContact']);
 
         // Search
         if ($request->filled('search')) {

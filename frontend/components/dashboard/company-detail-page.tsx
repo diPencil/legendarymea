@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, ArrowLeft, Building2, ChevronLeft, ChevronRight, Pencil, Trash2, X, Eye } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Building2, ChevronLeft, ChevronRight, Pencil, Trash2, UserRoundCog, X, Eye } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { CountryPhoneFields } from '@/components/country-phone-fields'
@@ -183,7 +183,7 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
                   <Pencil aria-hidden="true" />{copy.edit}
                 </button>
                 <button type="button" className={styles.secondaryButton} onClick={openManagerDialog}>
-                  {currentCompany.account_manager ? copy.reassignAccountManager : copy.assignAccountManager}
+                  <UserRoundCog aria-hidden="true" />{currentCompany.account_manager ? copy.reassignAccountManager : copy.assignAccountManager}
                 </button>
               </>
             ) : null}
