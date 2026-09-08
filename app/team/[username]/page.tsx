@@ -5,18 +5,18 @@ import TeamProfile from './team-profile'
 export const dynamic = 'force-dynamic'
 
 type PageProps = {
-  params: Promise<{ slug: string }>
+  params: Promise<{ username: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const member = await fetchTeamMemberForMetadata(slug)
+  const { username } = await params
+  const member = await fetchTeamMemberForMetadata(username)
 
   if (!member) {
     return pageMetadata('/team', staticSeo.team)
   }
 
-  return pageMetadata(`/team/${slug}`, {
+  return pageMetadata(`/team/${username}`, {
     title: `${member.display_name} | Legendary Management MEA Team`,
     description: [member.job_title, member.department, 'Legendary Management MEA'].filter(Boolean).join(' - '),
     arTitle: `${member.display_name} | فريق ليجندري مانجمنت`,
@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function TeamMemberPage({ params }: PageProps) {
-  const { slug } = await params
+  const { username } = await params
 
-  return <TeamProfile slug={slug} />
+  return <TeamProfile username={username} />
 }
 
-async function fetchTeamMemberForMetadata(slug: string) {
+async function fetchTeamMemberForMetadata(username: string) {
   const baseUrl = (
     process.env.DASHBOARD_API_BASE_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -42,7 +42,7 @@ async function fetchTeamMemberForMetadata(slug: string) {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/api/v1/public/team/${encodeURIComponent(slug)}`, {
+    const response = await fetch(`${baseUrl}/api/v1/public/team/${encodeURIComponent(username)}`, {
       headers: { accept: 'application/json' },
       cache: 'no-store',
     })
