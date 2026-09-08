@@ -50,7 +50,7 @@ export async function portalLogout() {
   await logout()
 }
 
-export async function getPortalOverview() {
+export async function getPortalOverview(fallbackUser?: DashboardUser | null) {
   try {
     return await dashboardFetch<PortalOverview>('/api/v1/portal/overview')
   } catch (error) {
@@ -58,7 +58,7 @@ export async function getPortalOverview() {
       throw error
     }
 
-    return getPortalOverviewFallback()
+    return getPortalOverviewFallback(fallbackUser)
   }
 }
 
@@ -68,8 +68,34 @@ function isMissingPortalOverviewRoute(error: unknown) {
     && /portal\/overview|portal\\overview|route .*portal.*overview/i.test(error.message)
 }
 
-async function getPortalOverviewFallback(): Promise<PortalOverview> {
-  const company = await dashboardFetch<PortalCompany>('/api/v1/portal/company')
+async function getPortalOverviewFallback(fallbackUser?: DashboardUser | null): Promise<PortalOverview> {
+  let company: PortalCompany
+
+  try {
+    company = await dashboardFetch<PortalCompany>('/api/v1/portal/company')
+  } catch (error) {
+    if (!fallbackUser) {
+      throw error
+    }
+
+    company = {
+      id: fallbackUser.company_id ?? 0,
+      reference: '',
+      name: fallbackUser.name,
+      legal_name: null,
+      status: fallbackUser.status,
+      business_type: null,
+      country_code: null,
+      city: null,
+      email: fallbackUser.email,
+      phone: null,
+      website: null,
+      tax_number: null,
+      registration_number: null,
+      source: null,
+    }
+  }
+
   const [contracts, quotations, invoices, services, requests, documents] = await Promise.all([
     getPortalCount('contracts'),
     getPortalCount('quotations'),
@@ -82,7 +108,7 @@ async function getPortalOverviewFallback(): Promise<PortalOverview> {
   return {
     company,
     totals: { contracts, quotations, invoices, services, requests, documents },
-    must_change_password: false,
+    must_change_password: fallbackUser?.must_change_password ?? false,
   }
 }
 
