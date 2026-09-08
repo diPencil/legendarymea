@@ -76,6 +76,8 @@ Route::prefix('v1')->group(function () {
         Route::get('dashboard/finance-trend', [DashboardOverviewController::class, 'financeTrendEndpoint']);
         Route::get('profiles/{username}', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show'])->name('profiles.show');
         Route::post('profiles/{username}', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update'])->name('profiles.update');
+        Route::pattern('employee', '[0-9]+');
+        Route::get('employees/managers', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'managers']);
         Route::post('employees/{employee}/identity-document', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'uploadIdentityDocument']);
         Route::get('employees/{employee}/identity-document', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'viewIdentityDocument']);
         Route::get('employees/{employee}/identity-document/download', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'downloadIdentityDocument']);
@@ -88,7 +90,6 @@ Route::prefix('v1')->group(function () {
         Route::post('employees/{employee}/account/reset-password', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'resetTemporaryPassword']);
         Route::post('employees/{employee}/account/disable', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'disableAccount']);
         Route::post('employees/{employee}/account/enable', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'enableAccount']);
-        Route::get('employees/managers', [\App\Http\Controllers\Api\V1\EmployeeController::class, 'managers']);
         Route::apiResource('employees', \App\Http\Controllers\Api\V1\EmployeeController::class);
         
         // Companies
