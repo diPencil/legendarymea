@@ -509,12 +509,15 @@ export function ContractsPage() {
   }
 
   function CompanyIdentity({ company }: { company: ContractRecord['company'] }) {
+    const companyName = company?.name?.trim() || copy.company
+    const companyMeta = company?.legal_name?.trim() || company?.email?.trim() || company?.website?.trim() || company?.reference?.trim() || '-'
+
     return (
       <div className={styles.employeeIdentity}>
         <span aria-hidden="true"><Building2 aria-hidden="true" /></span>
         <div>
-          <strong>{company.name}</strong>
-          <small dir="ltr">{company.legal_name || company.email || company.website || company.reference}</small>
+          <strong>{companyName}</strong>
+          <small dir="ltr">{companyMeta}</small>
         </div>
       </div>
     )
@@ -543,15 +546,15 @@ function statusLabel(status: ContractStatus, copy: typeof dashboardCopy['en']): 
 
 function StatusBadge({ status, label }: { status: ContractStatus; label: string }) {
   return (
-    <span className={cn(styles.statusBadge, styles[`status_${status}`])}>
+    <span className={cn(styles.statusBadge, status && styles[`status_${status}`])}>
       {label}
     </span>
   )
 }
 
-function formatMoney(num: number | string): string {
+function formatMoney(num: number | string | null | undefined): string {
   const parsed = typeof num === 'string' ? parseFloat(num) : num
-  if (Number.isNaN(parsed)) return String(num)
+  if (parsed == null || Number.isNaN(parsed)) return '-'
   return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parsed)
 }
 

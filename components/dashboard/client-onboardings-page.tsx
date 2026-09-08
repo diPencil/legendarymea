@@ -50,9 +50,9 @@ export function ClientOnboardingsPage() {
   const [meta, setMeta] = useState<PaginationMeta | null>(null)
   const [users, setUsers] = useState<Array<{ id: number, name: string, username: string }>>([])
   const companyOptions = useMemo(() => {
-    const seen = new Map<number, ClientOnboarding['company']>()
+    const seen = new Map<number, NonNullable<ClientOnboarding['company']>>()
     onboardings.forEach((onboarding) => {
-      if (!seen.has(onboarding.company.id)) {
+      if (onboarding.company && !seen.has(onboarding.company.id)) {
         seen.set(onboarding.company.id, onboarding.company)
       }
     })
@@ -313,8 +313,8 @@ export function ClientOnboardingsPage() {
                         </Link>
                       </td>
                       <td>
-                        <span dir="ltr">{ob.contract.title}</span><br />
-                        <small className={styles.textMuted} dir="ltr">{ob.contract.reference}</small>
+                        <span dir="ltr">{ob.contract?.title || '-'}</span><br />
+                        <small className={styles.textMuted} dir="ltr">{ob.contract?.reference || '-'}</small>
                       </td>
                       <td><StatusBadge status={ob.status} label={statusLabel(ob.status, copy)} /></td>
                       <td dir="ltr">
@@ -345,7 +345,7 @@ export function ClientOnboardingsPage() {
                   <CompanyIdentity company={ob.company} />
                   <dl>
                     <div><dt>{copy.onboardingReference || 'Reference'}</dt><dd dir="ltr">{ob.reference}</dd></div>
-                    <div><dt>{copy.contract}</dt><dd>{ob.contract.title} ({ob.contract.reference})</dd></div>
+                    <div><dt>{copy.contract}</dt><dd>{contractLabel(ob.contract)}</dd></div>
                     <div><dt>{copy.status}</dt><dd><StatusBadge status={ob.status} label={statusLabel(ob.status, copy)} /></dd></div>
                     <div><dt>{copy.targetGoLive || 'Target Go-Live'}</dt><dd dir="ltr">{ob.target_go_live_date || '-'}</dd></div>
                     <div><dt>{copy.assignee}</dt><dd>{ob.assigned_to?.name || '-'}</dd></div>
@@ -403,12 +403,15 @@ onAction={canCreateOnboardings && !hasActiveQuery ? () => setShowCreateModal(tru
   )
 
   function CompanyIdentity({ company }: { company: ClientOnboarding['company'] }) {
+    const companyName = company?.name?.trim() || copy.company
+    const companyReference = company?.reference?.trim() || '-'
+
     return (
       <div className={styles.employeeIdentity}>
         <span aria-hidden="true"><Building2 aria-hidden="true" /></span>
         <div>
-          <strong>{company.name}</strong>
-          <small dir="ltr">{company.reference}</small>
+          <strong>{companyName}</strong>
+          <small dir="ltr">{companyReference}</small>
         </div>
       </div>
     )
@@ -483,8 +486,15 @@ function statusLabel(status: ClientOnboardingStatus, copy: typeof dashboardCopy[
 
 function StatusBadge({ status, label }: { status: ClientOnboardingStatus; label: string }) {
   return (
-    <span className={cn(styles.statusBadge, styles[`status_${status}`])}>
+    <span className={cn(styles.statusBadge, status && styles[`status_${status}`])}>
       {label}
     </span>
   )
+}
+
+function contractLabel(contract: ClientOnboarding['contract']) {
+  const title = contract?.title?.trim()
+  const reference = contract?.reference?.trim()
+  if (title && reference) return `${title} (${reference})`
+  return title || reference || '-'
 }
