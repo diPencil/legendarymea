@@ -49,11 +49,11 @@ export interface Quotation {
   notes: string | null
   terms: string | null
   
-  company: {
+  company?: {
     id: number
     reference: string
     name: string
-  }
+  } | null
   contact?: {
     id: number
     reference: string
@@ -73,13 +73,13 @@ export interface Quotation {
     status?: string
   }
   
-  items: QuotationItem[]
+  items?: QuotationItem[] | null
 
-  creator: {
+  creator?: {
     id: number
     name: string
     username: string
-  }
+  } | null
 
   created_at: string
   updated_at: string

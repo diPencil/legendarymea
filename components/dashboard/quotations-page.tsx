@@ -46,13 +46,23 @@ interface PaginationMeta {
   to?: number
 }
 
-const formatMoney = (amount: string | number, currency: string) => {
+const formatMoney = (amount: string | number | null | undefined, currency: string | null | undefined) => {
   const num = Number(amount)
-  if (isNaN(num)) return amount
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(num)
+  if (!Number.isFinite(num)) return '-'
+
+  const currencyCode = normalizeCurrency(currency)
+  if (!currencyCode) {
+    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num)
+  }
+
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(num)
+  } catch {
+    return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num)} ${currencyCode}`
+  }
 }
 
 export function QuotationsPage() {
@@ -294,7 +304,7 @@ export function QuotationsPage() {
                         </Link>
                       </td>
                       <td>
-                        <span className={cn(styles.statusBadge, styles[`status_${record.status}`])}>{getStatusCopy(record.status, copy)}</span>
+                        <span className={cn(styles.statusBadge, record.status && styles[`status_${record.status}`])}>{getStatusCopy(record.status, copy)}</span>
                       </td>
                       <td dir="ltr">{formatMoney(record.total_amount, record.currency)}</td>
                       <td dir="ltr">{formatDate(record.valid_until)}</td>
@@ -322,7 +332,7 @@ export function QuotationsPage() {
                 <article key={record.id} className={styles.employeeMobileCard}>
                   <header className={styles.mobileCardHeader}>
                     <CompanyIdentity company={record.company} />
-                    <span className={cn(styles.statusBadge, styles[`status_${record.status}`])}>{getStatusCopy(record.status, copy)}</span>
+                    <span className={cn(styles.statusBadge, record.status && styles[`status_${record.status}`])}>{getStatusCopy(record.status, copy)}</span>
                   </header>
                   <dl>
                     <div>
@@ -445,12 +455,15 @@ export function QuotationsPage() {
   }
 
   function CompanyIdentity({ company }: { company: Quotation['company'] }) {
+    const name = company?.name?.trim() || copy.company
+    const reference = company?.reference?.trim() || '-'
+
     return (
       <div className={styles.employeeIdentity}>
         <span aria-hidden="true"><Building2 aria-hidden="true" /></span>
         <div>
-          <strong>{company.name}</strong>
-          <small dir="ltr">{company.reference}</small>
+          <strong>{name}</strong>
+          <small dir="ltr">{reference}</small>
         </div>
       </div>
     )
@@ -458,8 +471,15 @@ export function QuotationsPage() {
 
   function formatDate(value: string | null) {
     if (!value) return '-'
-    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(new Date(value))
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '-'
+    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(date)
   }
+}
+
+function normalizeCurrency(currency: string | null | undefined) {
+  const value = currency?.trim().toUpperCase()
+  return value && /^[A-Z]{3}$/.test(value) ? value : null
 }
 
 function positiveNumber(value: string | null, fallback: number) {
