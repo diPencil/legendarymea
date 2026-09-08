@@ -97,6 +97,7 @@ export function PortalPage() {
     setLoading(true)
     setMessage('')
     setPortalDisabled(false)
+    let authenticatedUser: DashboardUser | null = null
 
     try {
       const nextUser = await getCurrentUser()
@@ -104,6 +105,7 @@ export function PortalPage() {
         router.replace('/dashboard')
         return
       }
+      authenticatedUser = nextUser
       setUser(nextUser)
     } catch (error) {
       if (error instanceof DashboardApiError && error.code === 403) {
@@ -126,7 +128,7 @@ export function PortalPage() {
 
     setLoading(true)
     try {
-      setOverview(await getPortalOverview())
+      setOverview(await getPortalOverview(authenticatedUser))
     } catch (error) {
       if (error instanceof DashboardApiError && error.code === 403) {
         setPortalDisabled(true)
