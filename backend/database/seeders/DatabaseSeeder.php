@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             ServiceCatalogSeeder::class,
             EmailTemplateSeeder::class,
+            WebsiteMediaSeeder::class,
         ]);
     }
 }

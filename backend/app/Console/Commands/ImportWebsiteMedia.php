@@ -11,7 +11,9 @@ use Illuminate\Support\Str;
 
 class ImportWebsiteMedia extends Command
 {
-    protected $signature = 'legendary:import-website-media {--frontend-public= : Absolute path to frontend/public}';
+    protected $signature = 'legendary:import-website-media
+        {--frontend-public= : Absolute path to frontend/public}
+        {--frontend-url= : Public frontend URL to import from when frontend/public is unavailable}';
 
     protected $description = 'Import known public website content images into MediaFile and WebsiteMediaSlot.';
 
@@ -79,6 +81,7 @@ class ImportWebsiteMedia extends Command
     {
         $publicPath = $this->option('frontend-public') ?: base_path('../frontend/public');
         $publicPath = rtrim(str_replace('\\', '/', $publicPath), '/');
+        $frontendUrl = $this->frontendUrl();
 
         foreach (self::SLOTS as $key => [$label, $fallbackPath]) {
             $slot = WebsiteMediaSlot::query()->firstOrCreate(
@@ -88,10 +91,18 @@ class ImportWebsiteMedia extends Command
 
             $slot->fill(['label' => $label, 'fallback_path' => $fallbackPath]);
 
-            if (!$slot->media_file_id) {
+            if (!$this->slotHasExistingFile($slot)) {
                 $absolute = $publicPath . '/' . ltrim(rawurldecode($fallbackPath), '/');
                 if (is_file($absolute)) {
                     $slot->media_file_id = $this->importImage($absolute, $fallbackPath)->id;
+                } elseif ($frontendUrl) {
+                    $remotePath = $this->downloadRemoteImage($frontendUrl, $fallbackPath);
+                    if ($remotePath) {
+                        $slot->media_file_id = $this->importImage($remotePath, $fallbackPath)->id;
+                        @unlink($remotePath);
+                    } else {
+                        $this->warn("Missing source image for {$key}: {$absolute}");
+                    }
                 } else {
                     $this->warn("Missing source image for {$key}: {$absolute}");
                 }
@@ -102,6 +113,91 @@ class ImportWebsiteMedia extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function slotHasExistingFile(WebsiteMediaSlot $slot): bool
+    {
+        if (!$slot->media_file_id) {
+            return false;
+        }
+
+        $mediaFile = $slot->mediaFile;
+        if (!$mediaFile) {
+            return false;
+        }
+
+        return Storage::disk($mediaFile->disk)->exists($mediaFile->path);
+    }
+
+    private function frontendUrl(): ?string
+    {
+        $url = $this->option('frontend-url') ?: config('app.frontend_url');
+        if (!is_string($url) || trim($url) === '') {
+            return null;
+        }
+
+        $url = rtrim(trim($url), '/');
+        $host = parse_url($url, PHP_URL_HOST);
+        if (is_string($host) && Str::startsWith($host, 'api.')) {
+            $scheme = parse_url($url, PHP_URL_SCHEME) ?: 'https';
+            $port = parse_url($url, PHP_URL_PORT);
+            $url = $scheme . '://' . substr($host, 4) . ($port ? ':' . $port : '');
+        }
+
+        return $url;
+    }
+
+    private function downloadRemoteImage(string $frontendUrl, string $fallbackPath): ?string
+    {
+        $url = $frontendUrl . '/' . ltrim($fallbackPath, '/');
+        $contents = $this->fetchRemoteContents($url);
+        if ($contents === null) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION)) ?: 'img';
+        $directory = storage_path('app/tmp/website-media-import');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        $path = $directory . DIRECTORY_SEPARATOR . Str::random(32) . '.' . $extension;
+        file_put_contents($path, $contents);
+
+        return @getimagesize($path) ? $path : tap(null, fn () => @unlink($path));
+    }
+
+    private function fetchRemoteContents(string $url): ?string
+    {
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 20,
+                'header' => "User-Agent: LegendaryMediaImporter/1.0\r\n",
+            ],
+        ]);
+        $contents = @file_get_contents($url, false, $context);
+        if (is_string($contents) && $contents !== '') {
+            return $contents;
+        }
+
+        if (!function_exists('curl_init')) {
+            return null;
+        }
+
+        $curl = curl_init($url);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_USERAGENT => 'LegendaryMediaImporter/1.0',
+        ]);
+        $response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        curl_close($curl);
+
+        return is_string($response) && $response !== '' && $status >= 200 && $status < 300
+            ? $response
+            : null;
     }
 
     private function importImage(string $absolutePath, string $fallbackPath): MediaFile
