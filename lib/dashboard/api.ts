@@ -80,6 +80,17 @@ export type DashboardOverviewResponse = {
 const dashboardOverviewCache: Record<string, { data: DashboardOverviewResponse; expiresAt: number }> = {}
 const dashboardOverviewRequest: Record<string, Promise<DashboardOverviewResponse> | null> = {}
 const dashboardOverviewCacheMs = 30_000
+let dashboardOverviewCacheVersion = 0
+
+export function clearDashboardOverviewCache() {
+  dashboardOverviewCacheVersion += 1
+  Object.keys(dashboardOverviewCache).forEach((key) => {
+    delete dashboardOverviewCache[key]
+  })
+  Object.keys(dashboardOverviewRequest).forEach((key) => {
+    dashboardOverviewRequest[key] = null
+  })
+}
 
 export type DashboardApiErrorCode = 400 | 401 | 403 | 404 | 409 | 422 | 500
 
@@ -363,7 +374,8 @@ export async function getDashboardOverview(period: DashboardOverviewPeriod = 'mo
     return dashboardOverviewRequest[period]
   }
 
-  dashboardOverviewRequest[period] = dashboardFetchEnvelope<DashboardOverviewResponse>(`/api/v1/dashboard/overview?period=${period}`)
+  const requestVersion = dashboardOverviewCacheVersion
+  const request = dashboardFetchEnvelope<DashboardOverviewResponse>(`/api/v1/dashboard/overview?period=${period}`)
     .then((payload) => {
       const data = payload?.data ?? {
         period,
@@ -374,16 +386,22 @@ export async function getDashboardOverview(period: DashboardOverviewPeriod = 'mo
         recent_activity: [],
       }
 
-      dashboardOverviewCache[period] = {
-        data,
-        expiresAt: Date.now() + dashboardOverviewCacheMs,
+      if (requestVersion === dashboardOverviewCacheVersion) {
+        dashboardOverviewCache[period] = {
+          data,
+          expiresAt: Date.now() + dashboardOverviewCacheMs,
+        }
       }
 
       return data
     })
     .finally(() => {
-      dashboardOverviewRequest[period] = null
+      if (dashboardOverviewRequest[period] === request) {
+        dashboardOverviewRequest[period] = null
+      }
     })
 
-  return dashboardOverviewRequest[period]
+  dashboardOverviewRequest[period] = request
+
+  return request
 }

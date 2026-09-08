@@ -62,14 +62,20 @@ const reportIcons: Record<string, ComponentType<{ 'aria-hidden': 'true' }>> = {
 export function DashboardOverviewPage() {
   const { locale } = useLocale()
   const copy = dashboardCopy[locale]
-  const { user, clearSession } = useDashboardAuth()
+  const { status, user, clearSession } = useDashboardAuth()
   const [data, setData] = useState<OverviewData | null>(null)
   const [period, setPeriod] = useState<DashboardOverviewPeriod>('month')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const hasLoadedRef = useRef(false)
+  const authReady = status === 'authenticated' && Boolean(user)
 
   const loadOverview = useCallback(async () => {
+    if (!authReady) {
+      if (!hasLoadedRef.current) setLoading(true)
+      return
+    }
+
     // Background refetches (tab focus, permission refresh) must not blank
     // the page with a full spinner when data is already on screen.
     if (!hasLoadedRef.current) setLoading(true)
@@ -121,7 +127,7 @@ export function DashboardOverviewPage() {
     } finally {
       setLoading(false)
     }
-  }, [clearSession, copy, period, user])
+  }, [authReady, clearSession, copy, period, user])
 
   useEffect(() => {
     void loadOverview()

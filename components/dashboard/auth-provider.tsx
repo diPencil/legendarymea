@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react'
 
 import {
+  clearDashboardOverviewCache,
   DashboardApiError,
   getCurrentUser,
   login as loginRequest,
@@ -21,7 +22,7 @@ type AuthContextValue = {
   error: string
   login: (input: LoginInput) => Promise<void>
   logout: () => Promise<void>
-  refresh: () => Promise<void>
+  refresh: (quiet?: boolean) => Promise<void>
   clearSession: (message?: string) => void
 }
 
@@ -32,8 +33,11 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading')
   const [error, setError] = useState('')
   const lastRefreshAtRef = useRef(0)
+  const authRequestIdRef = useRef(0)
 
   const clearSession = useCallback((message = '') => {
+    authRequestIdRef.current += 1
+    clearDashboardOverviewCache()
     setUser(null)
     setError(message)
     setStatus('unauthenticated')
@@ -49,11 +53,17 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refresh = useCallback(async (quiet = false) => {
+    const requestId = authRequestIdRef.current + 1
+    authRequestIdRef.current = requestId
     if (!quiet) setStatus('loading')
     try {
       lastRefreshAtRef.current = Date.now()
-      applyUser(await getCurrentUser())
+      const nextUser = await getCurrentUser()
+      if (requestId !== authRequestIdRef.current) return
+      applyUser(nextUser)
     } catch (requestError) {
+      if (requestId !== authRequestIdRef.current) return
+
       if (requestError instanceof DashboardApiError && requestError.code === 401) {
         clearSession()
         return
@@ -89,10 +99,19 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   const login = useCallback(async (input: LoginInput) => {
+    const requestId = authRequestIdRef.current + 1
+    authRequestIdRef.current = requestId
+    clearDashboardOverviewCache()
     setStatus('loading')
     try {
-      applyUser(await loginRequest(input))
+      await loginRequest(input)
+      const nextUser = await getCurrentUser()
+      if (requestId !== authRequestIdRef.current) return
+      applyUser(nextUser)
     } catch (requestError) {
+      if (requestId !== authRequestIdRef.current) return
+
+      clearDashboardOverviewCache()
       setUser(null)
       setStatus('unauthenticated')
       setError(requestError instanceof Error ? requestError.message : 'Unable to sign in.')
@@ -101,8 +120,13 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
   }, [applyUser])
 
   const logout = useCallback(async () => {
-    await logoutRequest()
-    clearSession()
+    authRequestIdRef.current += 1
+    clearDashboardOverviewCache()
+    try {
+      await logoutRequest()
+    } finally {
+      clearSession()
+    }
   }, [clearSession])
 
   const value = useMemo<AuthContextValue>(() => ({
