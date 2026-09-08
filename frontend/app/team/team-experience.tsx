@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowUpRight, BriefcaseBusiness, RefreshCw, UsersRound } from 'lucide-react'
+import { ArrowUpRight, BriefcaseBusiness, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { PageShell } from '@/components/site'
+import { PageShell, images } from '@/components/site'
 import { useLocale } from '@/components/i18n'
 import { fetchPublicTeam, type PublicTeamMember } from '@/lib/public-team'
+import { useWebsiteImage } from '@/lib/website-media'
 import styles from './team.module.css'
 
 const copy = {
@@ -42,6 +43,7 @@ export default function TeamExperience() {
   const { locale } = useLocale()
   const c = copy[locale]
   const isAr = locale === 'ar'
+  const heroImage = useWebsiteImage('team_hero', images.team)
   const [members, setMembers] = useState<PublicTeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -63,16 +65,19 @@ export default function TeamExperience() {
 
   return (
     <PageShell className={styles.shell}>
-      <section className={`${styles.hero} section-shell`} dir={isAr ? 'rtl' : 'ltr'}>
-        <div>
-          <div className="section-kicker">{c.kicker}</div>
-          <h1>{c.title}</h1>
-          <p>{c.intro}</p>
+      <section className="partners-hero" dir={isAr ? 'rtl' : 'ltr'}>
+        <div className="partners-hero-image-layer">
+          <Image src={heroImage} alt="" fill sizes="100vw" priority />
+          <div className="partners-hero-overlay" />
         </div>
-        <div className={styles.stat} aria-label={c.meta}>
-          <UsersRound size={28} aria-hidden="true" />
-          <strong>{members.length}</strong>
-          <span>{c.meta}</span>
+        <div className="internal-hero-layout section-shell">
+          <div className="internal-hero-title-col">
+            <div className="section-kicker light">{c.kicker}</div>
+            <h1>{c.title}</h1>
+          </div>
+          <div className="internal-hero-desc-col">
+            <p>{c.intro}</p>
+          </div>
         </div>
       </section>
 
