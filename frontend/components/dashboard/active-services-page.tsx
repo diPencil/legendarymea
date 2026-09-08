@@ -90,9 +90,9 @@ export function ActiveServicesPage() {
   const searchParamSortOrder = searchParams.get('direction')
 
   const companyOptions = useMemo(() => {
-    const seen = new Map<number, ActiveService['company']>()
+    const seen = new Map<number, NonNullable<ActiveService['company']>>()
     services.forEach((service) => {
-      if (!seen.has(service.company.id)) {
+      if (service.company && !seen.has(service.company.id)) {
         seen.set(service.company.id, service.company)
       }
     })
@@ -348,9 +348,7 @@ export function ActiveServicesPage() {
                       <td>{service.title}</td>
                       <td>{service.service_catalog ? serviceCatalogName(service.service_catalog, locale) : '-'}</td>
                       <td>
-                        <Link href={`/dashboard/contracts/${service.contract.id}`} className={styles.textLink} dir="ltr">
-                          {service.contract.reference}
-                        </Link>
+                        <ContractReference contract={service.contract} />
                       </td>
                       <td><StatusBadge status={service.status} label={statusLabel(service.status, copy)} /></td>
                       <td>
@@ -392,7 +390,7 @@ export function ActiveServicesPage() {
                     <div>
                       <dt>{copy.contract}</dt>
                       <dd dir="ltr">
-                        <Link href={`/dashboard/contracts/${service.contract.id}`} className={styles.textLink}>{service.contract.reference}</Link>
+                        <ContractReference contract={service.contract} />
                       </dd>
                     </div>
                     <div><dt>{copy.assignee}</dt><dd className={styles.ltrText}>{service.assignee ? assigneeLabel(service.assignee) : copy.noAssignee}</dd></div>
@@ -529,22 +527,31 @@ function statusLabel(status: ActiveServiceStatus, copy: typeof dashboardCopy['en
 
 function StatusBadge({ status, label }: { status: ActiveServiceStatus; label: string }) {
   return (
-    <span className={cn(styles.statusBadge, styles[`status_${status}`])}>
+    <span className={cn(styles.statusBadge, status && styles[`status_${status}`])}>
       {label}
     </span>
   )
 }
 
 function CompanyIdentity({ company }: { company: ActiveService['company'] }) {
+  const companyName = company?.name?.trim() || 'Company'
+  const companyReference = company?.reference?.trim() || '-'
+
   return (
     <div className={styles.employeeIdentity}>
       <span aria-hidden="true"><Building2 aria-hidden="true" /></span>
       <div>
-        <strong>{company.name}</strong>
-        <small dir="ltr">{company.reference}</small>
+        <strong>{companyName}</strong>
+        <small dir="ltr">{companyReference}</small>
       </div>
     </div>
   )
+}
+
+function ContractReference({ contract }: { contract: ActiveService['contract'] }) {
+  const reference = contract?.reference?.trim()
+  if (!contract?.id || !reference) return <span className={styles.mutedText}>-</span>
+  return <Link href={`/dashboard/contracts/${contract.id}`} className={styles.textLink} dir="ltr">{reference}</Link>
 }
 
 function pageNumbers(current: number, last: number) {
