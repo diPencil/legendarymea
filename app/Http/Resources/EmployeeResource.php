@@ -63,6 +63,7 @@ class EmployeeResource extends JsonResource
             'documents' => EmployeeDocumentResource::collection($this->whenLoaded('documents')),
             'status' => $this->status,
             'is_sales_eligible' => (bool) $this->is_sales_eligible,
+            'show_on_team' => (bool) $this->show_on_team,
             'hire_date' => $this->hire_date ? $this->hire_date->format('Y-m-d') : null,
             'notes' => $this->notes,
             'manager' => $this->whenLoaded('manager', function () {

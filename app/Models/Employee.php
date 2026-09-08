@@ -30,6 +30,7 @@ class Employee extends Model
         'identity_document_uploaded_at',
         'status',
         'is_sales_eligible',
+        'show_on_team',
         'hire_date',
         'manager_id',
         'notes',
@@ -41,6 +42,7 @@ class Employee extends Model
         'bank_account_number' => 'encrypted',
         'national_address' => 'encrypted',
         'identity_document_uploaded_at' => 'datetime',
+        'show_on_team' => 'boolean',
     ];
 
     public function user()
@@ -68,4 +70,3 @@ class Employee extends Model
         return $this->hasMany(EmployeeDocument::class);
     }
 }
-

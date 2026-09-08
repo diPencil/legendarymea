@@ -15,32 +15,36 @@ class PublicTeamApiTest extends TestCase
 
     public function test_public_team_lists_only_active_employees_with_safe_fields(): void
     {
-        $activeUser = User::factory()->create(['username' => 'nehal']);
+        $activeUser = User::factory()->create(['username' => 'nehal', 'email' => 'nehal@legendarymea.com']);
         Employee::factory()->create([
             'user_id' => $activeUser->id,
             'name' => 'Nour Hassan',
             'job_title' => 'Operations Lead',
             'department' => 'Operations',
             'status' => 'active',
+            'show_on_team' => true,
             'personal_email' => 'private@example.com',
             'phone' => '01000000000',
             'employee_code' => 'LM-EMP-SECRET',
             'bank_account_number' => '123456789',
         ]);
-        Employee::factory()->create(['name' => 'Inactive Person', 'status' => 'inactive']);
-        Employee::factory()->create(['name' => 'Deleted Person', 'status' => 'active'])->delete();
+        Employee::factory()->create(['name' => 'Inactive Person', 'status' => 'inactive', 'show_on_team' => true]);
+        Employee::factory()->create(['name' => 'Hidden Person', 'status' => 'active', 'show_on_team' => false]);
+        Employee::factory()->create(['name' => 'Deleted Person', 'status' => 'active', 'show_on_team' => true])->delete();
 
         $response = $this->getJson('/api/v1/public/team');
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.display_name', 'Nour Hassan')
+            ->assertJsonPath('data.0.employee_code', 'LM-EMP-SECRET')
+            ->assertJsonPath('data.0.email', 'nehal@legendarymea.com')
             ->assertJsonPath('data.0.job_title', 'Operations Lead')
             ->assertJsonPath('data.0.department', 'Operations');
 
         $payload = $response->json('data.0');
         $this->assertSame(
-            ['slug', 'display_name', 'initials', 'job_title', 'department', 'photo_url', 'profile_url'],
+            ['slug', 'display_name', 'initials', 'employee_code', 'email', 'job_title', 'department', 'photo_url', 'profile_url'],
             array_keys($payload)
         );
 
@@ -60,6 +64,7 @@ class PublicTeamApiTest extends TestCase
             'name' => 'Aly Samir',
             'status' => 'active',
             'job_title' => 'Travel Consultant',
+            'show_on_team' => true,
         ]);
 
         $slug = $this->getJson('/api/v1/public/team')->json('data.0.slug');
@@ -68,7 +73,8 @@ class PublicTeamApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.slug', $slug)
             ->assertJsonPath('data.display_name', 'Aly Samir')
-            ->assertJsonMissingPath('data.email')
+            ->assertJsonPath('data.email', $user->email)
+            ->assertJsonPath('data.employee_code', Employee::query()->whereBelongsTo($user)->value('employee_code'))
             ->assertJsonMissingPath('data.roles')
             ->assertJsonMissingPath('data.permissions');
     }
@@ -77,14 +83,19 @@ class PublicTeamApiTest extends TestCase
     {
         $inactiveUser = User::factory()->create(['username' => 'hidden-user']);
         $deletedUser = User::factory()->create(['username' => 'removed-user']);
-        Employee::factory()->create(['user_id' => $inactiveUser->id, 'name' => 'Hidden User', 'status' => 'inactive']);
-        $deleted = Employee::factory()->create(['user_id' => $deletedUser->id, 'name' => 'Removed User', 'status' => 'active']);
+        $unpublishedUser = User::factory()->create(['username' => 'unpublished-user']);
+        Employee::factory()->create(['user_id' => $inactiveUser->id, 'name' => 'Hidden User', 'status' => 'inactive', 'show_on_team' => true]);
+        $deleted = Employee::factory()->create(['user_id' => $deletedUser->id, 'name' => 'Removed User', 'status' => 'active', 'show_on_team' => true]);
         $deleted->delete();
+        Employee::factory()->create(['user_id' => $unpublishedUser->id, 'name' => 'Unpublished User', 'status' => 'active', 'show_on_team' => false]);
 
         $this->getJson('/api/v1/public/team/hidden-user')
             ->assertNotFound();
 
         $this->getJson('/api/v1/public/team/removed-user')
+            ->assertNotFound();
+
+        $this->getJson('/api/v1/public/team/unpublished-user')
             ->assertNotFound();
     }
 
@@ -116,6 +127,7 @@ class PublicTeamApiTest extends TestCase
             'user_id' => $user->id,
             'name' => 'Nour Hassan',
             'status' => 'active',
+            'show_on_team' => true,
         ]);
 
         $this->getJson('/api/v1/public/team')
@@ -126,7 +138,7 @@ class PublicTeamApiTest extends TestCase
     public function test_public_team_profile_url_tracks_linked_user_username_changes(): void
     {
         $user = User::factory()->create(['username' => 'nehal']);
-        Employee::factory()->create(['user_id' => $user->id, 'name' => 'Nehal Ahmed', 'status' => 'active']);
+        Employee::factory()->create(['user_id' => $user->id, 'name' => 'Nehal Ahmed', 'status' => 'active', 'show_on_team' => true]);
 
         $this->getJson('/api/v1/public/team')
             ->assertOk()
@@ -150,7 +162,6 @@ class PublicTeamApiTest extends TestCase
     private function sensitiveKeys(): array
     {
         return [
-            'email',
             'username',
             'personal_email',
             'phone',
@@ -172,7 +183,7 @@ class PublicTeamApiTest extends TestCase
             'manager',
             'manager_id',
             'notes',
-            'employee_code',
+            'show_on_team',
             'status',
         ];
     }

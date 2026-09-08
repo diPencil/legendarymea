@@ -94,6 +94,12 @@ class UpdateEmployeeService
         foreach (['system_access', 'username', 'email', 'password', 'roles'] as $field) {
             unset($data[$field]);
         }
+
+        if (($data['show_on_team'] ?? false) && !($data['user_id'] ?? $employee->user_id)) {
+            throw ValidationException::withMessages([
+                'show_on_team' => __('A public team profile requires a linked login account.'),
+            ]);
+        }
         
         if (array_key_exists('department', $data)) {
             $data['is_sales_eligible'] = $data['department'] === 'Sales';

@@ -179,6 +179,43 @@ class EmployeeApiTest extends TestCase
         $this->assertStringNotContainsString('Sensitive employee address', $message->body);
     }
 
+    public function test_employee_can_be_published_to_public_team_from_admin_form()
+    {
+        $user = User::factory()->create([
+            'username' => 'public.staff',
+            'email' => 'public.staff@example.com',
+        ]);
+
+        $response = $this->actingAs($this->adminUser())->postJson('/api/v1/employees', [
+            'system_access' => 'link',
+            'name' => 'Public Staff',
+            'user_id' => $user->id,
+            'job_title' => 'Travel Advisor',
+            'status' => 'active',
+            'show_on_team' => true,
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.show_on_team', true);
+
+        $this->getJson('/api/v1/public/team/public.staff')
+            ->assertOk()
+            ->assertJsonPath('data.display_name', 'Public Staff');
+    }
+
+    public function test_public_team_publication_requires_linked_user_account()
+    {
+        $response = $this->actingAs($this->adminUser())->postJson('/api/v1/employees', [
+            'system_access' => 'none',
+            'name' => 'Hidden Staff',
+            'status' => 'active',
+            'show_on_team' => true,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['show_on_team']);
+    }
+
     public function test_employee_invite_failure_preserves_employee_and_user()
     {
         $this->mock(EmailConfigurationService::class, function ($mock) {

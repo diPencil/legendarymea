@@ -40,6 +40,7 @@ class UpdateEmployeeRequest extends FormRequest
             'national_address' => ['nullable', 'string', 'max:2000'],
             'status' => ['nullable', 'string', 'in:active,inactive,on_leave'],
             'is_sales_eligible' => ['sometimes', 'boolean'],
+            'show_on_team' => ['sometimes', 'boolean'],
             'hire_date' => ['nullable', 'date'],
             'manager_id' => ['nullable', 'exists:employees,id'],
             'notes' => ['nullable', 'string'],
