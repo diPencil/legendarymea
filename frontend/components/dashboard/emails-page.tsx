@@ -510,7 +510,7 @@ function EmailRowActions({ email, copy, canUpdate, canDelete, canSend, onEdit, o
 function EmailComposerDialog({ copy, locale, state, onClose, onSuccess }: { copy: typeof dashboardCopy.en; locale: string; state: EmailModalState; onClose: () => void; onSuccess: (message: string) => void }) {
   const email = state?.email
   const [subject, setSubject] = useState(email?.subject ?? state?.prefill?.subject ?? '')
-  const [body, setBody] = useState(email?.body ?? state?.prefill?.body ?? '')
+  const [body, setBody] = useState(extractEditableTemplateBody(email?.body ?? state?.prefill?.body ?? ''))
   const [toName, setToName] = useState(email?.to_name ?? state?.prefill?.to_name ?? '')
   const [toAddress, setToAddress] = useState(email?.to_address ?? state?.prefill?.to_address ?? '')
   const [cc, setCc] = useState((email?.cc ?? []).join(', '))
@@ -567,9 +567,17 @@ function EmailComposerDialog({ copy, locale, state, onClose, onSuccess }: { copy
     setIsSubmitting(true)
     setErrors({})
 
+    const selectedTemplate = templates.find((template) => String(template.id) === templateId)
+    const selectedTemplateContent = selectedTemplate ? localizedTemplateContent(selectedTemplate, locale) : null
+    const submittedBody = selectedTemplateContent
+      ? selectedTemplate?.image_media_id
+        ? selectedTemplateContent.body
+        : buildTemplateInnerBody(body, locale, extractFixedEmailContent(selectedTemplateContent.body, locale === 'ar' ? 'ar' : 'en'))
+      : body
+
     const payload: EmailPayload = {
       subject,
-      body,
+      body: submittedBody,
       to_name: toName || null,
       to_address: toAddress,
       cc: parseCsv(cc),
