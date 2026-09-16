@@ -5,9 +5,11 @@ namespace Tests\Feature\Emails;
 use App\Enums\EmailStatus;
 use App\Models\EmailMessage;
 use App\Models\EmailTemplate;
+use App\Models\Employee;
 use App\Models\Inquiry;
 use App\Models\MediaFile;
 use App\Models\User;
+use App\Services\EmailLayoutWrapper;
 use App\Services\EmailConfigurationService;
 use Database\Seeders\EmailTemplateSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -336,6 +338,32 @@ class EmailApiTest extends TestCase
         $this->expectExceptionMessage('Outgoing email contains a local or relative image URL.');
 
         $service->prepareHtmlForOutgoingMessage('<img src="http://localhost:3000/broken.jpg" alt="Broken">');
+    }
+
+    public function test_email_layout_wrapper_outputs_mobile_safe_markup(): void
+    {
+        $html = EmailLayoutWrapper::wrap('<p>Welcome to Legendary Management MEA</p>');
+
+        $this->assertStringContainsString('<meta name="viewport" content="width=device-width, initial-scale=1">', $html);
+        $this->assertStringContainsString('x-apple-disable-message-reformatting', $html);
+        $this->assertStringContainsString('.lm-email-shell', $html);
+        $this->assertStringContainsString('overflow-wrap:anywhere', $html);
+    }
+
+    public function test_employee_welcome_email_template_is_mobile_safe(): void
+    {
+        $employee = Employee::factory()->create();
+        $html = view('emails.employee-account-welcome', [
+            'employee' => $employee,
+            'user' => $employee->user,
+            'temporaryPassword' => 'TemporaryPassword1234567890',
+            'loginUrl' => 'https://legendarymea.com/dashboard/login',
+        ])->render();
+
+        $this->assertStringContainsString('<meta name="viewport" content="width=device-width, initial-scale=1">', $html);
+        $this->assertStringContainsString('lm-email-card', $html);
+        $this->assertStringContainsString('word-break:break-all', $html);
+        $this->assertStringContainsString('TemporaryPassword1234567890', $html);
     }
 
     public function test_professional_b2b_default_template_is_seeded_with_email_safe_html(): void

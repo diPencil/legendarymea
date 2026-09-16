@@ -15,9 +15,9 @@
   <tr>
     <td style="padding:18px 20px;">
       <div style="font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#b69338;margin-bottom:10px;">Portal login details</div>
-      <p style="margin:0 0 8px 0;"><strong style="color:#081d60;">Portal:</strong> <a href="{{ $portalUrl }}" style="color:#081d60;text-decoration:none;">{{ $portalUrl }}</a></p>
-      <p style="margin:0 0 8px 0;"><strong style="color:#081d60;">Username:</strong> <span style="direction:ltr;unicode-bidi:bidi-override;">{{ $user->username }}</span></p>
-      <p style="margin:0;"><strong style="color:#081d60;">Temporary password:</strong> <span style="direction:ltr;unicode-bidi:bidi-override;">{{ $temporaryPassword }}</span></p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#081d60;">Portal:</strong> <a href="{{ $portalUrl }}" style="color:#081d60;text-decoration:none;word-break:break-all;overflow-wrap:anywhere;">{{ $portalUrl }}</a></p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#081d60;">Username:</strong> <span style="direction:ltr;unicode-bidi:bidi-override;word-break:break-all;overflow-wrap:anywhere;">{{ $user->username }}</span></p>
+      <p style="margin:0;"><strong style="color:#081d60;">Temporary password:</strong> <span style="direction:ltr;unicode-bidi:bidi-override;word-break:break-all;overflow-wrap:anywhere;">{{ $temporaryPassword }}</span></p>
     </td>
   </tr>
 </table>
