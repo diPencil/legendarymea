@@ -1446,14 +1446,33 @@
 .companyToolbar select,
 .quillContainer {
   margin-top: 6px;
+  color: #081d60;
+  font-weight: 400;
 }
 
 .quillContainer :global(.ql-container) {
   min-height: 200px;
   font-family: inherit;
+  font-weight: 400;
   border-radius: 0 0 8px 8px;
   border-color: var(--border-color);
   background: var(--surface-color);
+}
+
+.quillContainer :global(.ql-editor) {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.quillContainer :global(.ql-editor strong),
+.quillContainer :global(.ql-editor b) {
+  font-weight: 700;
+}
+
+.quillContainer :global(.ql-editor em),
+.quillContainer :global(.ql-editor i) {
+  font-style: italic;
 }
 
 .quillContainer :global(.ql-toolbar) {
@@ -2308,10 +2327,11 @@ dialog.dialogOverlay {
 }
 
 .emailPreviewFrame {
-  width: 100%;
+  width: min(100%, 760px);
   min-height: 260px;
   max-height: 560px;
   overflow: auto;
+  justify-self: center;
   padding: 18px;
   background: #f4f1eb;
   border: 1px solid rgba(8, 29, 96, .1);

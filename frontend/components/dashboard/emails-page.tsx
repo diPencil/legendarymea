@@ -46,6 +46,7 @@ type TemplateContentMode = 'body' | 'image'
 type FixedEmailContent = {
   ctaNote: string
   ctaButton: string
+  ctaHref: string
   regards: string
   senderName: string
   senderTitle: string
@@ -68,6 +69,7 @@ const defaultFixedEmailContent: Record<'en' | 'ar', FixedEmailContent> = {
   en: {
     ctaNote: 'I would appreciate the opportunity to schedule a brief introduction call to show how Legendary Management MEA can support your travel and business needs.',
     ctaButton: 'Schedule a Quick Call',
+    ctaHref: 'https://wa.me/966530363444',
     regards: 'Warm regards,',
     senderName: '[Your Name]',
     senderTitle: '[Your Title]',
@@ -78,6 +80,7 @@ const defaultFixedEmailContent: Record<'en' | 'ar', FixedEmailContent> = {
   ar: {
     ctaNote: 'يسعدنا ترتيب مكالمة تعريفية قصيرة لشرح كيف يمكن لـ Legendary Management MEA دعم احتياجات السفر والأعمال لديكم.',
     ctaButton: 'احجز مكالمة سريعة',
+    ctaHref: 'https://wa.me/966530363444',
     regards: 'مع خالص التحية،',
     senderName: '[اسمك]',
     senderTitle: '[المسمى الوظيفي]',
@@ -794,6 +797,7 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
                 </div>
                 <FixedEmailFields title="CTA message" en={fixedEn} ar={fixedAr} field="ctaNote" enLabel="CTA message EN" arLabel="CTA message AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} multiline />
                 <FixedEmailFields title="CTA button" en={fixedEn} ar={fixedAr} field="ctaButton" enLabel="Button text EN" arLabel="Button text AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} />
+                <FixedEmailFields title="CTA link" en={fixedEn} ar={fixedAr} field="ctaHref" enLabel="Button link EN" arLabel="Button link AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} />
                 <FixedEmailFields title="Signature and footer details" en={fixedEn} ar={fixedAr} field="regards" enLabel="Greeting EN" arLabel="Greeting AR" onChangeEn={setFixedEn} onChangeAr={setFixedAr} />
                 <div className={styles.formGrid}>
                   <label className={styles.formField}><span>Sender name EN</span><input value={fixedEn.senderName} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderName', event.target.value)} /></label>
@@ -999,6 +1003,7 @@ function extractFixedEmailContent(value: string, locale: 'en' | 'ar') {
   return {
     ctaNote: textFrom('[data-fixed-email-section="cta"] td', defaults.ctaNote),
     ctaButton: textFrom('[data-fixed-email-section="cta-button"] a', defaults.ctaButton),
+    ctaHref: linkFrom('[data-fixed-email-section="cta-button"] a', defaults.ctaHref),
     regards: signature?.querySelector('p')?.textContent?.trim() || defaults.regards,
     senderName: signature?.querySelector('[data-fixed-email-field="sender-name"]')?.textContent?.trim() || defaults.senderName,
     senderTitle: signature?.querySelector('[data-fixed-email-field="sender-title"]')?.textContent?.trim() || defaults.senderTitle,
@@ -1009,7 +1014,7 @@ function extractFixedEmailContent(value: string, locale: 'en' | 'ar') {
 }
 
 function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEmailContent) {
-  const trimmed = extractEditableTemplateBody(content).trim()
+  const trimmed = normalizeEditableTemplateContent(content, locale).trim()
   const isArabic = locale === 'ar'
 
   const footerLine = isArabic
@@ -1018,6 +1023,7 @@ function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEma
   const directionStyle = isArabic ? 'direction:rtl;text-align:right;' : 'direction:ltr;text-align:left;'
   const safeCtaNote = escapeHtml(fixed.ctaNote)
   const safeCtaButton = escapeHtml(fixed.ctaButton)
+  const safeCtaHref = escapeHtml(buttonHref(fixed.ctaHref))
   const safeRegards = escapeHtml(fixed.regards)
   const safeName = escapeHtml(fixed.senderName)
   const safeTitle = escapeHtml(fixed.senderTitle)
@@ -1035,7 +1041,7 @@ function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEma
 </table>
 
 <table data-fixed-email-section="cta-button" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px 0;${isArabic ? 'direction:rtl;' : ''}">
-  <tr><td bgcolor="#081d60" style="border-radius:8px;"><a href="https://wa.me/966530363444" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">${safeCtaButton}</a></td></tr>
+  <tr><td bgcolor="#081d60" style="border-radius:8px;"><a href="${safeCtaHref}" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">${safeCtaButton}</a></td></tr>
 </table>
 
 <div data-fixed-email-section="signature" style="margin-top:18px;${directionStyle}">
@@ -1064,6 +1070,62 @@ function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEma
 </table>`
 }
 
+function normalizeEditableTemplateContent(content: string, locale: string) {
+  const html = extractEditableTemplateBody(content).trim()
+
+  if (!html) return ''
+
+  if (!/<[a-z][\s\S]*>/i.test(html)) {
+    return html
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+      .map((paragraph) => `<p style="margin:0 0 14px 0;line-height:1.75;color:#24345f;">${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+      .join('')
+  }
+
+  if (typeof window === 'undefined') return html
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html')
+  const root = doc.body.firstElementChild
+  const direction = locale === 'ar' ? 'rtl' : 'ltr'
+  const align = locale === 'ar' ? 'right' : 'left'
+
+  root?.querySelectorAll('p, div').forEach((element) => {
+    const htmlContent = element.innerHTML.trim().toLowerCase()
+    const textContent = element.textContent?.trim() ?? ''
+
+    if (!textContent && (!htmlContent || htmlContent === '<br>')) {
+      element.innerHTML = '&nbsp;'
+    }
+
+    mergeInlineStyle(element, `margin:0 0 14px 0;line-height:1.75;color:#24345f;direction:${direction};text-align:${align};`)
+  })
+
+  root?.querySelectorAll('ul, ol').forEach((element) => {
+    mergeInlineStyle(element, `margin:0 0 14px 22px;padding:0;line-height:1.75;color:#24345f;direction:${direction};text-align:${align};`)
+  })
+
+  root?.querySelectorAll('li').forEach((element) => {
+    mergeInlineStyle(element, 'margin:0 0 8px 0;line-height:1.75;color:#24345f;')
+  })
+
+  root?.querySelectorAll('strong, b').forEach((element) => {
+    mergeInlineStyle(element, 'font-weight:700;')
+  })
+
+  root?.querySelectorAll('em, i').forEach((element) => {
+    mergeInlineStyle(element, 'font-style:italic;')
+  })
+
+  return root?.innerHTML.trim() || html
+}
+
+function mergeInlineStyle(element: Element, style: string) {
+  const current = element.getAttribute('style')
+  element.setAttribute('style', current ? `${current.trim().replace(/;?$/, ';')}${style}` : style)
+}
+
 function phoneHref(phone: string) {
   const digits = phone.replace(/[^\d+]/g, '')
 
@@ -1081,6 +1143,16 @@ function websiteHref(website: string) {
 
   if (!value || value.includes('[')) return '#'
   if (/^https?:\/\//i.test(value)) return value
+
+  return `https://${value.replace(/^\/+/, '')}`
+}
+
+function buttonHref(href: string) {
+  const value = href.trim()
+
+  if (!value || value.includes('[')) return '#'
+  if (/^(https?:|mailto:|tel:)/i.test(value)) return value
+  if (/^wa\.me\//i.test(value)) return `https://${value}`
 
   return `https://${value.replace(/^\/+/, '')}`
 }
