@@ -2327,19 +2327,29 @@ dialog.dialogOverlay {
 }
 
 .emailPreviewFrame {
-  width: min(100%, 760px);
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
   min-height: 260px;
   max-height: 560px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   justify-self: center;
+  box-sizing: border-box;
   padding: 18px;
   background: #f4f1eb;
   border: 1px solid rgba(8, 29, 96, .1);
   border-radius: 8px;
+  overflow-wrap: anywhere;
 }
 
 .emailPreviewFrame table {
   max-width: 100%;
+}
+
+.emailPreviewFrame td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .emailPreviewFrame img {
