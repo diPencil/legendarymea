@@ -813,7 +813,7 @@ function EmailTemplateDialog({ copy, locale, state, onClose, onSuccess }: { copy
                   <label className={styles.formField}><span>Sender title EN</span><input value={fixedEn.senderTitle} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderTitle', event.target.value)} /></label>
                   <label className={styles.formField}><span>Sender title AR</span><input value={fixedAr.senderTitle} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderTitle', event.target.value)} dir="rtl" /></label>
                   <label className={styles.formField}><span>Phone shown in email EN</span><input value={fixedEn.senderPhone} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderPhone', event.target.value)} placeholder="+966 53 036 3444" dir="ltr" /></label>
-                  <label className={styles.formField}><span>Phone shown in email AR</span><input value={fixedAr.senderPhone} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderPhone', event.target.value)} placeholder="+966 53 036 3444" dir="rtl" /></label>
+                  <label className={styles.formField}><span>Phone shown in email AR</span><input value={fixedAr.senderPhone} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderPhone', event.target.value)} placeholder="+966 53 036 3444" dir="ltr" /></label>
                   <label className={styles.formField}><span>Email shown in email EN</span><input value={fixedEn.senderEmail} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderEmail', event.target.value)} placeholder="sales@legendarymea.com" dir="ltr" /></label>
                   <label className={styles.formField}><span>Email shown in email AR</span><input value={fixedAr.senderEmail} onChange={(event) => updateFixedEmailField(setFixedAr, 'senderEmail', event.target.value)} placeholder="sales@legendarymea.com" dir="rtl" /></label>
                   <label className={styles.formField}><span>Website shown in email EN</span><input value={fixedEn.senderWebsite} onChange={(event) => updateFixedEmailField(setFixedEn, 'senderWebsite', event.target.value)} placeholder="legendarymea.com" dir="ltr" /></label>
@@ -1048,8 +1048,8 @@ function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEma
   <tr><td style="padding:18px 20px;font-size:15px;line-height:1.7;color:#24345f;">${safeCtaNote}</td></tr>
 </table>
 
-<table data-fixed-email-section="cta-button" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px 0;${isArabic ? 'direction:rtl;' : ''}">
-  <tr><td bgcolor="#081d60" style="border-radius:8px;"><a href="${safeCtaHref}" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">${safeCtaButton}</a></td></tr>
+<table data-fixed-email-section="cta-button" role="presentation" align="${isArabic ? 'right' : 'left'}" cellspacing="0" cellpadding="0" border="0" style="${isArabic ? 'margin:0 0 28px auto;direction:rtl;text-align:right;' : 'margin:0 auto 28px 0;direction:ltr;text-align:left;'}">
+  <tr><td align="center" bgcolor="#081d60" style="border-radius:8px;"><a href="${safeCtaHref}" dir="${isArabic ? 'rtl' : 'ltr'}" style="display:inline-block;padding:13px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;text-align:center;">${safeCtaButton}</a></td></tr>
 </table>
 
 <div data-fixed-email-section="signature" style="margin-top:18px;${directionStyle}">
@@ -1060,8 +1060,8 @@ function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEma
         <div data-fixed-email-field="sender-name" style="font-size:17px;font-weight:700;color:#081d60;">${safeName}</div>
         <div data-fixed-email-field="sender-title" style="font-size:13px;color:#b69338;font-weight:700;margin-top:3px;">${safeTitle}</div>
         <div style="font-size:14px;color:#24345f;margin-top:8px;">Legendary Management MEA</div>
-        <div style="font-size:13px;color:#5c6375;margin-top:7px;"><a data-fixed-email-field="sender-phone" href="${safePhoneHref}" style="color:#081d60;text-decoration:none;">${safePhone}</a> | <a data-fixed-email-field="sender-email" href="${safeEmailHref}" style="color:#081d60;text-decoration:none;">${safeEmail}</a></div>
-        <div style="font-size:13px;margin-top:4px;"><a data-fixed-email-field="sender-website" href="${safeWebsiteHref}" style="color:#081d60;text-decoration:none;">${safeWebsite}</a></div>
+        <div dir="ltr" style="font-size:13px;color:#5c6375;margin-top:7px;direction:ltr;text-align:${isArabic ? 'right' : 'left'};"><a data-fixed-email-field="sender-phone" href="${safePhoneHref}" dir="ltr" style="color:#081d60;text-decoration:none;direction:ltr;unicode-bidi:embed;">${safePhone}</a> | <a data-fixed-email-field="sender-email" href="${safeEmailHref}" dir="ltr" style="color:#081d60;text-decoration:none;direction:ltr;unicode-bidi:embed;">${safeEmail}</a></div>
+        <div dir="ltr" style="font-size:13px;margin-top:4px;direction:ltr;text-align:${isArabic ? 'right' : 'left'};"><a data-fixed-email-field="sender-website" href="${safeWebsiteHref}" dir="ltr" style="color:#081d60;text-decoration:none;direction:ltr;unicode-bidi:embed;">${safeWebsite}</a></div>
       </td>
     </tr>
   </table>
@@ -1072,7 +1072,7 @@ function buildTemplateInnerBody(content: string, locale: string, fixed: FixedEma
     <td style="background:#081d60;padding:22px 32px;text-align:center;color:#ffffff;border-radius:0 0 12px 12px;">
       <div style="font-size:15px;font-weight:700;">Legendary Management MEA</div>
       <div style="font-size:12px;line-height:1.6;color:#d8c27c;margin-top:6px;">${footerLine}</div>
-      <div style="font-size:12px;line-height:1.7;color:#dfe5f6;margin-top:10px;"><a href="${safeEmailHref}" style="color:#dfe5f6;text-decoration:none;">${safeEmail}</a> &nbsp;|&nbsp; <a href="${safePhoneHref}" style="color:#dfe5f6;text-decoration:none;">${safePhone}</a> &nbsp;|&nbsp; <a href="${safeWebsiteHref}" style="color:#dfe5f6;text-decoration:none;">${safeWebsite}</a></div>
+      <div dir="ltr" style="font-size:12px;line-height:1.7;color:#dfe5f6;margin-top:10px;direction:ltr;text-align:center;"><a href="${safeEmailHref}" dir="ltr" style="color:#dfe5f6;text-decoration:none;direction:ltr;unicode-bidi:embed;">${safeEmail}</a> &nbsp;|&nbsp; <a href="${safePhoneHref}" dir="ltr" style="color:#dfe5f6;text-decoration:none;direction:ltr;unicode-bidi:embed;">${safePhone}</a> &nbsp;|&nbsp; <a href="${safeWebsiteHref}" dir="ltr" style="color:#dfe5f6;text-decoration:none;direction:ltr;unicode-bidi:embed;">${safeWebsite}</a></div>
     </td>
   </tr>
 </table>`
