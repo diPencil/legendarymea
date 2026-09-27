@@ -2991,6 +2991,17 @@ dialog.dialogOverlay {
   box-shadow: 0 20px 60px rgba(8, 29, 96, .08);
 }
 
+.invoicePrintRoot {
+  min-height: 100vh;
+  padding: 24px;
+  background: #eef0f5;
+}
+
+.invoicePrintSurface {
+  width: min(210mm, 100%);
+  margin: 0 auto;
+}
+
 .invoiceDocumentHeader {
   display: flex;
   flex-wrap: wrap;
@@ -3582,6 +3593,11 @@ dialog.dialogOverlay {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
   :global(html),
   :global(body) {
     background: #fff !important;
@@ -3604,6 +3620,22 @@ dialog.dialogOverlay {
   .contractDocument,
   .contractDocument * {
     visibility: visible !important;
+  }
+
+  .invoicePrintRoot,
+  .invoicePrintSurface {
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .invoicePrintSurface .invoiceDocument {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .invoiceDocument,

@@ -1,4 +1,4 @@
-import { dashboardApiBaseUrl, dashboardFetch, dashboardFetchBlob, dashboardFetchEnvelope } from '@/lib/dashboard/api'
+import { dashboardFetch, dashboardFetchBlob, dashboardFetchEnvelope } from '@/lib/dashboard/api'
 import type { PaginationMeta } from '@/lib/dashboard/companies'
 import type { DashboardUser } from '@/lib/dashboard/api'
 
@@ -254,10 +254,6 @@ export async function listInvoices(params: InvoiceListParams = {}): Promise<{ da
 
 export async function getInvoice(id: number): Promise<Invoice> {
   return dashboardFetch<Invoice>(`/api/v1/invoices/${id}`)
-}
-
-export function invoicePrintUrl(id: number): string {
-  return `${dashboardApiBaseUrl}/api/v1/invoices/${id}/print`
 }
 
 export async function downloadInvoicePdf(id: number): Promise<Blob> {

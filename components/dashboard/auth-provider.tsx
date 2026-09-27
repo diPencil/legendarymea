@@ -14,7 +14,7 @@ import {
 } from '@/lib/dashboard/api'
 import { isInternalDashboardUser } from '@/lib/dashboard/permissions'
 
-type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden'
+type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden' | 'error'
 
 type AuthContextValue = {
   user: DashboardUser | null
@@ -71,8 +71,7 @@ export function DashboardAuthProvider({ children }: { children: ReactNode }) {
 
       setError(requestError instanceof Error ? requestError.message : 'Unable to check your dashboard session.')
       if (!quiet) {
-        setUser(null)
-        setStatus('unauthenticated')
+        setStatus('error')
       }
     }
   }, [applyUser, clearSession])
