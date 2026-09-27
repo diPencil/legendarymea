@@ -1090,19 +1090,25 @@ class InvoiceApiTest extends TestCase
         $this->assertNotNull($response->json('data.issue_date'));
     }
 
-    public function test_issued_invoice_commercial_editing_blocked(): void
+    public function test_issued_invoice_item_edit_reverses_old_usage_and_applies_new_usage(): void
     {
-        $supplier = $this->activeSupplier();
+        $oldSupplier = $this->activeSupplier(['reference' => 'LM-SUP-OLD-000001', 'name' => 'Old Supplier']);
+        $newSupplier = $this->activeSupplier(['reference' => 'LM-SUP-NEW-000001', 'name' => 'New Supplier']);
         SupplierBalanceAccount::create([
-            'supplier_id' => $supplier->id,
+            'supplier_id' => $oldSupplier->id,
             'currency' => 'AED',
             'current_balance' => '500.00',
+        ]);
+        SupplierBalanceAccount::create([
+            'supplier_id' => $newSupplier->id,
+            'currency' => 'USD',
+            'current_balance' => '200.00',
         ]);
 
         $invoice = $this->createDraftInvoice();
         $invoice->items()->create([
             'description' => 'Item',
-            'supplier_id' => $supplier->id,
+            'supplier_id' => $oldSupplier->id,
             'quantity' => 1,
             'unit_price' => 1000,
             'line_total' => 1000,
@@ -1116,8 +1122,24 @@ class InvoiceApiTest extends TestCase
             ->assertOk();
 
         $this->actingAs($this->admin)
-            ->putJson("/api/v1/invoices/{$invoice->id}", ['currency' => 'USD', 'items' => $this->validItems()])
-            ->assertUnprocessable();
+            ->putJson("/api/v1/invoices/{$invoice->id}", [
+                'currency' => 'AED',
+                'items' => [[
+                    'description' => 'Updated item',
+                    'supplier_id' => $newSupplier->id,
+                    'quantity' => 1,
+                    'unit_price' => 1000,
+                    'purchase_unit_cost' => 300,
+                    'purchase_currency' => 'USD',
+                    'exchange_rate' => 3.67,
+                ]],
+            ])
+            ->assertOk();
+
+        $this->assertSame('500.00', SupplierBalanceAccount::where('supplier_id', $oldSupplier->id)->where('currency', 'AED')->value('current_balance'));
+        $this->assertSame('-100.00', SupplierBalanceAccount::where('supplier_id', $newSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame(1, SupplierLedgerEntry::where('invoice_id', $invoice->id)->where('type', SupplierLedgerType::REVERSAL)->count());
+        $this->assertSame(2, SupplierLedgerEntry::where('invoice_id', $invoice->id)->where('type', SupplierLedgerType::INVOICE_USAGE)->count());
     }
 
     public function test_issuing_invoice_consumes_supplier_balance_once_and_draft_consumes_nothing(): void
@@ -1184,7 +1206,7 @@ class InvoiceApiTest extends TestCase
             ->count());
     }
 
-    public function test_insufficient_supplier_balance_rolls_back_entire_issue_transaction(): void
+    public function test_insufficient_and_zero_supplier_balances_are_allowed_per_item_and_currency(): void
     {
         $fundedSupplier = $this->activeSupplier(['reference' => 'LM-SUP-FUNDED-000001', 'name' => 'Funded Supplier']);
         $unfundedSupplier = $this->activeSupplier(['reference' => 'LM-SUP-UNFUNDED-000001', 'name' => 'Unfunded Supplier']);
@@ -1225,18 +1247,107 @@ class InvoiceApiTest extends TestCase
 
         $this->actingAs($this->admin)
             ->postJson("/api/v1/invoices/{$invoiceId}/issue")
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['items']);
+            ->assertOk()
+            ->assertJsonPath('data.status', InvoiceStatus::ISSUED->value);
 
         $this->assertDatabaseHas('invoices', [
             'id' => $invoiceId,
-            'status' => InvoiceStatus::DRAFT->value,
+            'status' => InvoiceStatus::ISSUED->value,
         ]);
-        $this->assertSame('500.00', SupplierBalanceAccount::where('supplier_id', $fundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
-        $this->assertSame(0, SupplierLedgerEntry::query()
+        $this->assertSame('400.00', SupplierBalanceAccount::where('supplier_id', $fundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('-100.00', SupplierBalanceAccount::where('supplier_id', $unfundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame(2, SupplierLedgerEntry::query()
             ->where('invoice_id', $invoiceId)
             ->where('type', SupplierLedgerType::INVOICE_USAGE)
             ->count());
+    }
+
+    public function test_purchase_cost_change_on_issued_invoice_does_not_double_deduct(): void
+    {
+        $supplier = $this->activeSupplier();
+        SupplierBalanceAccount::create(['supplier_id' => $supplier->id, 'currency' => 'USD', 'current_balance' => '1000.00']);
+        $invoice = $this->createDraftInvoice(['currency' => 'USD']);
+        $invoice->items()->create([
+            'description' => 'Original item', 'supplier_id' => $supplier->id, 'quantity' => 2,
+            'unit_price' => 400, 'line_total' => 800, 'purchase_unit_cost' => 100,
+            'purchase_currency' => 'USD', 'exchange_rate' => 1,
+        ]);
+
+        $this->actingAs($this->admin)->postJson("/api/v1/invoices/{$invoice->id}/issue")->assertOk();
+        $this->actingAs($this->admin)->putJson("/api/v1/invoices/{$invoice->id}", [
+            'currency' => 'USD',
+            'items' => [[
+                'description' => 'Updated item', 'supplier_id' => $supplier->id, 'quantity' => 2,
+                'unit_price' => 400, 'purchase_unit_cost' => 150, 'purchase_currency' => 'USD', 'exchange_rate' => 1,
+            ]],
+        ])->assertOk();
+
+        $this->assertSame('700.00', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame(1, SupplierLedgerEntry::where('invoice_id', $invoice->id)->where('type', SupplierLedgerType::REVERSAL)->count());
+    }
+
+    public function test_multiple_invoice_items_are_deducted_per_supplier_and_currency(): void
+    {
+        $usdSupplier = $this->activeSupplier(['reference' => 'LM-SUP-USD-000001', 'name' => 'USD Supplier']);
+        $aedSupplier = $this->activeSupplier(['reference' => 'LM-SUP-AED-000001', 'name' => 'AED Supplier']);
+        SupplierBalanceAccount::create(['supplier_id' => $usdSupplier->id, 'currency' => 'USD', 'current_balance' => '100.00']);
+        SupplierBalanceAccount::create(['supplier_id' => $aedSupplier->id, 'currency' => 'AED', 'current_balance' => '50.00']);
+
+        $response = $this->actingAs($this->admin)->postJson('/api/v1/invoices', [
+            'company_id' => $this->company->id,
+            'currency' => 'AED',
+            'items' => [
+                ['description' => 'USD booking', 'supplier_id' => $usdSupplier->id, 'quantity' => 2, 'unit_price' => 300, 'purchase_unit_cost' => 75, 'purchase_currency' => 'USD', 'exchange_rate' => 3.67],
+                ['description' => 'AED transfer', 'supplier_id' => $aedSupplier->id, 'quantity' => 3, 'unit_price' => 200, 'purchase_unit_cost' => 40, 'purchase_currency' => 'AED', 'exchange_rate' => 1],
+            ],
+        ])->assertCreated();
+
+        $invoiceId = $response->json('data.id');
+        $this->actingAs($this->admin)->postJson("/api/v1/invoices/{$invoiceId}/issue")->assertOk();
+
+        $this->assertSame('-50.00', SupplierBalanceAccount::where('supplier_id', $usdSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('-70.00', SupplierBalanceAccount::where('supplier_id', $aedSupplier->id)->where('currency', 'AED')->value('current_balance'));
+        $this->assertDatabaseHas('supplier_ledger_entries', ['invoice_id' => $invoiceId, 'supplier_id' => $usdSupplier->id, 'currency' => 'USD', 'amount' => '150.00']);
+        $this->assertDatabaseHas('supplier_ledger_entries', ['invoice_id' => $invoiceId, 'supplier_id' => $aedSupplier->id, 'currency' => 'AED', 'amount' => '120.00']);
+    }
+
+    public function test_invoice_print_and_pdf_contain_real_invoice_content(): void
+    {
+        $invoice = $this->createDraftInvoice(['reference' => 'LM-INV-2026-000001', 'notes' => 'Client-visible invoice note']);
+        $invoice->items()->create([
+            'description' => 'Executive airport transfer',
+            'service_name_snapshot' => 'Airport Transfer',
+            'quantity' => 2,
+            'unit_price' => 500,
+            'line_total' => 1000,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get("/api/v1/invoices/{$invoice->id}/print")
+            ->assertOk()
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('LM-INV-2026-000001')
+            ->assertSee('Executive airport transfer')
+            ->assertSee('@page{size:A4', false);
+
+        $response = $this->actingAs($this->admin)->get("/api/v1/invoices/{$invoice->id}/pdf")->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $response->assertHeader('content-disposition', 'attachment; filename="LM-INV-2026-000001.pdf"');
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+        $this->assertGreaterThan(1000, strlen($response->getContent()));
+        $this->assertSame(1, preg_match_all('/\/Type\s*\/Page\b/', $response->getContent()));
+
+        $renderer = app(\App\Services\InvoicePdfHtmlRenderer::class);
+        $this->assertStringNotContainsString('@page{', $renderer->render($invoice));
+        $this->assertStringContainsString('@page{size:A4', $renderer->render($invoice, true));
+    }
+
+    public function test_invoice_print_and_pdf_require_print_permission(): void
+    {
+        $invoice = $this->createDraftInvoice();
+
+        $this->actingAs($this->employee)->get("/api/v1/invoices/{$invoice->id}/print")->assertForbidden();
+        $this->actingAs($this->employee)->get("/api/v1/invoices/{$invoice->id}/pdf")->assertForbidden();
     }
 
     // ===========================================================

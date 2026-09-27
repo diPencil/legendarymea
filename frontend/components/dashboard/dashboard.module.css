@@ -3385,6 +3385,107 @@ dialog.dialogOverlay {
   gap: 12px;
 }
 
+.supplierBalancePanel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f4f7ff;
+  border: 1px solid rgba(8, 29, 96, .16);
+  border-radius: 8px;
+}
+
+.supplierBalancePanel > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.supplierBalancePanel span {
+  color: #626968;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.supplierBalancePanel strong {
+  color: #081d60;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.supplierBalancePanelNegative {
+  background: #fff5f3;
+  border-color: rgba(180, 35, 24, .28);
+}
+
+.supplierBalancePanelNegative strong,
+.supplierBalancePanelNegative p {
+  color: #9f241b;
+}
+
+.supplierBalancePanel p {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.supplierBalanceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.negativeBalanceValue {
+  color: #b42318 !important;
+  font-weight: 800 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.supplierNegativeInline {
+  display: block;
+  max-width: 300px;
+  margin-top: 5px;
+  color: #b42318 !important;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: normal;
+}
+
+.supplierNegativeWarning,
+.supplierNegativeBanner {
+  color: #8f1d18;
+  background: #fff3f1;
+  border: 1px solid rgba(180, 35, 24, .24);
+  border-radius: 8px;
+}
+
+.supplierNegativeWarning {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.supplierNegativeBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.supplierNegativeBanner svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.negativeBalanceRow {
+  background: #fff8f7;
+}
+
 @media (max-width: 1024px) {
   .invoiceBillGrid {
     grid-template-columns: 1fr;
@@ -3400,6 +3501,14 @@ dialog.dialogOverlay {
 }
 
 @media (max-width: 860px) {
+  .supplierBalancePanel {
+    grid-template-columns: 1fr;
+  }
+
+  .supplierBalancePanel p {
+    grid-column: auto;
+  }
+
   .invoiceTable {
     min-width: 0;
   }

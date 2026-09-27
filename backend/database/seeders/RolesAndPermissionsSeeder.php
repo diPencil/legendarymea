@@ -34,7 +34,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_invoices', 'manage_invoices',
             'view_payments', 'manage_payments',
             'view_renewals', 'manage_renewals',
-            'view_suppliers', 'manage_suppliers', 'fund_supplier_balances',
+            'view_suppliers', 'manage_suppliers', 'fund_supplier_balances', 'adjust_supplier_balances',
             'view_finance_reports', 'manage_finance_reports',
             'view_inquiries', 'manage_inquiries',
             'view_emails', 'manage_emails', 'send_emails',

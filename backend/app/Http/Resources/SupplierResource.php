@@ -12,22 +12,25 @@ class SupplierResource extends JsonResource
     {
         $user = $request->user();
         $canViewBalances = $user?->hasRole('super_admin')
-            || $user?->hasAnyPermission(['view_supplier_balances', 'fund_supplier_balances', 'manage_suppliers', 'view_finance_reports', 'manage_finance_reports']);
+            || $user?->hasAnyPermission(['view_supplier_balances', 'fund_supplier_balances', 'adjust_supplier_balances', 'manage_suppliers', 'view_finance_reports', 'manage_finance_reports']);
         $canViewLedger = $user?->hasRole('super_admin')
-            || $user?->hasAnyPermission(['view_supplier_ledger', 'fund_supplier_balances', 'manage_suppliers', 'view_finance_reports', 'manage_finance_reports']);
+            || $user?->hasAnyPermission(['view_supplier_ledger', 'fund_supplier_balances', 'adjust_supplier_balances', 'manage_suppliers', 'view_finance_reports', 'manage_finance_reports']);
 
         $balances = $this->balanceAccounts->map(function ($account) {
             $funded = (string) $account->ledgerEntries
                 ->where('type', SupplierLedgerType::FUNDING)
                 ->sum('amount');
-            $used = (string) $account->ledgerEntries
+            $used = (float) $account->ledgerEntries
                 ->where('type', SupplierLedgerType::INVOICE_USAGE)
+                ->sum('amount');
+            $restored = (float) $account->ledgerEntries
+                ->where('type', SupplierLedgerType::REVERSAL)
                 ->sum('amount');
 
             return [
                 'currency' => $account->currency,
                 'funded' => number_format((float) $funded, 2, '.', ''),
-                'used' => number_format((float) $used, 2, '.', ''),
+                'used' => number_format($used - $restored, 2, '.', ''),
                 'available' => $account->current_balance,
             ];
         })->values();

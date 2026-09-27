@@ -76,6 +76,7 @@ class Phase1ATest extends TestCase
 
         $company = Company::factory()->create();
         $employee = Employee::factory()->create(['status' => 'active']);
+        $employee->user->assignRole($role);
 
         $response = $this->actingAs($user)->postJson('/api/v1/companies/'.$company->id.'/account-manager', [
             'account_manager_id' => $employee->id
