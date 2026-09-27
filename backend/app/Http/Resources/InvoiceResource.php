@@ -15,6 +15,7 @@ class InvoiceResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = $request->user();
+        $document = app(\App\Services\InvoiceDocumentBuilder::class)->build($this->resource);
         $canViewInternalFinance = $user?->hasRole('super_admin')
             || $user?->hasAnyPermission(['view_internal_finance', 'manage_invoices', 'view_finance_reports', 'manage_finance_reports']);
         $canViewProfit = $user?->hasRole('super_admin')
@@ -24,7 +25,7 @@ class InvoiceResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'reference' => $this->reference,
+            'reference' => $document['reference'],
             'customer_type' => $this->customer_type->value,
             'status' => $this->status->value,
             'company' => $this->company ? [
@@ -43,10 +44,7 @@ class InvoiceResource extends JsonResource
             'customer' => [
                 'type' => $this->customer_type->value,
                 'id' => $this->customer_type->value === 'company' ? $this->company_id : $this->customer_user_id,
-                'name' => $this->billing_name ?? $this->company?->name ?? $this->customerUser?->name,
-                'email' => $this->billing_email ?? $this->company?->email ?? $this->customerUser?->email,
-                'phone' => $this->billing_phone,
-                'address' => $this->billing_address,
+                ...$document['customer'],
             ],
             
             'contract' => $this->whenLoaded('contract', function () {
@@ -65,27 +63,27 @@ class InvoiceResource extends JsonResource
                 ] : null;
             }),
 
-            'issue_date' => $this->issue_date?->format('Y-m-d'),
-            'due_date' => $this->due_date?->format('Y-m-d'),
-            'currency' => $this->currency,
+            'issue_date' => $document['issue_date'],
+            'due_date' => $document['due_date'],
+            'currency' => $document['currency'],
 
             'items' => InvoiceItemResource::collection($this->whenLoaded('items')),
 
-            'subtotal' => $this->subtotal,
-            'discount_amount' => $this->discount_amount,
-            'tax_amount' => $this->tax_amount,
-            'total_amount' => $this->total_amount,
+            'subtotal' => $document['subtotal'],
+            'discount_amount' => $document['discount_amount'],
+            'tax_amount' => $document['tax_amount'],
+            'total_amount' => $document['total_amount'],
             'paid_amount' => $this->when(
                 $request->user()?->hasRole('super_admin') || $request->user()?->hasAnyPermission(['view_payments', 'manage_payments']),
-                fn () => $this->postedPaymentsTotal()
+                fn () => $document['paid_amount']
             ),
             'balance_due' => $this->when(
                 $request->user()?->hasRole('super_admin') || $request->user()?->hasAnyPermission(['view_payments', 'manage_payments']),
-                fn () => $this->balanceDue()
+                fn () => $document['balance_due']
             ),
 
-            'notes' => $this->notes,
-            'terms' => $this->terms,
+            'notes' => $document['notes'],
+            'terms' => $document['terms'],
             'internal_notes' => $this->when(
                 $canViewInternalFinance,
                 fn () => $this->internal_notes

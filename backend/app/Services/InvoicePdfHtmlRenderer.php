@@ -3,73 +3,117 @@
 namespace App\Services;
 
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
 
 class InvoicePdfHtmlRenderer
 {
+    public function __construct(private readonly InvoiceDocumentBuilder $documents) {}
+
     public function render(Invoice $invoice, bool $autoPrint = false): string
     {
-        $invoice->loadMissing(['company', 'customerUser', 'soldByEmployee.user', 'items.serviceCatalog', 'payments']);
-        $settings = $this->publicSettings();
-        $general = $settings['general'] ?? [];
-        $contact = $settings['contact'] ?? [];
-        $issuerName = trim((string) ($general['company_display_name'] ?? '')) ?: 'Legendary Management MEA';
-        $issuerAddress = trim((string) ($contact['address_en'] ?? '')) ?: 'Riyadh, Saudi Arabia';
-        $issuerPhone = trim((string) ($contact['phone'] ?? '')) ?: trim((string) ($contact['whatsapp'] ?? '')) ?: '+966 53 314 4910';
-        $issuerEmail = trim((string) ($contact['public_email'] ?? '')) ?: 'info@legendarymea.com';
-        $customerName = $invoice->billing_name ?: $invoice->company?->name ?: $invoice->customerUser?->name ?: '-';
-        $customerEmail = $invoice->billing_email ?: $invoice->company?->email ?: $invoice->customerUser?->email;
-        $customerPhone = $invoice->billing_phone ?: $invoice->company?->phone;
-        $customerAddress = $invoice->billing_address ?: $invoice->company?->city;
-        $logo = $this->logoDataUri();
-        $logoHtml = $logo ? '<img src="' . $logo . '" alt="Legendary Management MEA" style="width:52mm;height:auto;">' : '<strong style="font-size:20px;color:#081d60;">LEGENDARY</strong>';
-        $items = $invoice->items->map(fn (InvoiceItem $item, int $index) => $this->itemRow($invoice, $item, $index))->implode('');
-        $notes = $this->notes($invoice);
-        $script = $autoPrint ? '<script>window.addEventListener("load",function(){window.setTimeout(function(){window.print();},150);});</script>' : '';
+        $document = $this->documents->build($invoice);
+        $issuer = $this->issuer();
+        $logoHtml = '<img src="' . $this->logoDataUri() . '" alt="Legendary Management MEA" class="logo">';
+        $items = collect($document['items'])
+            ->map(fn (array $item) => $this->itemRow($item, $document['currency']))
+            ->implode('');
         $pageStyle = $autoPrint ? '@page{size:A4;margin:12mm}' : '';
+        $script = $autoPrint
+            ? '<script>window.addEventListener("load",function(){window.setTimeout(function(){window.print();},250);});</script>'
+            : '';
 
-        return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $this->e($invoice->reference) . '</title>
+        return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $this->e($document['reference']) . '</title>
 <style>' . $pageStyle . '
-*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#081d60;font-family:montserrat,montserratarabic,Arial,sans-serif;font-size:11px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:100%;margin:0 auto}.header{width:100%;border-collapse:collapse;border-bottom:1px solid #ddd7c8;margin-bottom:6mm}.header td{vertical-align:top;padding-bottom:5mm}.issuer{color:#667085;font-size:10px;line-height:1.55}.issuer strong{display:block;color:#081d60;font-size:13px;margin-top:2mm}.mark{text-align:right}.eyebrow,.label{color:#a07f31;font-weight:bold;text-transform:uppercase;letter-spacing:1px}.mark h1{margin:1mm 0 2mm;font-size:25px;line-height:1;color:#081d60}.badge{display:inline-block;padding:1.5mm 3mm;border-radius:10mm;background:#fbf0cf;color:#80631e;font-weight:bold;text-transform:capitalize}.parties{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:5mm}.parties td{width:50%;vertical-align:top;border:1px solid #e4dfd4;background:#fbfaf7;padding:4mm}.parties td+td{border-left:3mm solid #fff}.party-name{display:block;margin:1mm 0;color:#081d60;font-size:14px}.muted{color:#667085}.meta{width:100%;border-collapse:collapse;margin-bottom:5mm}.meta td{width:25%;padding:2.5mm 2mm;border-bottom:1px solid #eee9de;vertical-align:top}.meta strong{display:block;margin-top:1mm;color:#081d60}.items{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:5mm}.items th{padding:2.5mm 2mm;background:#081d60;color:#fff;text-align:left;font-size:9px}.items td{padding:3mm 2mm;border-bottom:1px solid #e8e3d8;vertical-align:top;overflow-wrap:anywhere}.items .num{text-align:right;white-space:nowrap}.service{display:block;font-weight:bold}.details{display:block;color:#667085;font-size:9px;margin-top:1mm}.summary{width:78mm;margin-left:auto;border-collapse:collapse;background:#fbfaf7;border:1px solid #e1dbc9}.summary td{padding:2mm 3mm}.summary td:last-child{text-align:right;font-weight:bold;white-space:nowrap}.summary .total td{border-top:1px solid #cfc6ae;color:#081d60;font-size:13px;font-weight:bold}.summary .balance td{color:#a07f31;font-size:12px;font-weight:bold}.notes{margin-top:5mm;padding:4mm;border:1px solid #e4dfd4;background:#fcfcf8;page-break-inside:avoid}.notes h2{margin:0 0 2mm;color:#081d60;font-size:12px}.notes p{margin:1mm 0;color:#4f565d;white-space:pre-line}.footer{width:100%;border-collapse:collapse;border-top:1px solid #ddd7c8;margin-top:7mm}.footer td{padding-top:3mm;vertical-align:top;color:#667085;font-size:9px}.footer td:last-child{text-align:right}.no-print{margin:0 0 5mm;text-align:right}.no-print button{border:0;border-radius:4px;padding:10px 16px;background:#081d60;color:#fff;font:700 13px Arial;cursor:pointer}@media print{.no-print{display:none}.page{width:auto}.items tr,.notes,.summary{page-break-inside:avoid}}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#081d60;font-family:montserrat,montserratarabic,Arial,sans-serif;font-size:9.5pt;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:100%;margin:0 auto}.header{width:100%;border-collapse:collapse;border-bottom:1px solid #d9dce5;margin-bottom:3mm}.header td{vertical-align:top;padding:0 0 3mm}.logo{display:block;width:48mm;height:auto;margin-bottom:2mm}.issuer-name{font-size:12.5pt;font-weight:bold;color:#081d60}.issuer-copy{margin-top:.5mm;color:#626968;font-size:8.5pt;line-height:1.4}.document-mark{text-align:right}.eyebrow,.section-kicker{color:#a07f31;font-size:7.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:1px}.document-mark h1{margin:1mm 0 1.5mm;font-size:21pt;line-height:1.05;color:#081d60}.badge{display:inline-block;padding:1mm 3mm;border-radius:8mm;background:#f6e8bd;color:#715719;font-size:8pt;font-weight:bold;text-transform:capitalize}.section{margin-bottom:3mm;padding:3.5mm;border:1px solid #e1e3e9;background:#fcfcf8}.section-title{margin:0 0 2.5mm;color:#081d60;font-size:11pt}.summary-grid{width:100%;border-collapse:separate;border-spacing:0}.summary-grid td{width:50%;vertical-align:top;padding:3mm;border:1px solid #e4e5e9;background:#fff}.summary-grid td+td{border-left:2mm solid #fcfcf8}.card-name{display:block;margin:1mm 0 1.5mm;color:#081d60;font-size:12.5pt;line-height:1.15}.muted{color:#626968;font-size:8.5pt}.details{width:100%;border-collapse:collapse}.details td{width:50%;padding:1mm 1.5mm 1.5mm 0;vertical-align:top}.details strong{color:#081d60;font-size:8.5pt;word-break:break-word}.services{width:100%;border-collapse:collapse;table-layout:fixed}.services th{padding:2mm 1.5mm;background:#081d60;color:#fff;font-size:7.5pt;text-align:left}.services td{padding:2mm 1.5mm;border-bottom:1px solid #e5e6ea;vertical-align:top;font-size:8.5pt;word-break:break-word}.services tr{page-break-inside:avoid}.services .num{text-align:right;white-space:nowrap}.service-name{display:block;color:#081d60;font-weight:bold}.service-meta{display:block;margin-top:.5mm;color:#626968;font-size:7.5pt;line-height:1.3}.financial{width:82mm;margin-left:auto;border-collapse:collapse;background:#fff;border:1px solid #dde0e7;page-break-inside:avoid}.financial td{padding:1.5mm 2.5mm;color:#626968}.financial td:last-child{text-align:right;color:#081d60;font-weight:bold;white-space:nowrap}.financial .divider td{padding:0;border-top:1px solid #d9dce5}.financial .total td{color:#081d60;font-size:10pt;font-weight:bold}.financial .balance td{color:#a07f31;font-size:10pt;font-weight:bold}.notes{margin-bottom:3mm;padding:3mm;border:1px solid #e1e3e9;background:#fcfcf8;page-break-inside:avoid}.notes h2{margin:0 0 .5mm;color:#081d60;font-size:9pt}.notes p{margin:0 0 1.5mm;color:#626968;white-space:pre-line;word-break:break-word}.footer{width:100%;border-collapse:collapse;border-top:1px solid #d9dce5;margin-top:4mm;page-break-inside:avoid}.footer td{padding-top:2mm;vertical-align:top;color:#626968;font-size:7.5pt}.footer strong{color:#081d60;font-size:8.5pt}.footer td:last-child{text-align:right}.no-print{margin:0 0 4mm;text-align:right}.no-print button{border:0;border-radius:4px;padding:10px 16px;background:#081d60;color:#fff;font:700 13px Arial;cursor:pointer}@media print{.no-print{display:none}.page{width:auto}.section,.financial,.notes,.footer{break-inside:avoid}}
 </style></head><body><div class="page">'
             . ($autoPrint ? '<div class="no-print"><button type="button" onclick="window.print()">Print invoice</button></div>' : '')
-            . '<table class="header"><tr><td width="58%">' . $logoHtml . '<div class="issuer"><strong>' . $this->e($issuerName) . '</strong>' . $this->e($issuerAddress) . '<br><span dir="ltr">' . $this->e($issuerPhone) . '</span><br><span dir="ltr">' . $this->e($issuerEmail) . '</span></div></td><td width="42%" class="mark"><span class="eyebrow">Invoice</span><h1 dir="ltr">' . $this->e($invoice->reference) . '</h1><span class="badge">' . $this->e(str_replace('_', ' ', $invoice->status->value)) . '</span></td></tr></table>'
-            . '<table class="parties"><tr><td><span class="label">Bill to</span><br><strong class="party-name" dir="auto">' . $this->e($customerName) . '</strong>' . $this->optionalLines([$customerEmail, $customerPhone, $customerAddress]) . '</td><td><span class="label">Invoice details</span><br><strong class="party-name">' . $this->e($invoice->currency) . '</strong><span class="muted">' . $this->e($invoice->contract?->reference ?? $invoice->activeService?->reference ?? '') . '</span></td></tr></table>'
-            . '<table class="meta"><tr><td><span class="label">Issue date</span><br><strong dir="ltr">' . $this->e($invoice->issue_date?->format('Y-m-d') ?? '-') . '</strong></td><td><span class="label">Due date</span><br><strong dir="ltr">' . $this->e($invoice->due_date?->format('Y-m-d') ?? '-') . '</strong></td><td><span class="label">Currency</span><br><strong>' . $this->e($invoice->currency) . '</strong></td><td><span class="label">Payment status</span><br><strong>' . $this->e(str_replace('_', ' ', $invoice->status->value)) . '</strong></td></tr></table>'
-            . '<table class="items"><thead><tr><th width="18%">Service</th><th width="36%">Description</th><th width="10%" style="text-align:right">Qty</th><th width="17%" style="text-align:right">Unit price</th><th width="19%" style="text-align:right">Line total</th></tr></thead><tbody>' . $items . '</tbody></table>'
-            . '<table class="summary"><tr><td>Subtotal</td><td>' . $this->money($invoice->subtotal, $invoice->currency) . '</td></tr><tr><td>Discount</td><td>- ' . $this->money($invoice->discount_amount, $invoice->currency) . '</td></tr><tr><td>Tax / VAT</td><td>+ ' . $this->money($invoice->tax_amount, $invoice->currency) . '</td></tr><tr class="total"><td>Total</td><td>' . $this->money($invoice->total_amount, $invoice->currency) . '</td></tr><tr><td>Paid</td><td>' . $this->money($invoice->postedPaymentsTotal(), $invoice->currency) . '</td></tr><tr class="balance"><td>Balance due</td><td>' . $this->money($invoice->balanceDue(), $invoice->currency) . '</td></tr></table>'
-            . $notes
-            . '<table class="footer"><tr><td><strong>' . $this->e($issuerName) . '</strong><br>Travel operations, in one working system.</td><td><span dir="ltr">' . $this->e($issuerPhone) . ' | ' . $this->e($issuerEmail) . '</span><br>' . $this->e($issuerAddress) . '</td></tr></table></div>' . $script . '</body></html>';
+            . '<table class="header"><tr><td width="58%">' . $logoHtml . '<div class="issuer-name">' . $this->e($issuer['name']) . '</div><div class="issuer-copy">' . $this->e($issuer['address']) . '<br><span dir="ltr">' . $this->e($issuer['phone']) . '</span><br><span dir="ltr">' . $this->e($issuer['email']) . '</span></div></td><td width="42%" class="document-mark"><span class="eyebrow">Invoice</span><h1 dir="ltr">' . $this->e($document['reference']) . '</h1><span class="badge">' . $this->e(str_replace('_', ' ', $document['status'])) . '</span></td></tr></table>'
+            . '<div class="section"><h2 class="section-title">Invoice Summary</h2><table class="summary-grid"><tr><td><span class="section-kicker">Bill To</span><br><strong class="card-name" dir="auto">' . $this->e($document['customer']['name'] ?: '-') . '</strong>' . $this->optionalLines([$document['company_name'], $document['customer']['email'], $document['customer']['phone'], $document['customer']['address']]) . '</td><td><span class="section-kicker">Invoice Details</span>' . $this->detailsTable($document) . '</td></tr></table></div>'
+            . '<div class="section"><h2 class="section-title">Services</h2><table class="services"><thead><tr><th width="14%">Service</th><th width="42%">Service name / details</th><th width="7%" style="text-align:right">Qty</th><th width="18%" style="text-align:right">Unit price</th><th width="19%" style="text-align:right">Line total</th></tr></thead><tbody>' . $items . '</tbody></table></div>'
+            . '<div class="section"><h2 class="section-title">Financial Summary</h2><table class="financial"><tr><td>Subtotal</td><td>' . $this->money($document['subtotal'], $document['currency']) . '</td></tr><tr><td>Discount</td><td>- ' . $this->money($document['discount_amount'], $document['currency']) . '</td></tr><tr><td>Tax / VAT</td><td>+ ' . $this->money($document['tax_amount'], $document['currency']) . '</td></tr><tr class="divider"><td colspan="2"></td></tr><tr class="total"><td>Total</td><td>' . $this->money($document['total_amount'], $document['currency']) . '</td></tr><tr><td>Paid amount</td><td>' . $this->money($document['paid_amount'], $document['currency']) . '</td></tr><tr class="divider"><td colspan="2"></td></tr><tr class="balance"><td>Balance due</td><td>' . $this->money($document['balance_due'], $document['currency']) . '</td></tr></table></div>'
+            . $this->notes($document)
+            . '<table class="footer"><tr><td><strong>' . $this->e($issuer['name']) . '</strong><br>Travel operations, in one working system.</td><td><span dir="ltr">' . $this->e($issuer['phone']) . ' | ' . $this->e($issuer['email']) . '</span><br>' . $this->e($issuer['address']) . '</td></tr></table></div>' . $script . '</body></html>';
     }
 
-    private function itemRow(Invoice $invoice, InvoiceItem $item, int $index): string
+    /** @param array<string, mixed> $document */
+    private function detailsTable(array $document): string
     {
-        $service = $item->service_name_snapshot ?: $item->serviceCatalog?->name_en ?: 'Service ' . ($index + 1);
-        $details = array_filter([
-            $item->booking_reference ? 'Ref: ' . $item->booking_reference : null,
-            $item->service_start_date ? $item->service_start_date->format('Y-m-d') : null,
-            $item->service_end_date ? $item->service_end_date->format('Y-m-d') : null,
-            $item->service_details,
+        $rows = array_filter([
+            ['Reference', $document['reference']],
+            ['Issue date', $document['issue_date'] ?: '-'],
+            ['Due date', $document['due_date'] ?: '-'],
+            ['Currency', $document['currency']],
+            ['Sales owner', $document['sales_owner']],
+            ['Contract', $document['contract_reference']],
+            ['Active service', $document['active_service_reference']],
+        ], fn (array $row) => filled($row[1]));
+
+        $cells = collect($rows)->map(fn (array $row) => '<td><span class="section-kicker">' . $this->e($row[0]) . '</span><br><strong dir="auto">' . $this->e($row[1]) . '</strong></td>')->values();
+        $html = '';
+        foreach ($cells->chunk(2) as $chunk) {
+            $html .= '<tr>' . $chunk->implode('') . ($chunk->count() === 1 ? '<td></td>' : '') . '</tr>';
+        }
+
+        return '<table class="details">' . $html . '</table>';
+    }
+
+    /** @param array<string, mixed> $item */
+    private function itemRow(array $item, string $currency): string
+    {
+        $meta = array_filter([
+            $item['booking_reference'] ? 'Ref: ' . $item['booking_reference'] : null,
+            $this->dateRange($item['service_start_date'], $item['service_end_date']),
+            $item['service_details'],
         ]);
 
-        return '<tr><td><span class="service" dir="auto">' . $this->e($service) . '</span>' . ($details ? '<br><span class="details" dir="auto">' . $this->e(implode(' | ', $details)) . '</span>' : '') . '</td><td dir="auto">' . $this->e($item->description) . '</td><td class="num">' . $this->e($item->quantity) . '</td><td class="num">' . $this->money($item->unit_price, $invoice->currency) . '</td><td class="num">' . $this->money($item->line_total, $invoice->currency) . '</td></tr>';
+        return '<tr><td><span class="service-name" dir="auto">' . $this->e($item['service']) . '</span></td><td><span class="service-name" dir="auto">' . $this->e($item['service_name']) . '</span><br><span class="muted" dir="auto">' . $this->e($item['description']) . '</span>' . ($meta ? '<br><span class="service-meta" dir="auto">' . $this->e(implode(' | ', $meta)) . '</span>' : '') . '</td><td class="num">' . $this->e($item['quantity']) . '</td><td class="num">' . $this->money($item['unit_price'], $currency) . '</td><td class="num">' . $this->money($item['line_total'], $currency) . '</td></tr>';
     }
 
-    private function notes(Invoice $invoice): string
+    private function dateRange(?string $start, ?string $end): ?string
+    {
+        if (! $start && ! $end) {
+            return null;
+        }
+
+        return ($start ?: '-') . ' to ' . ($end ?: '-');
+    }
+
+    /** @param array<string, mixed> $document */
+    private function notes(array $document): string
     {
         $sections = array_filter([
-            $invoice->notes ? '<h2>Notes</h2><p dir="auto">' . $this->lines($invoice->notes) . '</p>' : null,
-            $invoice->terms ? '<h2>Terms</h2><p dir="auto">' . $this->lines($invoice->terms) . '</p>' : null,
+            $document['notes'] ? '<h2>Notes</h2><p dir="auto">' . $this->lines($document['notes']) . '</p>' : null,
+            $document['terms'] ? '<h2>Terms</h2><p dir="auto">' . $this->lines($document['terms']) . '</p>' : null,
         ]);
 
         return $sections ? '<div class="notes">' . implode('', $sections) . '</div>' : '';
     }
 
+    /** @param array<int, mixed> $values */
     private function optionalLines(array $values): string
     {
-        $lines = collect($values)->filter(fn ($value) => filled($value))->map(fn ($value) => '<span class="muted" dir="auto">' . $this->e($value) . '</span>')->implode('<br>');
+        $lines = collect($values)->filter(fn ($value) => filled($value))->unique()->map(fn ($value) => '<span class="muted" dir="auto">' . $this->e($value) . '</span>')->implode('<br>');
 
         return $lines ? '<div>' . $lines . '</div>' : '';
+    }
+
+    /** @return array{name: string, address: string, phone: string, email: string} */
+    private function issuer(): array
+    {
+        try {
+            $settings = app(SettingsService::class)->getPublicSettings();
+        } catch (\Throwable) {
+            $settings = [];
+        }
+
+        $general = $settings['general'] ?? [];
+        $contact = $settings['contact'] ?? [];
+
+        return [
+            'name' => trim((string) ($general['company_display_name'] ?? '')) ?: 'Legendary Management MEA',
+            'address' => trim((string) ($contact['address_en'] ?? '')) ?: 'Riyadh, Saudi Arabia',
+            'phone' => trim((string) ($contact['phone'] ?? '')) ?: trim((string) ($contact['whatsapp'] ?? '')) ?: '+966 53 314 4910',
+            'email' => trim((string) ($contact['public_email'] ?? '')) ?: 'info@legendarymea.com',
+        ];
     }
 
     private function money(mixed $amount, string $currency): string
@@ -77,23 +121,14 @@ class InvoicePdfHtmlRenderer
         return $this->e(strtoupper($currency) . ' ' . number_format((float) $amount, 2, '.', ','));
     }
 
-    private function logoDataUri(): ?string
+    private function logoDataUri(): string
     {
-        $path = base_path('../frontend/public/legendary-management.png');
-        if (! is_file($path)) {
-            return null;
+        $path = public_path('legendary-management.png');
+        if (! is_file($path) || ! is_readable($path)) {
+            throw new \RuntimeException('Invoice logo asset is unavailable.');
         }
 
         return 'data:image/png;base64,' . base64_encode((string) file_get_contents($path));
-    }
-
-    private function publicSettings(): array
-    {
-        try {
-            return app(SettingsService::class)->getPublicSettings();
-        } catch (\Throwable) {
-            return [];
-        }
     }
 
     private function e(mixed $value): string

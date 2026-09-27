@@ -26,8 +26,9 @@ function DashboardGate({ children }: { children: ReactNode }) {
   const router = useRouter()
   const { locale } = useLocale()
   const copy = dashboardCopy[locale]
-  const { status, error, user } = useDashboardAuth()
+  const { status, error, user, refresh } = useDashboardAuth()
   const isLoginRoute = pathname === '/dashboard/login'
+  const isInvoicePrintRoute = /^\/dashboard\/invoices\/[^/]+\/print\/?$/.test(pathname)
 
   useEffect(() => {
     if (!isLoginRoute && status === 'unauthenticated') {
@@ -53,12 +54,24 @@ function DashboardGate({ children }: { children: ReactNode }) {
     )
   }
 
+  if (status === 'error') {
+    return (
+      <div className={styles.dashboardRoot}>
+        <DashboardState title={copy.errorTitle} body={error || copy.loadingSession} actionLabel={copy.retry} onAction={() => void refresh()} tone="danger" />
+      </div>
+    )
+  }
+
   if (status === 'forbidden') {
     return (
       <div className={styles.dashboardRoot}>
         <DashboardState title={copy.accessDenied} body={copy.accessDeniedBody} tone="danger" />
       </div>
     )
+  }
+
+  if (isInvoicePrintRoute) {
+    return <main className={styles.invoicePrintRoot}>{children}</main>
   }
 
   const routeItem = [...activeDashboardNav]
