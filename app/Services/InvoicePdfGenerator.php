@@ -43,7 +43,8 @@ class InvoicePdfGenerator
                 'margin_left' => 9,
                 'margin_right' => 9,
                 'margin_top' => 9,
-                'margin_bottom' => 9,
+                'margin_bottom' => 20,
+                'margin_footer' => 7,
                 'default_font' => 'montserrat',
                 'tempDir' => $tempDir,
             ]);
@@ -51,7 +52,8 @@ class InvoicePdfGenerator
             $mpdf->autoLangToFont = true;
             $mpdf->SetTitle($invoice->reference);
             $mpdf->SetAuthor('Legendary Management MEA');
-            $mpdf->WriteHTML($this->renderer->render($invoice));
+            $mpdf->SetHTMLFooter($this->renderer->renderFooter());
+            $mpdf->WriteHTML($this->renderer->render($invoice, false, false));
 
             return new InvoicePdfFile(
                 $this->filename($invoice),

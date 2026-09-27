@@ -8,7 +8,7 @@ class InvoicePdfHtmlRenderer
 {
     public function __construct(private readonly InvoiceDocumentBuilder $documents) {}
 
-    public function render(Invoice $invoice, bool $autoPrint = false): string
+    public function render(Invoice $invoice, bool $autoPrint = false, bool $includeFooter = true): string
     {
         $document = $this->documents->build($invoice);
         $issuer = $this->issuer();
@@ -31,7 +31,13 @@ class InvoicePdfHtmlRenderer
             . '<div class="section"><h2 class="section-title">Services</h2><table class="services"><thead><tr><th width="14%">Service</th><th width="42%">Service name / details</th><th width="7%" style="text-align:right">Qty</th><th width="18%" style="text-align:right">Unit price</th><th width="19%" style="text-align:right">Line total</th></tr></thead><tbody>' . $items . '</tbody></table></div>'
             . '<div class="section"><h2 class="section-title">Financial Summary</h2><table class="financial"><tr><td>Subtotal</td><td>' . $this->money($document['subtotal'], $document['currency']) . '</td></tr><tr><td>Discount</td><td>- ' . $this->money($document['discount_amount'], $document['currency']) . '</td></tr><tr><td>Tax / VAT</td><td>+ ' . $this->money($document['tax_amount'], $document['currency']) . '</td></tr><tr class="divider"><td colspan="2"></td></tr><tr class="total"><td>Total</td><td>' . $this->money($document['total_amount'], $document['currency']) . '</td></tr><tr><td>Paid amount</td><td>' . $this->money($document['paid_amount'], $document['currency']) . '</td></tr><tr class="divider"><td colspan="2"></td></tr><tr class="balance"><td>Balance due</td><td>' . $this->money($document['balance_due'], $document['currency']) . '</td></tr></table></div>'
             . $this->notes($document)
-            . '<table class="footer"><tr><td><strong>' . $this->e($issuer['name']) . '</strong><br>Travel operations, in one working system.</td><td><span dir="ltr">' . $this->e($issuer['phone']) . ' | ' . $this->e($issuer['email']) . '</span><br>' . $this->e($issuer['address']) . '</td></tr></table></div>' . $script . '</body></html>';
+            . ($includeFooter ? $this->footer($issuer) : '')
+            . '</div>' . $script . '</body></html>';
+    }
+
+    public function renderFooter(): string
+    {
+        return $this->footer($this->issuer());
     }
 
     /** @param array<string, mixed> $document */
@@ -86,6 +92,12 @@ class InvoicePdfHtmlRenderer
         ]);
 
         return $sections ? '<div class="notes">' . implode('', $sections) . '</div>' : '';
+    }
+
+    /** @param array{name: string, address: string, phone: string, email: string} $issuer */
+    private function footer(array $issuer): string
+    {
+        return '<table class="footer" style="width:100%;border-collapse:collapse;border-top:1px solid #d9dce5;font-family:montserrat,montserratarabic,Arial,sans-serif;"><tr><td style="width:50%;padding-top:2mm;vertical-align:top;color:#626968;font-size:7.5pt;"><strong style="color:#081d60;font-size:8.5pt;">' . $this->e($issuer['name']) . '</strong><br>Travel operations, in one working system.</td><td style="width:50%;padding-top:2mm;vertical-align:top;color:#626968;font-size:7.5pt;text-align:right;"><span dir="ltr">' . $this->e($issuer['phone']) . ' | ' . $this->e($issuer['email']) . '</span><br>' . $this->e($issuer['address']) . '</td></tr></table>';
     }
 
     /** @param array<int, mixed> $values */
