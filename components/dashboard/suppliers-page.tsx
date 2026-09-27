@@ -11,9 +11,10 @@ import { dashboardCopy } from '@/components/dashboard/copy'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
 import { DashboardApiError } from '@/lib/dashboard/api'
 import { listCompanies, type CompanyRecord } from '@/lib/dashboard/companies'
+import { SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { listUsers, type User } from '@/lib/dashboard/users'
-import { adjustSupplierBalance, createSupplier, deleteSupplier, fundSupplierBalance, listSuppliers, updateSupplier, type SupplierInput, type SupplierRecord } from '@/lib/dashboard/suppliers'
+import { adjustSupplierBalance, createSupplier, deleteSupplier, fundSupplierBalance, getSupplier, listSuppliers, updateSupplier, type SupplierInput, type SupplierRecord } from '@/lib/dashboard/suppliers'
 import { cn } from '@/lib/utils'
 import styles from '@/components/dashboard/dashboard.module.css'
 
@@ -32,8 +33,8 @@ export function SuppliersPage() {
   const { user, clearSession } = useDashboardAuth()
 
   const labels = locale === 'ar'
-    ? { suppliers: 'الموردون', suppliersDescription: 'إدارة الموردين والأرصدة والسجل المالي.', type: 'النوع', linkedCompany: 'شركة مرتبطة', linkedUser: 'مستخدم مرتبط', balances: 'الأرصدة', fund: 'تمويل الرصيد', adjust: 'تسوية الرصيد', adjustmentAmount: 'قيمة التسوية', adjustmentReason: 'سبب التسوية', negativeBalance: 'يحتاج المورد إلى تمويل. رصيد {currency} هو {amount}.', userSupplier: 'مستخدم', companySupplier: 'شركة', address: 'العنوان', date: 'التاريخ' }
-    : { suppliers: 'Suppliers', suppliersDescription: 'Manage suppliers, prefunding balances, and ledger visibility.', type: 'Type', linkedCompany: 'Linked company', linkedUser: 'Linked user', balances: 'Balances', fund: 'Fund balance', adjust: 'Balance adjustment', adjustmentAmount: 'Adjustment amount', adjustmentReason: 'Adjustment reason', negativeBalance: 'Supplier requires funding. {currency} balance is {amount}.', userSupplier: 'User', companySupplier: 'Company', address: 'Address', date: 'Date' }
+    ? { suppliers: 'الموردون', suppliersDescription: 'إدارة الموردين والأرصدة والسجل المالي.', type: 'النوع', linkedCompany: 'شركة مرتبطة', linkedUser: 'مستخدم مرتبط', balances: 'الأرصدة', fund: 'تمويل الرصيد', adjust: 'تسوية الرصيد', currentBalance: 'الرصيد الحالي', fundingAmount: 'قيمة التمويل', adjustmentAmount: 'قيمة التسوية', balanceAfterFunding: 'الرصيد بعد التمويل', balanceAfterAdjustment: 'الرصيد بعد التسوية', adjustmentReason: 'سبب التسوية', negativeBalance: 'يحتاج المورد إلى تمويل. رصيد {currency} هو {amount}.', projectedNegativeBalance: 'الرصيد بعد التسوية سيكون سالبًا. يمكنك المتابعة.', balanceUnavailable: 'تعذر تحميل الرصيد الحالي.', loadingBalance: 'جارٍ تحميل الرصيد...', userSupplier: 'مستخدم', companySupplier: 'شركة', address: 'العنوان', date: 'التاريخ' }
+    : { suppliers: 'Suppliers', suppliersDescription: 'Manage suppliers, prefunding balances, and ledger visibility.', type: 'Type', linkedCompany: 'Linked company', linkedUser: 'Linked user', balances: 'Balances', fund: 'Fund balance', adjust: 'Balance adjustment', currentBalance: 'Current balance', fundingAmount: 'Funding amount', adjustmentAmount: 'Adjustment amount', balanceAfterFunding: 'Balance after funding', balanceAfterAdjustment: 'Balance after adjustment', adjustmentReason: 'Adjustment reason', negativeBalance: 'Supplier requires funding. {currency} balance is {amount}.', projectedNegativeBalance: 'The balance after adjustment will be negative. You can still continue.', balanceUnavailable: 'Current balance could not be loaded.', loadingBalance: 'Loading balance...', userSupplier: 'User', companySupplier: 'Company', address: 'Address', date: 'Date' }
 
   const [suppliers, setSuppliers] = useState<SupplierRecord[]>([])
   const [meta, setMeta] = useState<{ current_page: number; last_page: number; per_page: number; total: number } | null>(null)
@@ -47,6 +48,9 @@ export function SuppliersPage() {
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierRecord | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [balanceSupplier, setBalanceSupplier] = useState<SupplierRecord | null>(null)
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false)
+  const [balanceError, setBalanceError] = useState('')
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '')
   const [filtersOpen, setFiltersOpen] = useState(Boolean(searchParams.get('type') || searchParams.get('status')))
 
@@ -86,6 +90,12 @@ export function SuppliersPage() {
 
   const page = Math.max(Number(searchParams.get('page') ?? '1') || 1, 1)
   const perPage = pageSizes.includes(Number(searchParams.get('per_page') ?? '15')) ? Number(searchParams.get('per_page')) : 15
+  const balanceCurrency = dialogMode === 'adjust' ? adjustmentForm.currency : fundingForm.currency
+  const balanceAmount = dialogMode === 'adjust' ? adjustmentForm.amount : fundingForm.amount
+  const parsedBalanceAmount = Number(balanceAmount)
+  const normalizedBalanceAmount = Number.isFinite(parsedBalanceAmount) ? parsedBalanceAmount : 0
+  const currentBalance = Number(balanceSupplier?.balances?.find((balance) => balance.currency === balanceCurrency)?.available ?? '0')
+  const projectedBalance = currentBalance + normalizedBalanceAmount
 
   const fetchData = useCallback(async (silent = false) => {
     if (!canView) {
@@ -142,6 +152,52 @@ export function SuppliersPage() {
   useEffect(() => {
     void fetchData()
   }, [fetchData])
+
+  useEffect(() => {
+    if (!selectedSupplier || (dialogMode !== 'fund' && dialogMode !== 'adjust')) return
+
+    let active = true
+    setIsBalanceLoading(true)
+    setBalanceError('')
+
+    void getSupplier(selectedSupplier.id)
+      .then((response) => {
+        if (active) setBalanceSupplier(response.data)
+      })
+      .catch((requestError: unknown) => {
+        if (!active) return
+        const resolved = requestError as { status?: number }
+        if (resolved.status === 401) {
+          clearSession()
+          router.push('/dashboard/login')
+          return
+        }
+        setBalanceError(labels.balanceUnavailable)
+      })
+      .finally(() => {
+        if (active) setIsBalanceLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [balanceCurrency, clearSession, dialogMode, labels.balanceUnavailable, router, selectedSupplier])
+
+  function openFunding(supplier: SupplierRecord) {
+    setSelectedSupplier(supplier)
+    setBalanceSupplier(null)
+    setBalanceError('')
+    setFundingForm((current) => ({ ...current, amount: '' }))
+    setDialogMode('fund')
+  }
+
+  function openAdjustment(supplier: SupplierRecord) {
+    setSelectedSupplier(supplier)
+    setBalanceSupplier(null)
+    setBalanceError('')
+    setAdjustmentForm((current) => ({ ...current, amount: '', reason: '' }))
+    setDialogMode('adjust')
+  }
 
   function updateParams(updates: QueryUpdates) {
     const next = new URLSearchParams(searchParams)
@@ -518,8 +574,25 @@ export function SuppliersPage() {
                   </label>
                   <label className={styles.formField}>
                     <span>{copy.currency}</span>
-                    <input type="text" maxLength={3} value={fundingForm.currency} onChange={(event) => setFundingForm((current) => ({ ...current, currency: event.target.value.toUpperCase() }))} required />
+                    <select value={fundingForm.currency} onChange={(event) => setFundingForm((current) => ({ ...current, currency: event.target.value }))} required>
+                      {SUPPORTED_CURRENCIES.map((currency) => <option key={currency} value={currency}>{currency}</option>)}
+                    </select>
                   </label>
+                </div>
+                <div className={styles.supplierBalancePanel} role="status">
+                  <div>
+                    <span>{labels.currentBalance}</span>
+                    <strong dir="ltr">{isBalanceLoading && !balanceSupplier ? labels.loadingBalance : formatSupplierAmount(currentBalance, balanceCurrency, locale)}</strong>
+                  </div>
+                  <div>
+                    <span>{labels.fundingAmount}</span>
+                    <strong dir="ltr">{formatSupplierAmount(normalizedBalanceAmount, balanceCurrency, locale)}</strong>
+                  </div>
+                  <div>
+                    <span>{labels.balanceAfterFunding}</span>
+                    <strong dir="ltr">{formatSupplierAmount(projectedBalance, balanceCurrency, locale)}</strong>
+                  </div>
+                  {balanceError ? <p>{balanceError}</p> : null}
                 </div>
                 <div className={styles.formGrid}>
                   <label className={styles.formField}>
@@ -547,7 +620,7 @@ export function SuppliersPage() {
                 </label>
                 <div className={styles.dialogActions}>
                   <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode(null)} disabled={isSubmitting}>{copy.cancel}</button>
-                  <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>{isSubmitting ? copy.saving : labels.fund}</button>
+                  <button type="submit" className={styles.primaryButton} disabled={isSubmitting || isBalanceLoading || Boolean(balanceError)}>{isSubmitting ? copy.saving : labels.fund}</button>
                 </div>
               </form>
             ) : null}
@@ -563,8 +636,26 @@ export function SuppliersPage() {
                   </label>
                   <label className={styles.formField}>
                     <span>{copy.currency}</span>
-                    <input type="text" maxLength={3} value={adjustmentForm.currency} onChange={(event) => setAdjustmentForm((current) => ({ ...current, currency: event.target.value.toUpperCase() }))} required />
+                    <select value={adjustmentForm.currency} onChange={(event) => setAdjustmentForm((current) => ({ ...current, currency: event.target.value }))} required>
+                      {SUPPORTED_CURRENCIES.map((currency) => <option key={currency} value={currency}>{currency}</option>)}
+                    </select>
                   </label>
+                </div>
+                <div className={cn(styles.supplierBalancePanel, balanceSupplier && projectedBalance < 0 && styles.supplierBalancePanelNegative)} role="status">
+                  <div>
+                    <span>{labels.currentBalance}</span>
+                    <strong dir="ltr">{isBalanceLoading && !balanceSupplier ? labels.loadingBalance : formatSupplierAmount(currentBalance, balanceCurrency, locale)}</strong>
+                  </div>
+                  <div>
+                    <span>{labels.adjustmentAmount}</span>
+                    <strong dir="ltr">{formatSupplierAmount(normalizedBalanceAmount, balanceCurrency, locale)}</strong>
+                  </div>
+                  <div>
+                    <span>{labels.balanceAfterAdjustment}</span>
+                    <strong dir="ltr">{formatSupplierAmount(projectedBalance, balanceCurrency, locale)}</strong>
+                  </div>
+                  {balanceSupplier && projectedBalance < 0 ? <p>{labels.projectedNegativeBalance}</p> : null}
+                  {balanceError ? <p>{balanceError}</p> : null}
                 </div>
                 <label className={styles.formField}>
                   <span>{labels.date}</span>
@@ -576,7 +667,7 @@ export function SuppliersPage() {
                 </label>
                 <div className={styles.dialogActions}>
                   <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode(null)} disabled={isSubmitting}>{copy.cancel}</button>
-                  <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>{isSubmitting ? copy.saving : labels.adjust}</button>
+                  <button type="submit" className={styles.primaryButton} disabled={isSubmitting || isBalanceLoading || Boolean(balanceError)}>{isSubmitting ? copy.saving : labels.adjust}</button>
                 </div>
               </form>
             ) : null}
@@ -621,8 +712,8 @@ export function SuppliersPage() {
       <div className={styles.rowActions}>
         <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.iconButton} aria-label={copy.view}><Eye aria-hidden="true" /></Link>
         {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => openEdit(supplier)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
-        {canFund ? <button type="button" className={styles.iconButton} onClick={() => { setSelectedSupplier(supplier); setDialogMode('fund') }} aria-label={labels.fund}><BanknoteArrowDown aria-hidden="true" /></button> : null}
-        {canAdjust ? <button type="button" className={styles.iconButton} onClick={() => { setSelectedSupplier(supplier); setAdjustmentForm((current) => ({ ...current, amount: '', reason: '' })); setDialogMode('adjust') }} aria-label={labels.adjust}><CircleDollarSign aria-hidden="true" /></button> : null}
+        {canFund ? <button type="button" className={styles.iconButton} onClick={() => openFunding(supplier)} aria-label={labels.fund}><BanknoteArrowDown aria-hidden="true" /></button> : null}
+        {canAdjust ? <button type="button" className={styles.iconButton} onClick={() => openAdjustment(supplier)} aria-label={labels.adjust}><CircleDollarSign aria-hidden="true" /></button> : null}
         {canDelete ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => { setSelectedSupplier(supplier); setDialogMode('delete') }} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
       </div>
     )
@@ -681,4 +772,11 @@ function pageNumbers(current: number, last: number) {
 
 function cnDialog(mode: DialogMode) {
   return mode === 'delete' ? `${styles.employeeDialog}` : `${styles.employeeDialog} ${styles.companyDialog}`
+}
+
+function formatSupplierAmount(value: number, currency: string, locale: string) {
+  return `${currency} ${new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)}`
 }

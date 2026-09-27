@@ -3002,6 +3002,19 @@ dialog.dialogOverlay {
   margin: 0 auto;
 }
 
+.invoicePrintSurface .invoiceDocument {
+  display: flex;
+  flex-direction: column;
+  min-height: 297mm;
+  gap: 3mm;
+  padding: 9mm;
+  border-radius: 0;
+}
+
+.invoicePrintSurface .invoiceFooter {
+  margin-top: auto;
+}
+
 .invoiceDocumentHeader {
   display: flex;
   flex-wrap: wrap;
@@ -3595,7 +3608,7 @@ dialog.dialogOverlay {
 @media print {
   @page {
     size: A4;
-    margin: 12mm;
+    margin: 9mm;
   }
 
   :global(html),
@@ -3632,7 +3645,12 @@ dialog.dialogOverlay {
   }
 
   .invoicePrintSurface .invoiceDocument {
-    position: static;
+    position: static !important;
+    display: flex;
+    flex-direction: column;
+    min-height: 279mm !important;
+    gap: 3mm;
+    padding: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -3653,6 +3671,172 @@ dialog.dialogOverlay {
   .invoiceDetailPanel,
   .invoiceFooter {
     break-inside: avoid;
+  }
+
+  .invoicePrintSurface .invoiceDocument {
+    color: #081d60;
+    font-size: 9.5pt;
+    line-height: 1.35;
+  }
+
+  .invoicePrintSurface .invoiceDocumentHeader {
+    gap: 5mm;
+    padding-bottom: 3mm;
+  }
+
+  .invoicePrintSurface .invoiceIssuer {
+    gap: 2mm;
+    max-width: 58%;
+  }
+
+  .invoicePrintSurface .invoiceIssuer img {
+    width: 48mm !important;
+    height: auto !important;
+  }
+
+  .invoicePrintSurface .invoiceIssuerCopy {
+    gap: .5mm;
+  }
+
+  .invoicePrintSurface .invoiceIssuerCopy span {
+    font-size: 12.5pt;
+  }
+
+  .invoicePrintSurface .invoiceIssuerCopy p {
+    font-size: 8.5pt;
+  }
+
+  .invoicePrintSurface .invoiceDocumentMark {
+    gap: 1.5mm;
+  }
+
+  .invoicePrintSurface .invoiceDocumentMark span {
+    font-size: 7.5pt;
+    letter-spacing: 1px;
+  }
+
+  .invoicePrintSurface .invoiceDocumentMark h1 {
+    font-size: 21pt;
+  }
+
+  .invoicePrintSurface .invoiceDetailPanel {
+    gap: 2.5mm;
+    padding: 3.5mm;
+    border-radius: 0;
+  }
+
+  .invoicePrintSurface .cardTitle {
+    gap: 2mm;
+  }
+
+  .invoicePrintSurface .cardTitle svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .invoicePrintSurface .cardTitle h2 {
+    font-size: 11pt;
+  }
+
+  .invoicePrintSurface .invoiceBillGrid {
+    gap: 2mm;
+  }
+
+  .invoicePrintSurface .invoicePartyCard {
+    gap: 1mm;
+    padding: 3mm;
+    border-radius: 0;
+  }
+
+  .invoicePrintSurface .invoicePartyKicker,
+  .invoicePrintSurface .invoiceDetailsGrid dt {
+    font-size: 7.5pt;
+    letter-spacing: 1px;
+  }
+
+  .invoicePrintSurface .invoicePartyName {
+    font-size: 12.5pt;
+  }
+
+  .invoicePrintSurface .invoicePartyLines,
+  .invoicePrintSurface .invoiceDetailsGrid dd {
+    font-size: 8.5pt;
+  }
+
+  .invoicePrintSurface .invoiceDetailsGrid {
+    gap: 1mm 2mm;
+  }
+
+  .invoicePrintSurface .invoiceTableWrap {
+    overflow: visible;
+  }
+
+  .invoicePrintSurface .invoiceTable {
+    min-width: 0;
+  }
+
+  .invoicePrintSurface .invoiceTable th {
+    padding: 2mm 1.5mm;
+    background: #081d60;
+    color: #fff;
+    font-size: 7.5pt;
+    letter-spacing: 0;
+  }
+
+  .invoicePrintSurface .invoiceTable td {
+    padding: 2mm 1.5mm;
+    font-size: 8.5pt;
+  }
+
+  .invoicePrintSurface .invoiceCellMain {
+    gap: .5mm;
+  }
+
+  .invoicePrintSurface .invoiceCellMain span {
+    font-size: 7.5pt;
+  }
+
+  .invoicePrintSurface .invoiceTotalsBlock {
+    width: 82mm;
+    padding: 2mm 2.5mm;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .invoicePrintSurface .invoiceTotalsRow {
+    padding: 1.5mm 0;
+  }
+
+  .invoicePrintSurface .invoiceTotalsRow span,
+  .invoicePrintSurface .invoiceTotalsRow strong {
+    font-size: 8.5pt;
+  }
+
+  .invoicePrintSurface .invoiceTotalsTotalRow span,
+  .invoicePrintSurface .invoiceTotalsTotalRow strong,
+  .invoicePrintSurface .invoiceTotalsBalanceRow span,
+  .invoicePrintSurface .invoiceTotalsBalanceRow strong {
+    font-size: 10pt;
+  }
+
+  .invoicePrintSurface .invoiceFooter {
+    margin-top: auto;
+    gap: 4mm;
+    padding-top: 2mm;
+  }
+
+  .invoicePrintSurface .invoiceFooterBrand {
+    gap: 2mm;
+  }
+
+  .invoicePrintSurface .invoiceFooterBrand img {
+    display: none;
+  }
+
+  .invoicePrintSurface .invoiceFooterBrand strong,
+  .invoicePrintSurface .invoiceFooterBrand span,
+  .invoicePrintSurface .invoiceFooterMeta span {
+    font-size: 7.5pt;
   }
 
   .contractPdfPage {
