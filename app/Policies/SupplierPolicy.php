@@ -37,4 +37,9 @@ class SupplierPolicy
     {
         return PermissionAccess::can($user, 'fund_supplier_balances');
     }
+
+    public function adjust(User $user, Supplier $supplier): bool
+    {
+        return PermissionAccess::can($user, 'adjust_supplier_balances', 'manage_suppliers');
+    }
 }

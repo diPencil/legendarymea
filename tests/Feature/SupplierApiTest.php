@@ -10,6 +10,8 @@ use App\Models\Company;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Supplier;
+use App\Models\SupplierBalanceAccount;
+use App\Models\SupplierLedgerEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -178,5 +180,60 @@ class SupplierApiTest extends TestCase
             ->assertJsonPath('data.balances.0.used', '300.00')
             ->assertJsonPath('data.balances.0.available', '700.00')
             ->assertJsonCount(2, 'data.ledger');
+    }
+
+    public function test_positive_and_negative_manual_adjustments_are_auditable(): void
+    {
+        $supplier = Supplier::create([
+            'reference' => 'LM-SUP-ADJUST-000001',
+            'type' => 'company',
+            'linked_company_id' => $this->company->id,
+            'name' => 'Adjustment Supplier',
+            'status' => 'active',
+            'created_by' => $this->admin->id,
+            'updated_by' => $this->admin->id,
+        ]);
+
+        $this->actingAs($this->admin)->postJson("/api/v1/suppliers/{$supplier->id}/adjust", [
+            'amount' => 1000,
+            'currency' => 'USD',
+            'reason' => 'Opening balance correction',
+        ])->assertCreated()
+            ->assertJsonPath('data.type', SupplierLedgerType::ADJUSTMENT->value)
+            ->assertJsonPath('data.direction', 'credit')
+            ->assertJsonPath('data.balance_after', '1000.00');
+
+        $this->actingAs($this->admin)->postJson("/api/v1/suppliers/{$supplier->id}/adjust", [
+            'amount' => -250,
+            'currency' => 'USD',
+            'reason' => 'Correct duplicated credit',
+        ])->assertCreated()
+            ->assertJsonPath('data.direction', 'debit')
+            ->assertJsonPath('data.balance_after', '750.00');
+
+        $this->assertSame('750.00', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame(2, SupplierLedgerEntry::where('supplier_id', $supplier->id)->where('type', SupplierLedgerType::ADJUSTMENT)->count());
+        $this->assertDatabaseHas('supplier_ledger_entries', ['supplier_id' => $supplier->id, 'notes' => 'Correct duplicated credit']);
+    }
+
+    public function test_unauthorized_user_cannot_adjust_supplier_balance(): void
+    {
+        $supplier = Supplier::create([
+            'reference' => 'LM-SUP-LOCKED-000001',
+            'type' => 'company',
+            'linked_company_id' => $this->company->id,
+            'name' => 'Locked Supplier',
+            'status' => 'active',
+            'created_by' => $this->admin->id,
+            'updated_by' => $this->admin->id,
+        ]);
+
+        $this->actingAs($this->viewer)->postJson("/api/v1/suppliers/{$supplier->id}/adjust", [
+            'amount' => 100,
+            'currency' => 'USD',
+            'reason' => 'Unauthorized attempt',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('supplier_ledger_entries', 0);
     }
 }

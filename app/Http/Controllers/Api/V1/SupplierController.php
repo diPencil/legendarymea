@@ -6,6 +6,7 @@ use App\Services\SystemActivityService;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSupplierBalanceFundingRequest;
+use App\Http\Requests\StoreSupplierBalanceAdjustmentRequest;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Http\Resources\SupplierLedgerResource;
@@ -103,5 +104,15 @@ class SupplierController extends Controller
 
         return (new SupplierLedgerResource($entry))
             ->additional(['message' => __('Supplier balance funded successfully.')]);
+    }
+
+    public function adjust(StoreSupplierBalanceAdjustmentRequest $request, Supplier $supplier, SupplierLedgerService $service)
+    {
+        Gate::authorize('adjust', $supplier);
+
+        $entry = $service->adjustBalance($supplier, $request->validated(), $request->user()->id);
+
+        return (new SupplierLedgerResource($entry))
+            ->additional(['message' => __('Supplier balance adjusted successfully.')]);
     }
 }

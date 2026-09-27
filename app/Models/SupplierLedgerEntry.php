@@ -8,6 +8,7 @@ use App\Enums\SupplierLedgerType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SupplierLedgerEntry extends Model
 {
@@ -71,5 +72,10 @@ class SupplierLedgerEntry extends Model
     public function reversalOf(): BelongsTo
     {
         return $this->belongsTo(self::class, 'reversal_of_id');
+    }
+
+    public function reversals(): HasMany
+    {
+        return $this->hasMany(self::class, 'reversal_of_id');
     }
 }

@@ -581,7 +581,7 @@ class EmployeeApiTest extends TestCase
     private function temporaryPasswordFromLatestEmail(string $email): string
     {
         $message = EmailMessage::query()->where('to_address', $email)->latest('id')->firstOrFail();
-        preg_match('/<strong>Temporary password:<\/strong>\s*([^<\s]+)/', $message->body, $matches);
+        preg_match('/Temporary password:\s*([^\s]+)/', strip_tags($message->body), $matches);
 
         $this->assertNotEmpty($matches[1] ?? null);
 

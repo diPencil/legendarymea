@@ -10,9 +10,7 @@ use App\Models\ActiveService;
 use App\Models\Contract;
 use App\Models\Employee;
 use App\Models\Invoice;
-use App\Models\SupplierLedgerEntry;
 use App\Models\Supplier;
-use App\Enums\SupplierLedgerType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,6 +19,7 @@ class UpdateInvoiceService
 {
     public function __construct(
         private InvoiceFinanceCalculator $calculator,
+        private SupplierLedgerService $supplierLedgerService,
     ) {}
 
     public function execute(Invoice $invoice, array $data, int $updaterId): Invoice
@@ -28,15 +27,6 @@ class UpdateInvoiceService
         if (!in_array($invoice->status, [InvoiceStatus::DRAFT, InvoiceStatus::ISSUED], true)) {
             throw ValidationException::withMessages([
                 'status' => ['Only draft or issued invoices can be edited.'],
-            ]);
-        }
-
-        if ($invoice->status === InvoiceStatus::ISSUED && isset($data['items']) && SupplierLedgerEntry::query()
-            ->where('invoice_id', $invoice->id)
-            ->where('type', SupplierLedgerType::INVOICE_USAGE)
-            ->exists()) {
-            throw ValidationException::withMessages([
-                'items' => ['Issued invoices with supplier ledger usage cannot have their items edited.'],
             ]);
         }
 
@@ -76,6 +66,14 @@ class UpdateInvoiceService
             $tax = array_key_exists('tax_amount', $data) ? (float) $data['tax_amount'] : (float) $invoice->tax_amount;
 
             if (isset($data['items'])) {
+                if ($invoice->status === InvoiceStatus::ISSUED) {
+                    $this->supplierLedgerService->reverseForInvoice(
+                        $invoice,
+                        $updaterId,
+                        'Invoice supplier usage reversed before item update'
+                    );
+                }
+
                 $invoice->items()->delete();
                 $lineCalculation = $this->calculator->calculateItems($data['items'], $currency);
 
@@ -124,6 +122,11 @@ class UpdateInvoiceService
                 'internal_notes' => array_key_exists('internal_notes', $data) ? $data['internal_notes'] : $invoice->internal_notes,
                 'terms' => array_key_exists('terms', $data) ? $data['terms'] : $invoice->terms,
             ]);
+
+            if ($invoice->status === InvoiceStatus::ISSUED && isset($data['items'])) {
+                $invoice->unsetRelation('items');
+                $this->supplierLedgerService->consumeForInvoice($invoice, $updaterId);
+            }
 
             SystemActivityService::record(
             actor: auth()->user(),

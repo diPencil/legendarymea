@@ -12,6 +12,8 @@ use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Services\CreateInvoiceService;
 use App\Services\InvoiceLifecycleService;
+use App\Services\InvoicePdfGenerator;
+use App\Services\InvoicePdfHtmlRenderer;
 use App\Services\UpdateInvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -131,5 +133,51 @@ class InvoiceController extends Controller
         Gate::authorize('update', $invoice);
         $invoice = $service->markOverdue($invoice, $request->user()->id);
         return new InvoiceResource($invoice->load(['company', 'customerUser', 'soldByEmployee.user', 'contract', 'activeService', 'creator', 'items.supplier', 'items.serviceCatalog', 'payments.recorder', 'payments.reverser']));
+    }
+
+    public function print(Invoice $invoice, InvoicePdfHtmlRenderer $renderer): Response
+    {
+        Gate::authorize('print', $invoice);
+
+        $html = $renderer->render($invoice, true);
+
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'printed',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: [],
+            newValues: ['reference' => $invoice->reference],
+            metadata: ['invoice_reference' => $invoice->reference]
+        );
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html; charset=UTF-8',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function downloadPdf(Invoice $invoice, InvoicePdfGenerator $generator): Response
+    {
+        Gate::authorize('print', $invoice);
+
+        $pdf = $generator->generate($invoice);
+
+        SystemActivityService::record(
+            actor: auth()->user(),
+            action: 'pdf_downloaded',
+            module: 'Invoice',
+            entity: $invoice,
+            oldValues: [],
+            newValues: ['filename' => $pdf->filename],
+            metadata: ['invoice_reference' => $invoice->reference]
+        );
+
+        return response($pdf->contents, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . addslashes($pdf->filename) . '"',
+            'Content-Length' => (string) strlen($pdf->contents),
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }

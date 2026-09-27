@@ -178,6 +178,8 @@ Route::prefix('v1')->group(function () {
 
         // Invoices
         Route::apiResource('invoices', \App\Http\Controllers\Api\V1\InvoiceController::class);
+        Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'print']);
+        Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'downloadPdf']);
         Route::post('invoices/{invoice}/issue', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'issue']);
         Route::post('invoices/{invoice}/cancel', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'cancel']);
         Route::post('invoices/{invoice}/mark-overdue', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'markOverdue']);
@@ -190,6 +192,7 @@ Route::prefix('v1')->group(function () {
         Route::post('renewals/{renewal}/cancel', [RenewalController::class, 'cancel']);
         Route::apiResource('suppliers', SupplierController::class);
         Route::post('suppliers/{supplier}/fund', [SupplierController::class, 'fund']);
+        Route::post('suppliers/{supplier}/adjust', [SupplierController::class, 'adjust']);
         Route::prefix('finance-reports')->group(function () {
             Route::get('overview', [FinanceReportController::class, 'overview']);
             Route::get('cash-flow', [FinanceReportController::class, 'cashFlow']);

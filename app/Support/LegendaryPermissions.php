@@ -40,7 +40,7 @@ final class LegendaryPermissions
             'Finance' => [
                 'view_invoices', 'create_invoices', 'update_invoices', 'delete_invoices', 'issue_invoices', 'cancel_invoices', 'print_invoices',
                 'view_payments', 'create_payments', 'reverse_payments',
-                'view_suppliers', 'create_suppliers', 'update_suppliers', 'delete_suppliers', 'fund_supplier_balances', 'view_supplier_ledger',
+                'view_suppliers', 'create_suppliers', 'update_suppliers', 'delete_suppliers', 'fund_supplier_balances', 'adjust_supplier_balances', 'view_supplier_ledger',
                 'view_internal_finance', 'view_purchase_cost', 'view_profit', 'view_supplier_balances',
                 'view_finance_reports',
                 'view_renewals', 'create_renewals', 'update_renewals', 'delete_renewals', 'complete_renewals', 'decline_renewals', 'cancel_renewals',

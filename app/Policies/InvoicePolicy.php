@@ -45,4 +45,9 @@ class InvoicePolicy
     {
         return PermissionAccess::can($user, 'cancel_invoices', 'manage_invoices');
     }
+
+    public function print(User $user, Invoice $invoice): bool
+    {
+        return PermissionAccess::can($user, 'print_invoices', 'manage_invoices');
+    }
 }
