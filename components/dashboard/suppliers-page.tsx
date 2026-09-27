@@ -567,7 +567,7 @@ export function SuppliersPage() {
             {dialogMode === 'fund' ? (
               <form className={styles.companyForm} onSubmit={submitFunding}>
                 {fieldErrors.general ? <p className={styles.inlineAlert}>{fieldErrors.general[0]}</p> : null}
-                <div className={styles.formGrid}>
+                <div className={cn(styles.formGrid, styles.supplierAmountCurrencyGrid)}>
                   <label className={styles.formField}>
                     <span>{copy.amount}</span>
                     <input type="number" min="0.01" step="0.01" value={fundingForm.amount} onChange={(event) => setFundingForm((current) => ({ ...current, amount: event.target.value }))} required />
@@ -628,7 +628,7 @@ export function SuppliersPage() {
             {dialogMode === 'adjust' ? (
               <form className={styles.companyForm} onSubmit={submitAdjustment}>
                 {fieldErrors.general ? <p className={styles.inlineAlert}>{fieldErrors.general[0]}</p> : null}
-                <div className={styles.formGrid}>
+                <div className={cn(styles.formGrid, styles.supplierAmountCurrencyGrid)}>
                   <label className={styles.formField}>
                     <span>{labels.adjustmentAmount}</span>
                     <input type="number" step="0.01" value={adjustmentForm.amount} onChange={(event) => setAdjustmentForm((current) => ({ ...current, amount: event.target.value }))} required />
