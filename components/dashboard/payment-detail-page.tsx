@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronRight, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, Clock3, CreditCard, FileText, RotateCcw, X } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
@@ -95,13 +95,7 @@ export function PaymentDetailPage({ id }: { id: string }) {
   if (!payment) return <DashboardState title={copy.errorTitle} body={copy.paymentDetailLoadError} actionLabel={copy.retry} onAction={() => void fetchRecord()} />
 
   return (
-    <div className={styles.pageWrap}>
-      <nav aria-label={copy.navigation} className={styles.breadcrumb}>
-        <Link href="/dashboard/payments" className={styles.breadcrumbLink}>{copy.payments}</Link>
-        <ChevronRight aria-hidden="true" className={styles.breadcrumbIcon} />
-        <span className={styles.breadcrumbCurrent} dir="ltr">{payment.reference}</span>
-      </nav>
-
+    <div className={styles.company360}>
       {notice ? (
         <div className={styles.pageNotice} role="status">
           <p>{notice}</p>
@@ -109,33 +103,41 @@ export function PaymentDetailPage({ id }: { id: string }) {
         </div>
       ) : null}
 
-      <header className={styles.detailHeader}>
+      <header className={cn(styles.company360Header, styles.invoiceAdminHeader)}>
         <div>
-          <div className={styles.detailKicker}>{copy.finance}</div>
-          <h1 className={styles.detailTitle} dir="ltr">{payment.reference}</h1>
-          <div className={styles.detailSubtitle}>
+          <div className={styles.invoiceAdminEyebrow}>
+            <Link href="/dashboard/payments" className={styles.backLink}>
+              <ArrowLeft aria-hidden="true" />
+              {locale === 'ar' ? 'العودة إلى المدفوعات' : 'Back to payments'}
+            </Link>
+            <span>{copy.finance}</span>
+          </div>
+          <h2 dir="ltr">{payment.reference}</h2>
+          <div className={styles.companyHeaderMeta}>
             <span>{paymentCustomerLabel(payment)}</span>
             <span aria-hidden="true">&bull;</span>
             <span dir="ltr">{payment.currency} {payment.amount}</span>
+            <span className={cn(styles.statusBadge, payment.status === 'reversed' ? styles.status_lost : styles.status_active)}>
+              {payment.status === 'reversed' ? copy.reversed : copy.posted}
+            </span>
           </div>
         </div>
-        <div className={styles.detailActions}>
-          <span className={cn(styles.statusBadge, payment.status === 'reversed' ? styles.status_lost : styles.status_active)}>
-            {payment.status === 'reversed' ? copy.reversed : copy.posted}
-          </span>
+        <div className={styles.companyHeaderActions}>
           {canUpdatePayments && payment.status === 'posted' ? (
-            <button type="button" className={styles.secondaryButton} onClick={() => setShowReverseDialog(true)}>
+            <button type="button" className={styles.secondaryButton} onClick={() => setShowReverseDialog(true)} title={copy.reversePayment} aria-label={copy.reversePayment}>
               <RotateCcw aria-hidden="true" />
-              {copy.reversePayment}
             </button>
           ) : null}
         </div>
       </header>
 
-      <div className={styles.detailGrid}>
-        <div className={styles.detailMain}>
-          <section className={styles.detailSection}>
-            <h2>{copy.paymentDetails}</h2>
+      <div className={styles.company360Grid}>
+        <div className={styles.invoiceMainStack}>
+          <section className={styles.detailPanel}>
+            <div className={styles.cardTitle}>
+              <CreditCard aria-hidden="true" />
+              <h2>{copy.paymentDetails}</h2>
+            </div>
             <dl className={styles.detailList}>
               <div><dt>{copy.paymentReference}</dt><dd dir="ltr">{payment.reference}</dd></div>
               <div><dt>{copy.status}</dt><dd>{payment.status === 'reversed' ? copy.reversed : copy.posted}</dd></div>
@@ -151,8 +153,11 @@ export function PaymentDetailPage({ id }: { id: string }) {
           </section>
 
           {payment.invoice ? (
-            <section className={styles.detailSection}>
-              <h2>{copy.invoiceSettlement}</h2>
+            <section className={styles.detailPanel}>
+              <div className={styles.cardTitle}>
+                <FileText aria-hidden="true" />
+                <h2>{copy.invoiceSettlement}</h2>
+              </div>
               <dl className={styles.detailList}>
                 <div><dt>{copy.invoiceTotal}</dt><dd dir="ltr">{payment.invoice.currency} {payment.invoice.total_amount}</dd></div>
                 <div><dt>{copy.paidAmount}</dt><dd dir="ltr">{payment.invoice.currency} {payment.invoice.paid_amount}</dd></div>
@@ -162,8 +167,11 @@ export function PaymentDetailPage({ id }: { id: string }) {
           ) : null}
 
           {payment.status === 'reversed' ? (
-            <section className={styles.detailSection}>
-              <h2>{copy.reversalDetails}</h2>
+            <section className={styles.detailPanel}>
+              <div className={styles.cardTitle}>
+                <RotateCcw aria-hidden="true" />
+                <h2>{copy.reversalDetails}</h2>
+              </div>
               <dl className={styles.detailList}>
                 <div><dt>{copy.reversedAt}</dt><dd dir="ltr">{formatDateTime(payment.reversed_at)}</dd></div>
                 <div><dt>{copy.reversedBy}</dt><dd>{payment.reverser?.name ?? payment.reverser?.email ?? '—'}</dd></div>
@@ -173,14 +181,15 @@ export function PaymentDetailPage({ id }: { id: string }) {
           ) : null}
         </div>
 
-        <aside className={styles.detailSidebar}>
-          <section className={styles.detailSection}>
+        <aside className={styles.detailPanel}>
+          <div className={styles.cardTitle}>
+            <Clock3 aria-hidden="true" />
             <h2>{copy.overview}</h2>
-            <dl className={styles.detailList}>
-              <div><dt>{copy.createdAt}</dt><dd dir="ltr">{formatDateTime(payment.created_at)}</dd></div>
-              <div><dt>{copy.updatedAt}</dt><dd dir="ltr">{formatDateTime(payment.updated_at)}</dd></div>
-            </dl>
-          </section>
+          </div>
+          <dl className={styles.detailList}>
+            <div><dt>{copy.createdAt}</dt><dd dir="ltr">{formatDateTime(payment.created_at)}</dd></div>
+            <div><dt>{copy.updatedAt}</dt><dd dir="ltr">{formatDateTime(payment.updated_at)}</dd></div>
+          </dl>
         </aside>
       </div>
 
