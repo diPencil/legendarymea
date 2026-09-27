@@ -1328,6 +1328,9 @@ class InvoiceApiTest extends TestCase
             ->assertHeader('content-type', 'text/html; charset=UTF-8')
             ->assertSee('LM-INV-2026-000001')
             ->assertSee('Executive airport transfer')
+            ->assertSee('Invoice Summary')
+            ->assertSee('Financial Summary')
+            ->assertDontSee('Internal Finance')
             ->assertSee('@page{size:A4', false);
 
         $response = $this->actingAs($this->admin)->get("/api/v1/invoices/{$invoice->id}/pdf")->assertOk();
@@ -1340,6 +1343,7 @@ class InvoiceApiTest extends TestCase
         $renderer = app(\App\Services\InvoicePdfHtmlRenderer::class);
         $this->assertStringNotContainsString('@page{', $renderer->render($invoice));
         $this->assertStringContainsString('@page{size:A4', $renderer->render($invoice, true));
+        $this->assertStringContainsString('data:image/png;base64,', $renderer->render($invoice));
     }
 
     public function test_invoice_print_and_pdf_require_print_permission(): void
@@ -1348,6 +1352,49 @@ class InvoiceApiTest extends TestCase
 
         $this->actingAs($this->employee)->get("/api/v1/invoices/{$invoice->id}/print")->assertForbidden();
         $this->actingAs($this->employee)->get("/api/v1/invoices/{$invoice->id}/pdf")->assertForbidden();
+    }
+
+    public function test_unauthenticated_browser_print_request_returns_401_instead_of_500(): void
+    {
+        $invoice = $this->createDraftInvoice();
+
+        $this->get("/api/v1/invoices/{$invoice->id}/print", ['Accept' => 'text/html'])
+            ->assertUnauthorized();
+    }
+
+    public function test_pdf_and_print_requests_keep_the_authenticated_session_valid(): void
+    {
+        $invoice = $this->createDraftInvoice(['reference' => 'LM-INV-2026-SESSION']);
+        $invoice->items()->create([
+            'description' => 'Session-safe invoice item',
+            'quantity' => 1,
+            'unit_price' => 250,
+            'line_total' => 250,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get("/api/v1/invoices/{$invoice->id}/pdf")
+            ->assertOk();
+        $this->get("/api/v1/invoices/{$invoice->id}/print")
+            ->assertOk();
+        $this->getJson("/api/v1/invoices/{$invoice->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $invoice->id);
+    }
+
+    public function test_pdf_rendering_error_does_not_invalidate_authenticated_session(): void
+    {
+        $invoice = $this->createDraftInvoice();
+        $this->mock(\App\Services\InvoicePdfGenerator::class, function ($mock): void {
+            $mock->shouldReceive('generate')->once()->andThrow(new \RuntimeException('Simulated PDF failure'));
+        });
+
+        $this->actingAs($this->admin)
+            ->getJson("/api/v1/invoices/{$invoice->id}/pdf")
+            ->assertInternalServerError();
+        $this->getJson("/api/v1/invoices/{$invoice->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $invoice->id);
     }
 
     // ===========================================================

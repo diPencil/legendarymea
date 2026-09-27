@@ -13,6 +13,14 @@ class InvoicePdfGenerator
     public function generate(Invoice $invoice): InvoicePdfFile
     {
         try {
+            $tempDir = storage_path('app/mpdf-temp');
+            if (! is_dir($tempDir) && ! mkdir($tempDir, 0775, true) && ! is_dir($tempDir)) {
+                throw new RuntimeException('Unable to create the mPDF temporary directory.');
+            }
+            if (! is_writable($tempDir)) {
+                throw new RuntimeException('The mPDF temporary directory is not writable.');
+            }
+
             $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
             $fontDirs = $defaultConfig['fontDir'];
             $fontDirs[] = storage_path('fonts');
@@ -32,11 +40,12 @@ class InvoicePdfGenerator
                 'format' => 'A4',
                 'fontDir' => $fontDirs,
                 'fontdata' => $fontData,
-                'margin_left' => 12,
-                'margin_right' => 12,
-                'margin_top' => 11,
-                'margin_bottom' => 12,
+                'margin_left' => 9,
+                'margin_right' => 9,
+                'margin_top' => 9,
+                'margin_bottom' => 9,
                 'default_font' => 'montserrat',
+                'tempDir' => $tempDir,
             ]);
             $mpdf->autoScriptToLang = true;
             $mpdf->autoLangToFont = true;
