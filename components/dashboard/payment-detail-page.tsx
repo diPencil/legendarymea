@@ -50,8 +50,8 @@ export function PaymentDetailPage({ id }: { id: string }) {
     setError('')
 
     try {
-      const response = await getPayment(paymentId)
-      setPayment(response.data)
+      const record = await getPayment(paymentId)
+      setPayment(record)
     } catch (requestError) {
       const resolved = requestError as { code?: number; message?: string }
       if (resolved.code === 404) setError(copy.paymentDetailLoadError)
@@ -73,8 +73,8 @@ export function PaymentDetailPage({ id }: { id: string }) {
     setMutationError('')
 
     try {
-      const response = await reversePayment(payment.id, reversalReason)
-      setPayment(response.data)
+      const updatedPayment = await reversePayment(payment.id, reversalReason)
+      setPayment(updatedPayment)
       setShowReverseDialog(false)
       setReversalReason('')
       setNotice(copy.paymentReversed)
@@ -92,7 +92,7 @@ export function PaymentDetailPage({ id }: { id: string }) {
 
   if (isLoading) return <DashboardLoading label={copy.loadingData} />
   if (error) return <DashboardState title={copy.errorTitle} body={error} actionLabel={copy.retry} onAction={() => void fetchRecord()} />
-  if (!payment) return null
+  if (!payment) return <DashboardState title={copy.errorTitle} body={copy.paymentDetailLoadError} actionLabel={copy.retry} onAction={() => void fetchRecord()} />
 
   return (
     <div className={styles.pageWrap}>

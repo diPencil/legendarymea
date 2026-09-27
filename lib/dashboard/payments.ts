@@ -116,19 +116,19 @@ export async function listPayments(params: PaymentListParams = {}): Promise<{ da
   }
 }
 
-export function getPayment(id: number): Promise<{ data: PaymentRecord }> {
-  return dashboardFetch<{ data: PaymentRecord }>(`/api/v1/payments/${id}`)
+export function getPayment(id: number): Promise<PaymentRecord> {
+  return dashboardFetch<PaymentRecord>(`/api/v1/payments/${id}`)
 }
 
-export function createPayment(payload: CreatePaymentInput): Promise<{ data: PaymentRecord }> {
-  return dashboardFetch<{ data: PaymentRecord }>('/api/v1/payments', {
+export function createPayment(payload: CreatePaymentInput): Promise<PaymentRecord> {
+  return dashboardFetch<PaymentRecord>('/api/v1/payments', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 }
 
-export function reversePayment(id: number, reversal_reason: string): Promise<{ data: PaymentRecord }> {
-  return dashboardFetch<{ data: PaymentRecord }>(`/api/v1/payments/${id}/reverse`, {
+export function reversePayment(id: number, reversal_reason: string): Promise<PaymentRecord> {
+  return dashboardFetch<PaymentRecord>(`/api/v1/payments/${id}/reverse`, {
     method: 'POST',
     body: JSON.stringify({ reversal_reason }),
   })
