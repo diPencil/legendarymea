@@ -3420,6 +3420,19 @@ dialog.dialogOverlay {
   border-radius: 8px;
 }
 
+.supplierAmountCurrencyGrid {
+  align-items: start;
+}
+
+.supplierAmountCurrencyGrid .formField {
+  align-content: start;
+}
+
+.supplierAmountCurrencyGrid .formField input,
+.supplierAmountCurrencyGrid .formField select {
+  height: 44px;
+}
+
 .supplierBalancePanel > div {
   display: grid;
   gap: 4px;
