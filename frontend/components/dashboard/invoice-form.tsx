@@ -20,11 +20,10 @@ import { listUsers, type User } from '@/lib/dashboard/users'
 import { listEmployees, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { listSuppliers, type SupplierRecord } from '@/lib/dashboard/suppliers'
 import { listServiceCatalog, type ServiceCatalog } from '@/lib/dashboard/service-catalog'
+import { SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
 import { formatCurrencyAmount } from '@/lib/dashboard/format'
 import { cn } from '@/lib/utils'
 import styles from '@/components/dashboard/dashboard.module.css'
-
-const CURRENCIES = ['AED', 'SAR', 'USD', 'EUR', 'GBP', 'KWD', 'BHD', 'QAR', 'OMR', 'EGP', 'JOD', 'LBP', 'MAD', 'TND', 'DZD']
 
 type FieldErrors = Record<string, string[]>
 
@@ -519,7 +518,7 @@ export function InvoiceForm({
                   <label className={styles.formField}>
                     <span>{copy.currency} <em>{copy.required}</em></span>
                     <select value={currency} onChange={(event) => setCurrency(event.target.value)}>
-                      {CURRENCIES.map((option) => (
+                      {SUPPORTED_CURRENCIES.map((option) => (
                         <option key={option} value={option}>{option}</option>
                       ))}
                     </select>
@@ -635,7 +634,7 @@ export function InvoiceForm({
                         <label className={styles.formField}>
                           <span>{labels.purchaseCurrency}</span>
                           <select value={item.purchase_currency || currency} onChange={(event) => updateItem(index, 'purchase_currency', event.target.value)}>
-                            {CURRENCIES.map((option) => (
+                            {SUPPORTED_CURRENCIES.map((option) => (
                               <option key={option} value={option}>{option}</option>
                             ))}
                           </select>
