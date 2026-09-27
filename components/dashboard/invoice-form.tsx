@@ -127,6 +127,9 @@ export function InvoiceForm({
         sameCurrencyFxRate: 'عندما تتطابق العملتان يكون سعر الصرف 1.',
         estimatedCost: 'التكلفة التقديرية',
         estimatedProfit: 'الربح التقديري',
+        availableBalance: 'الرصيد المتاح',
+        projectedBalance: 'الرصيد بعد الفاتورة',
+        supplierBalanceWarning: 'سيصبح رصيد المورد {amount} بعد إصدار هذه الفاتورة.',
         customer: 'العميل',
         terms: 'الشروط',
       }
@@ -149,6 +152,9 @@ export function InvoiceForm({
         sameCurrencyFxRate: 'When purchase and invoice currencies match, the FX rate is 1.',
         estimatedCost: 'Estimated cost',
         estimatedProfit: 'Estimated profit',
+        availableBalance: 'Available balance',
+        projectedBalance: 'Balance after invoice',
+        supplierBalanceWarning: 'Supplier balance will become {amount} after this invoice is issued.',
         customer: 'Customer',
         terms: 'Terms',
       }
@@ -544,6 +550,27 @@ export function InvoiceForm({
                   const selectedService = catalogServices.find((service) => String(service.id) === item.service_catalog_id)
                   const itemTitle = item.service_name_snapshot.trim() || (selectedService ? formatServiceCatalogName(selectedService, locale) : fallbackItemTitle(index, locale))
                   const purchaseFxLabel = purchaseCurrency === currency ? labels.exchangeRate : `${labels.exchangeRate} (${purchaseCurrency} → ${currency})`
+                  const selectedSupplier = suppliers.find((supplier) => String(supplier.id) === item.supplier_id)
+                  const canSeeSupplierBalance = Array.isArray(selectedSupplier?.balances)
+                  const currentSupplierBalance = toNumber(selectedSupplier?.balances?.find((balance) => balance.currency === purchaseCurrency)?.available ?? '0')
+                  const originalAllocation = invoice?.status === 'issued'
+                    ? invoice.items.reduce((sum, originalItem) => {
+                        const sameSupplier = String(originalItem.supplier?.id ?? '') === item.supplier_id
+                        const sameCurrency = (originalItem.purchase_currency ?? invoice.currency) === purchaseCurrency
+                        return sameSupplier && sameCurrency
+                          ? sum + toNumber(originalItem.quantity) * toNumber(originalItem.purchase_unit_cost ?? '0')
+                          : sum
+                      }, 0)
+                    : 0
+                  const itemPurchaseCost = toNumber(item.quantity) * toNumber(item.purchase_unit_cost)
+                  const proposedAllocation = items.reduce((sum, proposedItem) => {
+                    const sameSupplier = proposedItem.supplier_id === item.supplier_id
+                    const sameCurrency = resolvePurchaseCurrency(proposedItem, currency) === purchaseCurrency
+                    return sameSupplier && sameCurrency
+                      ? sum + toNumber(proposedItem.quantity) * toNumber(proposedItem.purchase_unit_cost)
+                      : sum
+                  }, 0)
+                  const projectedSupplierBalance = currentSupplierBalance + originalAllocation - proposedAllocation
 
                   return (
                     <div key={`item-${index}`} className={styles.detailPanel}>
@@ -634,6 +661,26 @@ export function InvoiceForm({
                             <span>{labels.estimatedProfit}: {formatCurrencyAmount(lineProfit, currency, locale)}</span>
                           </div>
                         </div>
+
+                        {selectedSupplier && canSeeSupplierBalance ? (
+                          <div className={cn(styles.supplierBalancePanel, projectedSupplierBalance < 0 && styles.supplierBalancePanelNegative)} role={projectedSupplierBalance < 0 ? 'alert' : 'status'}>
+                            <div>
+                              <span>{labels.availableBalance}</span>
+                              <strong dir="ltr">{formatCurrencyAmount(currentSupplierBalance, purchaseCurrency, locale)}</strong>
+                            </div>
+                            <div>
+                              <span>{labels.purchaseCost}</span>
+                              <strong dir="ltr">{formatCurrencyAmount(itemPurchaseCost, purchaseCurrency, locale)}</strong>
+                            </div>
+                            <div>
+                              <span>{labels.projectedBalance}</span>
+                              <strong dir="ltr">{formatCurrencyAmount(projectedSupplierBalance, purchaseCurrency, locale)}</strong>
+                            </div>
+                            {projectedSupplierBalance < 0 ? (
+                              <p>{labels.supplierBalanceWarning.replace('{amount}', formatCurrencyAmount(projectedSupplierBalance, purchaseCurrency, locale))}</p>
+                            ) : null}
+                          </div>
+                        ) : null}
 
                         <label className={cn(styles.formField, styles.invoiceWideField)}>
                           <span>{copy.description} <em>{copy.required}</em></span>

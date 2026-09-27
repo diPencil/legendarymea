@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { BanknoteArrowDown, ChevronLeft, ChevronRight, Eye, Package2, Plus, Search, Trash2, X, PenLine } from 'lucide-react'
+import { BanknoteArrowDown, ChevronLeft, ChevronRight, CircleDollarSign, Eye, Package2, Plus, Search, Trash2, X, PenLine } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
@@ -13,11 +13,11 @@ import { DashboardApiError } from '@/lib/dashboard/api'
 import { listCompanies, type CompanyRecord } from '@/lib/dashboard/companies'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { listUsers, type User } from '@/lib/dashboard/users'
-import { createSupplier, deleteSupplier, fundSupplierBalance, listSuppliers, updateSupplier, type SupplierInput, type SupplierRecord } from '@/lib/dashboard/suppliers'
+import { adjustSupplierBalance, createSupplier, deleteSupplier, fundSupplierBalance, listSuppliers, updateSupplier, type SupplierInput, type SupplierRecord } from '@/lib/dashboard/suppliers'
 import { cn } from '@/lib/utils'
 import styles from '@/components/dashboard/dashboard.module.css'
 
-type DialogMode = 'create' | 'edit' | 'delete' | 'fund'
+type DialogMode = 'create' | 'edit' | 'delete' | 'fund' | 'adjust'
 type FieldErrors = Record<string, string[]>
 type QueryUpdates = Partial<Record<'page' | 'per_page' | 'search' | 'type' | 'status', string>>
 
@@ -32,8 +32,8 @@ export function SuppliersPage() {
   const { user, clearSession } = useDashboardAuth()
 
   const labels = locale === 'ar'
-    ? { suppliers: 'الموردون', suppliersDescription: 'إدارة الموردين والأرصدة والسجل المالي.', type: 'النوع', linkedCompany: 'شركة مرتبطة', linkedUser: 'مستخدم مرتبط', balances: 'الأرصدة', fund: 'تمويل الرصيد', userSupplier: 'مستخدم', companySupplier: 'شركة', address: 'العنوان', date: 'التاريخ' }
-    : { suppliers: 'Suppliers', suppliersDescription: 'Manage suppliers, prefunding balances, and ledger visibility.', type: 'Type', linkedCompany: 'Linked company', linkedUser: 'Linked user', balances: 'Balances', fund: 'Fund balance', userSupplier: 'User', companySupplier: 'Company', address: 'Address', date: 'Date' }
+    ? { suppliers: 'الموردون', suppliersDescription: 'إدارة الموردين والأرصدة والسجل المالي.', type: 'النوع', linkedCompany: 'شركة مرتبطة', linkedUser: 'مستخدم مرتبط', balances: 'الأرصدة', fund: 'تمويل الرصيد', adjust: 'تسوية الرصيد', adjustmentAmount: 'قيمة التسوية', adjustmentReason: 'سبب التسوية', negativeBalance: 'يحتاج المورد إلى تمويل. رصيد {currency} هو {amount}.', userSupplier: 'مستخدم', companySupplier: 'شركة', address: 'العنوان', date: 'التاريخ' }
+    : { suppliers: 'Suppliers', suppliersDescription: 'Manage suppliers, prefunding balances, and ledger visibility.', type: 'Type', linkedCompany: 'Linked company', linkedUser: 'Linked user', balances: 'Balances', fund: 'Fund balance', adjust: 'Balance adjustment', adjustmentAmount: 'Adjustment amount', adjustmentReason: 'Adjustment reason', negativeBalance: 'Supplier requires funding. {currency} balance is {amount}.', userSupplier: 'User', companySupplier: 'Company', address: 'Address', date: 'Date' }
 
   const [suppliers, setSuppliers] = useState<SupplierRecord[]>([])
   const [meta, setMeta] = useState<{ current_page: number; last_page: number; per_page: number; total: number } | null>(null)
@@ -68,12 +68,19 @@ export function SuppliersPage() {
     external_reference: '',
     notes: '',
   })
+  const [adjustmentForm, setAdjustmentForm] = useState({
+    amount: '',
+    currency: 'USD',
+    reason: '',
+    transaction_date: new Date().toISOString().slice(0, 10),
+  })
 
   const canView = canAccessPermission(user, ['view_suppliers', 'manage_suppliers'])
   const canCreate = canAccessPermission(user, ['create_suppliers', 'manage_suppliers'])
   const canUpdate = canAccessPermission(user, ['update_suppliers', 'manage_suppliers'])
   const canDelete = canAccessPermission(user, ['delete_suppliers', 'manage_suppliers'])
   const canFund = canAccessPermission(user, 'fund_supplier_balances')
+  const canAdjust = canAccessPermission(user, ['adjust_supplier_balances', 'manage_suppliers'])
   const canViewCompanyOptions = canAccessPermission(user, ['view_companies', 'manage_companies'])
   const canViewUserOptions = canAccessPermission(user, ['view_users', 'manage_users'])
 
@@ -219,6 +226,31 @@ export function SuppliersPage() {
     }
   }
 
+  async function submitAdjustment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!selectedSupplier) return
+    setIsSubmitting(true)
+    setFieldErrors({})
+
+    try {
+      await adjustSupplierBalance(selectedSupplier.id, {
+        amount: Number(adjustmentForm.amount),
+        currency: adjustmentForm.currency,
+        reason: adjustmentForm.reason,
+        transaction_date: adjustmentForm.transaction_date,
+      })
+      setNotice(locale === 'ar' ? 'تم تسجيل تسوية رصيد المورد.' : 'Supplier balance adjustment recorded.')
+      setDialogMode(null)
+      void fetchData(true)
+    } catch (requestError) {
+      const resolved = requestError as { status?: number; message?: string; data?: { errors?: FieldErrors } }
+      if (resolved.status === 422 && resolved.data?.errors) setFieldErrors(resolved.data.errors)
+      else setFieldErrors({ general: [resolved.message ?? 'Unable to adjust balance.'] })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   async function confirmDelete() {
     if (!selectedSupplier) return
     setIsSubmitting(true)
@@ -346,7 +378,16 @@ export function SuppliersPage() {
                       <td>{supplier.type === 'company' ? labels.companySupplier : labels.userSupplier}</td>
                       <td>{supplier.linked_company?.name ?? '—'}</td>
                       <td>{supplier.linked_user?.name ?? '—'}</td>
-                      <td>{supplier.balances.map((balance) => `${balance.currency} ${balance.available}`).join(' • ') || '—'}</td>
+                      <td>
+                        <div className={styles.supplierBalanceList}>
+                          {(supplier.balances ?? []).map((balance) => (
+                            <span key={balance.currency} className={Number(balance.available) < 0 ? styles.negativeBalanceValue : undefined} dir="ltr">
+                              {balance.currency} {balance.available}
+                            </span>
+                          ))}
+                          {!(supplier.balances ?? []).length ? '—' : null}
+                        </div>
+                      </td>
                       <td><SupplierStatusBadge status={supplier.status} /></td>
                       <td><SupplierActions supplier={supplier} /></td>
                     </tr>
@@ -364,8 +405,13 @@ export function SuppliersPage() {
                     <div><dt>{labels.type}</dt><dd>{supplier.type}</dd></div>
                     <div><dt>{labels.linkedCompany}</dt><dd>{supplier.linked_company?.name ?? '—'}</dd></div>
                     <div><dt>{labels.linkedUser}</dt><dd>{supplier.linked_user?.name ?? '—'}</dd></div>
-                    <div><dt>{labels.balances}</dt><dd>{supplier.balances.map((balance) => `${balance.currency} ${balance.available}`).join(' • ') || '—'}</dd></div>
+                    <div><dt>{labels.balances}</dt><dd><div className={styles.supplierBalanceList}>{(supplier.balances ?? []).map((balance) => <span key={balance.currency} className={Number(balance.available) < 0 ? styles.negativeBalanceValue : undefined} dir="ltr">{balance.currency} {balance.available}</span>)}{!(supplier.balances ?? []).length ? '—' : null}</div></dd></div>
                   </dl>
+                  {(supplier.balances ?? []).filter((balance) => Number(balance.available) < 0).map((balance) => (
+                    <p key={balance.currency} className={styles.supplierNegativeWarning} role="alert">
+                      {labels.negativeBalance.replace('{currency}', balance.currency).replace('{amount}', balance.available)}
+                    </p>
+                  ))}
                   <SupplierActions supplier={supplier} />
                 </article>
               ))}
@@ -386,7 +432,7 @@ export function SuppliersPage() {
             <div className={styles.dialogHeader}>
               <div>
                 <span>{labels.suppliers}</span>
-                <h2 id="supplier-dialog-title">{dialogMode === 'create' ? 'Create supplier' : dialogMode === 'edit' ? 'Edit supplier' : dialogMode === 'fund' ? labels.fund : 'Delete supplier'}</h2>
+                <h2 id="supplier-dialog-title">{dialogMode === 'create' ? 'Create supplier' : dialogMode === 'edit' ? 'Edit supplier' : dialogMode === 'fund' ? labels.fund : dialogMode === 'adjust' ? labels.adjust : 'Delete supplier'}</h2>
               </div>
               <button type="button" className={styles.iconButton} onClick={() => setDialogMode(null)} aria-label={copy.close}><X aria-hidden="true" /></button>
             </div>
@@ -506,6 +552,35 @@ export function SuppliersPage() {
               </form>
             ) : null}
 
+            {dialogMode === 'adjust' ? (
+              <form className={styles.companyForm} onSubmit={submitAdjustment}>
+                {fieldErrors.general ? <p className={styles.inlineAlert}>{fieldErrors.general[0]}</p> : null}
+                <div className={styles.formGrid}>
+                  <label className={styles.formField}>
+                    <span>{labels.adjustmentAmount}</span>
+                    <input type="number" step="0.01" value={adjustmentForm.amount} onChange={(event) => setAdjustmentForm((current) => ({ ...current, amount: event.target.value }))} required />
+                    <p className={styles.fieldHint}>{locale === 'ar' ? 'استخدم قيمة موجبة للإضافة وسالبة للخصم.' : 'Use a positive amount to add funds and a negative amount to reduce them.'}</p>
+                  </label>
+                  <label className={styles.formField}>
+                    <span>{copy.currency}</span>
+                    <input type="text" maxLength={3} value={adjustmentForm.currency} onChange={(event) => setAdjustmentForm((current) => ({ ...current, currency: event.target.value.toUpperCase() }))} required />
+                  </label>
+                </div>
+                <label className={styles.formField}>
+                  <span>{labels.date}</span>
+                  <input type="date" value={adjustmentForm.transaction_date} onChange={(event) => setAdjustmentForm((current) => ({ ...current, transaction_date: event.target.value }))} required />
+                </label>
+                <label className={styles.formField}>
+                  <span>{labels.adjustmentReason}</span>
+                  <textarea rows={3} value={adjustmentForm.reason} onChange={(event) => setAdjustmentForm((current) => ({ ...current, reason: event.target.value }))} required />
+                </label>
+                <div className={styles.dialogActions}>
+                  <button type="button" className={styles.secondaryButton} onClick={() => setDialogMode(null)} disabled={isSubmitting}>{copy.cancel}</button>
+                  <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>{isSubmitting ? copy.saving : labels.adjust}</button>
+                </div>
+              </form>
+            ) : null}
+
             {dialogMode === 'delete' ? (
               <div className={styles.employeeForm}>
                 {fieldErrors.general ? <p className={styles.inlineAlert}>{fieldErrors.general[0]}</p> : null}
@@ -531,6 +606,11 @@ export function SuppliersPage() {
             {supplier.name}
           </Link>
           <small dir="ltr">{supplier.reference}</small>
+          {(supplier.balances ?? []).filter((balance) => Number(balance.available) < 0).map((balance) => (
+            <small key={balance.currency} className={styles.supplierNegativeInline} role="alert">
+              {labels.negativeBalance.replace('{currency}', balance.currency).replace('{amount}', balance.available)}
+            </small>
+          ))}
         </div>
       </div>
     )
@@ -542,6 +622,7 @@ export function SuppliersPage() {
         <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.iconButton} aria-label={copy.view}><Eye aria-hidden="true" /></Link>
         {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => openEdit(supplier)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
         {canFund ? <button type="button" className={styles.iconButton} onClick={() => { setSelectedSupplier(supplier); setDialogMode('fund') }} aria-label={labels.fund}><BanknoteArrowDown aria-hidden="true" /></button> : null}
+        {canAdjust ? <button type="button" className={styles.iconButton} onClick={() => { setSelectedSupplier(supplier); setAdjustmentForm((current) => ({ ...current, amount: '', reason: '' })); setDialogMode('adjust') }} aria-label={labels.adjust}><CircleDollarSign aria-hidden="true" /></button> : null}
         {canDelete ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => { setSelectedSupplier(supplier); setDialogMode('delete') }} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
       </div>
     )

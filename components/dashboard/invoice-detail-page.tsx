@@ -1,11 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, Printer, AlertTriangle, CreditCard, FileText, PenLine, ScrollText, SendHorizonal, Shield, Trash2, XCircle } from 'lucide-react'
+import { ChevronLeft, Download, Printer, AlertTriangle, CreditCard, FileText, PenLine, ScrollText, SendHorizonal, Shield, Trash2, XCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
 
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
@@ -14,7 +13,7 @@ import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboa
 import { InvoiceForm } from '@/components/dashboard/invoice-form'
 import { InvoiceStatusBadge } from '@/components/dashboard/invoices-page'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
-import { cancelInvoice, canEditInvoiceRecord, deleteInvoice, getInvoice, issueInvoice, markInvoiceOverdue, type Invoice } from '@/lib/dashboard/invoices'
+import { cancelInvoice, canEditInvoiceRecord, deleteInvoice, downloadInvoicePdf, getInvoice, invoicePrintUrl, issueInvoice, markInvoiceOverdue, type Invoice } from '@/lib/dashboard/invoices'
 import { dashboardApi } from '@/lib/dashboard/settings'
 import { formatCompactNumber, formatCurrencyAmount, formatExchangeRate } from '@/lib/dashboard/format'
 import { cn } from '@/lib/utils'
@@ -50,7 +49,6 @@ function formatDate(value: string | null, locale: string) {
 
 export function InvoiceDetailPage({ id }: { id: string }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { locale } = useLocale()
   const copy = dashboardCopy[locale]
   const { user } = useDashboardAuth()
@@ -68,8 +66,7 @@ export function InvoiceDetailPage({ id }: { id: string }) {
   const [isMutating, setIsMutating] = useState(false)
   const [mutationError, setMutationError] = useState('')
   const [settings, setSettings] = useState<InvoiceSettings | null>(null)
-  const didAutoPrintRef = useRef(false)
-  const shouldAutoPrint = searchParams.get('print') === '1'
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
 
   const canView = canAccessPermission(user, ['view_invoices', 'manage_invoices'])
   const canUpdate = canAccessPermission(user, ['update_invoices', 'manage_invoices'])
@@ -96,16 +93,6 @@ export function InvoiceDetailPage({ id }: { id: string }) {
   useEffect(() => {
     void fetchRecord()
   }, [fetchRecord])
-
-  useEffect(() => {
-    if (!invoice || !shouldAutoPrint || didAutoPrintRef.current) return
-    didAutoPrintRef.current = true
-    const timeout = window.setTimeout(() => {
-      window.print()
-    }, 120)
-
-    return () => window.clearTimeout(timeout)
-  }, [invoice, shouldAutoPrint])
 
   useEffect(() => {
     let isActive = true
@@ -149,6 +136,28 @@ export function InvoiceDetailPage({ id }: { id: string }) {
       setMutationError(resolved.data?.message ?? resolved.message ?? copy.errorTitle)
     } finally {
       setIsMutating(false)
+    }
+  }
+
+  async function handleDownloadPdf() {
+    if (!invoice || isDownloadingPdf) return
+    setIsDownloadingPdf(true)
+    setMutationError('')
+
+    try {
+      const blob = await downloadInvoicePdf(invoice.id)
+      const objectUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = `${invoice.reference}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(objectUrl)
+    } catch (requestError) {
+      setNotice(requestError instanceof Error ? requestError.message : copy.errorTitle)
+    } finally {
+      setIsDownloadingPdf(false)
     }
   }
 
@@ -237,8 +246,13 @@ export function InvoiceDetailPage({ id }: { id: string }) {
         <div className={styles.invoiceAdminActions}>
           <InvoiceStatusBadge status={invoice.status} copy={copy} />
           {canPrint ? (
-            <button type="button" className={styles.secondaryButton} onClick={() => window.print()} title={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'} aria-label={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'}>
+            <button type="button" className={styles.secondaryButton} onClick={() => window.open(invoicePrintUrl(invoice.id), '_blank', 'noopener,noreferrer')} title={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'} aria-label={locale === 'ar' ? 'طباعة الفاتورة' : 'Print invoice'}>
               <Printer aria-hidden="true" />
+            </button>
+          ) : null}
+          {canPrint ? (
+            <button type="button" className={styles.secondaryButton} onClick={() => void handleDownloadPdf()} disabled={isDownloadingPdf} title={locale === 'ar' ? 'تحميل PDF' : 'Download PDF'} aria-label={locale === 'ar' ? 'تحميل PDF' : 'Download PDF'}>
+              <Download aria-hidden="true" />
             </button>
           ) : null}
           {canEditInvoice ? <button type="button" className={styles.secondaryButton} onClick={() => setIsEditing(true)} title={copy.edit} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}

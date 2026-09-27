@@ -16,7 +16,7 @@ export type SupplierLedgerEntry = {
   id: number
   reference: string
   currency: string
-  type: 'funding' | 'invoice_usage' | 'reversal'
+  type: 'funding' | 'adjustment' | 'invoice_usage' | 'reversal'
   direction: 'credit' | 'debit'
   amount: string
   balance_before: string
@@ -53,7 +53,7 @@ export type SupplierRecord = {
     reference: string
     name: string
   } | null
-  balances: SupplierBalance[]
+  balances?: SupplierBalance[]
   ledger?: SupplierLedgerEntry[]
   created_at: string
   updated_at: string
@@ -85,6 +85,13 @@ export type SupplierFundingInput = {
   payment_method?: PaymentMethod | null
   external_reference?: string | null
   notes?: string | null
+}
+
+export type SupplierAdjustmentInput = {
+  amount: number
+  currency: string
+  reason: string
+  transaction_date?: string | null
 }
 
 type SupplierEnvelope = {
@@ -148,6 +155,15 @@ export async function deleteSupplier(id: number): Promise<void> {
 
 export async function fundSupplierBalance(id: number, payload: SupplierFundingInput): Promise<{ data: SupplierLedgerEntry; message?: string }> {
   const response = await dashboardFetchEnvelope<SupplierLedgerEntry>(`/api/v1/suppliers/${id}/fund`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+  return { data: response?.data as SupplierLedgerEntry, message: response?.message }
+}
+
+export async function adjustSupplierBalance(id: number, payload: SupplierAdjustmentInput): Promise<{ data: SupplierLedgerEntry; message?: string }> {
+  const response = await dashboardFetchEnvelope<SupplierLedgerEntry>(`/api/v1/suppliers/${id}/adjust`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })

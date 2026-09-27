@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Building2, ChevronRight, User2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Building2, ChevronRight, User2 } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { dashboardCopy } from '@/components/dashboard/copy'
@@ -14,8 +14,8 @@ export function SupplierDetailPage({ id }: { id: string }) {
   const { locale } = useLocale()
   const copy = dashboardCopy[locale]
   const labels = locale === 'ar'
-    ? { suppliers: 'الموردون', balances: 'الأرصدة', ledger: 'السجل', linkedEntity: 'الربط', supplierOverview: 'نظرة عامة على المورد', address: 'العنوان', user: 'المستخدم', used: 'المستخدم', available: 'المتاح', date: 'التاريخ', funded: 'المموّل' }
-    : { suppliers: 'Suppliers', balances: 'Balances', ledger: 'Ledger', linkedEntity: 'Linked entity', supplierOverview: 'Supplier overview', address: 'Address', user: 'User', used: 'Used', available: 'Available', date: 'Date', funded: 'Funded' }
+    ? { suppliers: 'الموردون', balances: 'الأرصدة', ledger: 'السجل', linkedEntity: 'الربط', supplierOverview: 'نظرة عامة على المورد', address: 'العنوان', user: 'المستخدم', used: 'المستخدم', available: 'المتاح', date: 'التاريخ', funded: 'المموّل', note: 'السبب / الملاحظة', negativeBalance: 'يحتاج المورد إلى تمويل. رصيد {currency} هو {amount}.', funding: 'تمويل', adjustment: 'تسوية', invoiceUsage: 'استخدام فاتورة', reversal: 'عكس قيد' }
+    : { suppliers: 'Suppliers', balances: 'Balances', ledger: 'Ledger', linkedEntity: 'Linked entity', supplierOverview: 'Supplier overview', address: 'Address', user: 'User', used: 'Used', available: 'Available', date: 'Date', funded: 'Funded', note: 'Reason / note', negativeBalance: 'Supplier requires funding. {currency} balance is {amount}.', funding: 'Funding', adjustment: 'Adjustment', invoiceUsage: 'Invoice usage', reversal: 'Reversal' }
 
   const [supplier, setSupplier] = useState<SupplierRecord | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -41,6 +41,14 @@ export function SupplierDetailPage({ id }: { id: string }) {
   if (isLoading) return <DashboardLoading label={copy.loadingData} />
   if (error || !supplier) return <DashboardState title={copy.errorTitle} body={error || 'Supplier could not be loaded.'} actionLabel={copy.retry} onAction={() => void fetchRecord()} />
 
+  const negativeBalances = (supplier.balances ?? []).filter((balance) => Number(balance.available) < 0)
+  const ledgerTypeLabels = {
+    funding: labels.funding,
+    adjustment: labels.adjustment,
+    invoice_usage: labels.invoiceUsage,
+    reversal: labels.reversal,
+  }
+
   return (
     <div className={styles.company360}>
       <section className={styles.company360Header}>
@@ -57,6 +65,13 @@ export function SupplierDetailPage({ id }: { id: string }) {
           </div>
         </div>
       </section>
+
+      {negativeBalances.map((balance) => (
+        <section key={balance.currency} className={styles.supplierNegativeBanner} role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <strong>{labels.negativeBalance.replace('{currency}', balance.currency).replace('{amount}', balance.available)}</strong>
+        </section>
+      ))}
 
       <section className={styles.company360Grid}>
         <article className={styles.detailPanel}>
@@ -95,12 +110,12 @@ export function SupplierDetailPage({ id }: { id: string }) {
               </tr>
             </thead>
             <tbody>
-              {supplier.balances.map((balance) => (
-                <tr key={balance.currency}>
+              {(supplier.balances ?? []).map((balance) => (
+                <tr key={balance.currency} className={Number(balance.available) < 0 ? styles.negativeBalanceRow : undefined}>
                   <td>{balance.currency}</td>
                   <td dir="ltr">{balance.funded}</td>
                   <td dir="ltr">{balance.used}</td>
-                  <td dir="ltr">{balance.available}</td>
+                  <td dir="ltr" className={Number(balance.available) < 0 ? styles.negativeBalanceValue : undefined}>{balance.available}</td>
                 </tr>
               ))}
             </tbody>
@@ -124,16 +139,18 @@ export function SupplierDetailPage({ id }: { id: string }) {
                 <th>{copy.amount}</th>
                 <th>{labels.date}</th>
                 <th>{copy.invoice}</th>
+                <th>{labels.note}</th>
               </tr>
             </thead>
             <tbody>
               {(supplier.ledger ?? []).map((entry) => (
                 <tr key={entry.id}>
                   <td dir="ltr">{entry.reference}</td>
-                  <td>{entry.type}</td>
-                  <td dir="ltr">{entry.currency} {entry.amount}</td>
+                  <td>{ledgerTypeLabels[entry.type]}</td>
+                  <td dir="ltr" className={entry.direction === 'debit' ? styles.negativeBalanceValue : undefined}>{entry.direction === 'credit' ? '+' : '-'} {entry.currency} {entry.amount}</td>
                   <td dir="ltr">{entry.transaction_date ?? '—'}</td>
                   <td>{entry.invoice ? <Link href={`/dashboard/invoices/${entry.invoice.id}`} className={styles.textLink}><ChevronRight aria-hidden="true" /> {entry.invoice.reference}</Link> : '—'}</td>
+                  <td>{entry.notes ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
