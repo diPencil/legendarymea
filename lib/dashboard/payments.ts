@@ -14,12 +14,52 @@ export interface PaymentSummaryInvoice {
   balance_due: string
 }
 
+export interface PaymentAllocationItem {
+  id: number
+  payment_id: number
+  invoice_id: number
+  invoice_reference: string
+  amount: string
+  notes: string | null
+  reversed_at: string | null
+  reversal_reason?: string | null
+  applied_by?: number | null
+  reversed_by?: number | null
+  is_reversed?: boolean
+  idempotency_key?: string | null
+  created_at: string
+  updated_at: string
+  applier?: {
+    id: number
+    name: string
+    email: string
+  } | null
+  reverser?: {
+    id: number
+    name: string
+    email: string
+  } | null
+  invoice?: {
+    id: number
+    reference: string
+    status: string
+    currency: string
+    total_amount: string
+    paid_amount: string
+    balance_due: string
+  } | null
+}
+
 export interface PaymentRecord {
   id: number
   reference: string
   customer_type: 'company' | 'user'
+  company_id?: number | null
+  invoice_id?: number | null
   status: PaymentStatus
   amount: string
+  allocated_amount?: string
+  unallocated_amount?: string
   currency: string
   method: PaymentMethod
   transaction_reference: string | null
@@ -50,6 +90,7 @@ export interface PaymentRecord {
   } | null
   reversed_at: string | null
   reversal_reason: string | null
+  allocations?: PaymentAllocationItem[]
   created_at: string
   updated_at: string
 }
@@ -72,13 +113,47 @@ export interface PaymentListParams {
   sort_order?: 'asc' | 'desc'
 }
 
-export interface CreatePaymentInput {
+export interface CreateSinglePaymentInput {
   invoice_id: number
-  amount: number
+  idempotency_key?: string
+  amount: string
+  currency?: string
   method: PaymentMethod
   transaction_reference?: string | null
   paid_at: string
   notes?: string | null
+}
+
+export interface CreateMultiPaymentInput {
+  company_id: number
+  amount: string
+  currency: string
+  method: PaymentMethod
+  transaction_reference?: string | null
+  paid_at: string
+  notes?: string | null
+  idempotency_key?: string
+  auto_allocate?: boolean
+  allocations?: Array<{
+    invoice_id: number
+    amount: string
+    notes?: string | null
+  }>
+}
+
+export type CreatePaymentInput = CreateSinglePaymentInput | CreateMultiPaymentInput
+
+export interface OutstandingInvoice {
+  id: number
+  reference: string
+  company_id: number
+  status: string
+  currency: string
+  issue_date: string | null
+  due_date: string | null
+  total_amount: string
+  paid_amount: string
+  balance_due: string
 }
 
 interface PaymentEnvelope {
@@ -129,6 +204,89 @@ export function createPayment(payload: CreatePaymentInput): Promise<PaymentRecor
 
 export function reversePayment(id: number, reversal_reason: string): Promise<PaymentRecord> {
   return dashboardFetch<PaymentRecord>(`/api/v1/payments/${id}/reverse`, {
+    method: 'POST',
+    body: JSON.stringify({ reversal_reason }),
+  })
+}
+
+export async function listOutstandingInvoices(companyId: number, currency?: string): Promise<OutstandingInvoice[]> {
+  const query = new URLSearchParams({ company_id: String(companyId) })
+  if (currency) {
+    query.set('currency', currency)
+  }
+  const payload = await dashboardFetchEnvelope<{ data: OutstandingInvoice[] }>(`/api/v1/payments/outstanding-invoices?${query.toString()}`)
+  const resolved = (payload as { data: OutstandingInvoice[] } | null) ?? { data: [] }
+  return resolved.data ?? []
+}
+
+export async function listPaymentAllocations(paymentId: number): Promise<PaymentAllocationItem[]> {
+  const payload = await dashboardFetchEnvelope<{ data: PaymentAllocationItem[] }>(`/api/v1/payments/${paymentId}/allocations`)
+  const resolved = (payload as { data: PaymentAllocationItem[] } | null) ?? { data: [] }
+  return resolved.data ?? []
+}
+
+export interface CompanyCreditSummaryItem {
+  currency: string
+  total_unallocated: string
+  payment_count: number
+}
+
+export interface AvailableCreditPayment {
+  id: number
+  reference: string
+  company_id: number
+  currency: string
+  amount: string
+  allocated_amount: string
+  unallocated_amount: string
+  paid_at: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface AvailableCreditsResponse {
+  data: AvailableCreditPayment[]
+  summary: CompanyCreditSummaryItem[]
+}
+
+export interface ApplyCreditInput {
+  idempotency_key?: string
+  allocations: Array<{
+    invoice_id: number
+    amount: string
+    notes?: string | null
+  }>
+}
+
+export interface ApplyCreditResponse {
+  message: string
+  payment: PaymentRecord
+  allocations: PaymentAllocationItem[]
+}
+
+export interface ReverseAllocationResponse {
+  message: string
+  allocation: PaymentAllocationItem
+}
+
+export async function listAvailableCredits(companyId: number, currency?: string): Promise<AvailableCreditsResponse> {
+  const query = new URLSearchParams({ company_id: String(companyId) })
+  if (currency) {
+    query.set('currency', currency)
+  }
+  const payload = await dashboardFetchEnvelope<AvailableCreditsResponse>(`/api/v1/payments/available-credits?${query.toString()}`)
+  return (payload as AvailableCreditsResponse | null) ?? { data: [], summary: [] }
+}
+
+export function applyCompanyCredit(paymentId: number, payload: ApplyCreditInput): Promise<ApplyCreditResponse> {
+  return dashboardFetch<ApplyCreditResponse>(`/api/v1/payments/${paymentId}/apply-credit`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function reversePaymentAllocation(allocationId: number, reversal_reason: string): Promise<ReverseAllocationResponse> {
+  return dashboardFetch<ReverseAllocationResponse>(`/api/v1/payment-allocations/${allocationId}/reverse`, {
     method: 'POST',
     body: JSON.stringify({ reversal_reason }),
   })

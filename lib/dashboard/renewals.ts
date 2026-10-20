@@ -49,7 +49,7 @@ export interface RenewalPayload {
   renewal_due_date: string
   proposed_start_date?: string | null
   proposed_end_date?: string | null
-  renewal_amount?: number | null
+  renewal_amount?: string | null
   currency?: string | null
   assigned_to?: number | null
   notes?: string | null

@@ -13,6 +13,7 @@ import { listQuotations, type Quotation, type QuotationsQuery } from '@/lib/dash
 import { QuotationForm } from '@/components/dashboard/quotation-form'
 import styles from '@/components/dashboard/dashboard.module.css'
 import { cn } from '@/lib/utils'
+import { formatCurrencyAmount } from '@/lib/dashboard/format'
 
 type SortOrder = 'asc' | 'desc'
 type QuotationSortKey = 'created_at' | 'updated_at' | 'reference' | 'total_amount'
@@ -47,22 +48,8 @@ interface PaginationMeta {
 }
 
 const formatMoney = (amount: string | number | null | undefined, currency: string | null | undefined) => {
-  const num = Number(amount)
-  if (!Number.isFinite(num)) return '-'
-
   const currencyCode = normalizeCurrency(currency)
-  if (!currencyCode) {
-    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num)
-  }
-
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currencyCode,
-    }).format(num)
-  } catch {
-    return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num)} ${currencyCode}`
-  }
+  return currencyCode ? formatCurrencyAmount(amount, currencyCode, 'en') : String(amount ?? '-')
 }
 
 export function QuotationsPage() {

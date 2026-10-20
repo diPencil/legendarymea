@@ -11,6 +11,8 @@ import { Save, Plus, Trash2 } from 'lucide-react'
 import { listCompanies, listCompanyContacts, type CompanyRecord, type CompanyContact } from '@/lib/dashboard/companies'
 import { listOpportunities, type OpportunityRecord } from '@/lib/dashboard/opportunities'
 import { listRequests, type RequestRecord } from '@/lib/dashboard/requests'
+import { currencyPrecision, currencyStep } from '@/lib/dashboard/currencies'
+import { decimalAdd, decimalCompare, decimalMultiply, decimalSubtract } from '@/lib/dashboard/decimal'
 
 export type DialogMode = 'create' | 'edit'
 type FieldErrors = Record<string, string[]>
@@ -196,17 +198,18 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
   }
 
   const calculateSubtotal = () => {
-    return form.items.reduce((sum, item) => {
-      const q = parseFloat(item.quantity) || 0
-      const p = parseFloat(item.unit_price) || 0
-      return sum + (q * p)
-    }, 0)
+    return decimalAdd(
+      form.items.map((item) => decimalMultiply(item.quantity || '0', item.unit_price || '0', currencyPrecision(form.currency))),
+      currencyPrecision(form.currency),
+    )
   }
 
   const subtotalPreview = calculateSubtotal()
-  const discountPreview = parseFloat(form.discount_amount) || 0
-  const taxPreview = parseFloat(form.tax_amount) || 0
-  const totalPreview = Math.max(0, subtotalPreview - discountPreview + taxPreview)
+  const calculatedTotal = decimalAdd(
+    [decimalSubtract(subtotalPreview, form.discount_amount || '0', currencyPrecision(form.currency)), form.tax_amount || '0'],
+    currencyPrecision(form.currency),
+  )
+  const totalPreview = decimalCompare(calculatedTotal, 0) < 0 ? decimalMultiply('0', '1', currencyPrecision(form.currency)) : calculatedTotal
 
   return (
     <form className={styles.companyForm} onSubmit={handleSubmit}>
@@ -318,7 +321,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
                 <span>{copy.quantity || 'Qty'}</span>
                 <input 
                   type="number" 
-                  step="0.01"
+                  step={currencyStep(form.currency)}
                   min="0.01"
                   value={item.quantity} 
                   onChange={(e) => updateItem(index, 'quantity', e.target.value)} 
@@ -331,7 +334,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
                 <span>{copy.unitPrice || 'Unit Price'}</span>
                 <input 
                   type="number" 
-                  step="0.01"
+                  step={currencyStep(form.currency)}
                   min="0"
                   value={item.unit_price} 
                   onChange={(e) => updateItem(index, 'unit_price', e.target.value)} 
@@ -343,7 +346,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
               <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '2px', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: '0.5rem' }}>
                    <span style={{ fontSize: '13px', color: 'var(--gray-500)', marginBottom: '0.25rem' }}>{copy.lineTotal || 'Line Total'}</span>
-                   <strong dir="ltr">{((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)).toFixed(2)}</strong>
+                   <strong dir="ltr">{decimalMultiply(item.quantity || '0', item.unit_price || '0', currencyPrecision(form.currency))}</strong>
                 </div>
                 {form.items.length > 1 && (
                   <button type="button" className={styles.iconButton} onClick={() => removeItem(index)} aria-label={copy.removeItem || 'Remove'} style={{ marginBottom: '0.5rem' }}>
@@ -398,7 +401,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
             <label className={styles.formField}>
                 <span>{copy.subtotal || 'Subtotal'}</span>
                 <div className={styles.readOnlyField}>
-                    <strong className={styles.readOnlyValue} dir="ltr">{subtotalPreview.toFixed(2)}</strong>
+                    <strong className={styles.readOnlyValue} dir="ltr">{subtotalPreview}</strong>
                 </div>
             </label>
 
@@ -406,7 +409,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
             <span>{copy.discountAmount || 'Discount Amount'} <em>{copy.optional}</em></span>
             <input 
                 type="number" 
-                step="0.01"
+                step={currencyStep(form.currency)}
                 min="0"
                 value={form.discount_amount} 
                 onChange={(e) => setForm({ ...form, discount_amount: e.target.value })} 
@@ -419,7 +422,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
             <span>{copy.taxAmount || 'Tax Amount'} <em>{copy.optional}</em></span>
             <input 
                 type="number" 
-                step="0.01"
+                step={currencyStep(form.currency)}
                 min="0"
                 value={form.tax_amount} 
                 onChange={(e) => setForm({ ...form, tax_amount: e.target.value })} 
@@ -431,7 +434,7 @@ export function QuotationForm({ mode, quotation, onClose, onSuccess }: Quotation
             <label className={styles.formField}>
                 <span>{copy.total || 'Total'}</span>
                 <div className={styles.readOnlyField}>
-                    <strong className={styles.readOnlyValue} dir="ltr" style={{ color: totalPreview < 0 ? 'var(--red-600)' : 'inherit' }}>{totalPreview.toFixed(2)}</strong>
+                    <strong className={styles.readOnlyValue} dir="ltr">{totalPreview}</strong>
                 </div>
             </label>
         </div>

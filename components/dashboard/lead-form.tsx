@@ -11,6 +11,7 @@ import { listEmployeeManagers, type EmployeeRecord } from '@/lib/dashboard/emplo
 import { CountryPhoneFields } from '@/components/country-phone-fields'
 import { listServiceInterestOptions, serviceInterestLabel, type ServiceInterestOption } from '@/lib/dashboard/service-interest'
 import styles from './dashboard.module.css'
+import { currencyStep } from '@/lib/dashboard/currencies'
 import { Info } from 'lucide-react'
 
 export type DialogMode = 'create' | 'edit'
@@ -290,7 +291,7 @@ export function LeadForm({ mode, lead, onClose, onSuccess }: LeadFormProps) {
         <div className={styles.formGrid}>
         <label className={styles.formField}>
     <span>{copy.estimatedValue} <em>{copy.optional}</em></span>
-    <input type="number" value={String(form.estimated_value ?? '')} onChange={(e) => setForm({ ...form, estimated_value: e.target.value ? Number(e.target.value) : null })}  />
+    <input type="number" step={currencyStep(form.currency ?? 'AED')} value={form.estimated_value ?? ''} onChange={(e) => setForm({ ...form, estimated_value: e.target.value || null })} />
     {fieldErrors.estimated_value?.[0] && <small className={styles.fieldError}>{fieldErrors.estimated_value[0]}</small>}
   </label>
         <label className={styles.formField}>

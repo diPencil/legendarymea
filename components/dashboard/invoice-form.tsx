@@ -20,7 +20,8 @@ import { listUsers, type User } from '@/lib/dashboard/users'
 import { listEmployees, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { listSuppliers, type SupplierRecord } from '@/lib/dashboard/suppliers'
 import { listServiceCatalog, type ServiceCatalog } from '@/lib/dashboard/service-catalog'
-import { SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
+import { currencyPrecision, currencyStep, SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
+import { decimalAdd, decimalCompare, decimalMultiply, decimalSubtract } from '@/lib/dashboard/decimal'
 import { formatCurrencyAmount } from '@/lib/dashboard/format'
 import { cn } from '@/lib/utils'
 import styles from '@/components/dashboard/dashboard.module.css'
@@ -59,18 +60,13 @@ const EMPTY_ITEM: FormItem = {
   exchange_rate: '1',
 }
 
-function toNumber(value: string) {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : 0
+function safeLineTotal(quantity: string, unitPrice: string, currency: string) {
+  return decimalMultiply(quantity || '0', unitPrice || '0', currencyPrecision(currency))
 }
 
-function safeLineTotal(quantity: string, unitPrice: string) {
-  return (toNumber(quantity) * toNumber(unitPrice)).toFixed(2)
-}
-
-function safeLineCost(quantity: string, cost: string, rate: string) {
-  const total = toNumber(quantity) * toNumber(cost) * (toNumber(rate) || 1)
-  return total > 0 ? total.toFixed(2) : '0.00'
+function safeLineCost(quantity: string, cost: string, rate: string, currency: string) {
+  const convertedUnitCost = decimalMultiply(cost || '0', rate || '1', 8)
+  return decimalMultiply(quantity || '0', convertedUnitCost, currencyPrecision(currency))
 }
 
 function resolvePurchaseCurrency(item: FormItem, invoiceCurrency: string) {
@@ -320,23 +316,23 @@ export function InvoiceForm({
   })
 
   const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + toNumber(item.quantity) * toNumber(item.unit_price), 0).toFixed(2),
-    [items],
+    () => decimalAdd(items.map((item) => safeLineTotal(item.quantity, item.unit_price, currency)), currencyPrecision(currency)),
+    [items, currency],
   )
 
   const estimatedCost = useMemo(
-    () => items.reduce((sum, item) => sum + Number(safeLineCost(item.quantity, item.purchase_unit_cost, resolveExchangeRate(item, currency))), 0).toFixed(2),
+    () => decimalAdd(items.map((item) => safeLineCost(item.quantity, item.purchase_unit_cost, resolveExchangeRate(item, currency), currency)), currencyPrecision(currency)),
     [items, currency],
   )
 
   const total = useMemo(
-    () => (toNumber(subtotal) - toNumber(discountAmount) + toNumber(taxAmount)).toFixed(2),
-    [subtotal, discountAmount, taxAmount],
+    () => decimalAdd([decimalSubtract(subtotal, discountAmount || '0', currencyPrecision(currency)), taxAmount || '0'], currencyPrecision(currency)),
+    [subtotal, discountAmount, taxAmount, currency],
   )
 
   const estimatedProfit = useMemo(
-    () => (toNumber(total) - toNumber(estimatedCost)).toFixed(2),
-    [estimatedCost, total],
+    () => decimalSubtract(total, estimatedCost, currencyPrecision(currency)),
+    [estimatedCost, total, currency],
   )
 
   function addItem() {
@@ -369,11 +365,11 @@ export function InvoiceForm({
           service_end_date: item.service_end_date || null,
           booking_reference: item.booking_reference || null,
           supplier_id: item.supplier_id ? Number(item.supplier_id) : null,
-          quantity: toNumber(item.quantity),
-          unit_price: toNumber(item.unit_price),
-          purchase_unit_cost: hasPurchaseCost ? toNumber(item.purchase_unit_cost) : null,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          purchase_unit_cost: hasPurchaseCost ? item.purchase_unit_cost : null,
           purchase_currency: hasPurchaseCost ? resolvePurchaseCurrency(item, currency) : null,
-          exchange_rate: hasPurchaseCost ? toNumber(resolveExchangeRate(item, currency) || '1') : null,
+          exchange_rate: hasPurchaseCost ? resolveExchangeRate(item, currency) || '1' : null,
           sort_order: index,
         }
       })
@@ -388,8 +384,8 @@ export function InvoiceForm({
         currency,
         issue_date: issueDate || null,
         due_date: dueDate || null,
-        discount_amount: toNumber(discountAmount),
-        tax_amount: toNumber(taxAmount),
+        discount_amount: discountAmount,
+        tax_amount: taxAmount,
         notes: notes || null,
         internal_notes: internalNotes || null,
         terms: terms || null,
@@ -541,35 +537,40 @@ export function InvoiceForm({
               <legend>{copy.invoiceItems}</legend>
               <div className={styles.formSectionStack}>
                 {items.map((item, index) => {
-                  const lineTotal = safeLineTotal(item.quantity, item.unit_price)
+                  const lineTotal = safeLineTotal(item.quantity, item.unit_price, currency)
                   const purchaseCurrency = resolvePurchaseCurrency(item, currency)
                   const exchangeRate = resolveExchangeRate(item, currency)
-                  const lineCost = safeLineCost(item.quantity, item.purchase_unit_cost, exchangeRate)
-                  const lineProfit = (toNumber(lineTotal) - toNumber(lineCost)).toFixed(2)
+                  const lineCost = safeLineCost(item.quantity, item.purchase_unit_cost, exchangeRate, currency)
+                  const lineProfit = decimalSubtract(lineTotal, lineCost, currencyPrecision(currency))
                   const selectedService = catalogServices.find((service) => String(service.id) === item.service_catalog_id)
                   const itemTitle = item.service_name_snapshot.trim() || (selectedService ? formatServiceCatalogName(selectedService, locale) : fallbackItemTitle(index, locale))
                   const purchaseFxLabel = purchaseCurrency === currency ? labels.exchangeRate : `${labels.exchangeRate} (${purchaseCurrency} → ${currency})`
                   const selectedSupplier = suppliers.find((supplier) => String(supplier.id) === item.supplier_id)
                   const canSeeSupplierBalance = Array.isArray(selectedSupplier?.balances)
-                  const currentSupplierBalance = toNumber(selectedSupplier?.balances?.find((balance) => balance.currency === purchaseCurrency)?.available ?? '0')
+                  const currentSupplierBalance = selectedSupplier?.balances?.find((balance) => balance.currency === purchaseCurrency)?.available ?? '0'
                   const originalAllocation = invoice?.status === 'issued'
-                    ? invoice.items.reduce((sum, originalItem) => {
+                    ? decimalAdd(invoice.items.map((originalItem) => {
                         const sameSupplier = String(originalItem.supplier?.id ?? '') === item.supplier_id
                         const sameCurrency = (originalItem.purchase_currency ?? invoice.currency) === purchaseCurrency
                         return sameSupplier && sameCurrency
-                          ? sum + toNumber(originalItem.quantity) * toNumber(originalItem.purchase_unit_cost ?? '0')
-                          : sum
-                      }, 0)
-                    : 0
-                  const itemPurchaseCost = toNumber(item.quantity) * toNumber(item.purchase_unit_cost)
-                  const proposedAllocation = items.reduce((sum, proposedItem) => {
+                          ? decimalMultiply(originalItem.quantity, originalItem.purchase_unit_cost ?? '0', currencyPrecision(purchaseCurrency))
+                          : '0'
+                      }), currencyPrecision(purchaseCurrency))
+                    : '0'
+                  const itemPurchaseCost = decimalMultiply(item.quantity, item.purchase_unit_cost || '0', currencyPrecision(purchaseCurrency))
+                  const proposedAllocation = decimalAdd(items.map((proposedItem) => {
                     const sameSupplier = proposedItem.supplier_id === item.supplier_id
                     const sameCurrency = resolvePurchaseCurrency(proposedItem, currency) === purchaseCurrency
                     return sameSupplier && sameCurrency
-                      ? sum + toNumber(proposedItem.quantity) * toNumber(proposedItem.purchase_unit_cost)
-                      : sum
-                  }, 0)
-                  const projectedSupplierBalance = currentSupplierBalance + originalAllocation - proposedAllocation
+                      ? decimalMultiply(proposedItem.quantity, proposedItem.purchase_unit_cost || '0', currencyPrecision(purchaseCurrency))
+                      : '0'
+                  }), currencyPrecision(purchaseCurrency))
+                  const projectedSupplierBalance = decimalSubtract(
+                    decimalAdd([currentSupplierBalance, originalAllocation], currencyPrecision(purchaseCurrency)),
+                    proposedAllocation,
+                    currencyPrecision(purchaseCurrency),
+                  )
+                  const supplierBalanceIsNegative = decimalCompare(projectedSupplierBalance, 0) < 0
 
                   return (
                     <div key={`item-${index}`} className={styles.detailPanel}>
@@ -624,11 +625,11 @@ export function InvoiceForm({
 
                         <label className={styles.formField}>
                           <span>{copy.unitPrice} <em>{copy.required}</em></span>
-                          <input type="number" min="0" step="0.01" value={item.unit_price} onChange={(event) => updateItem(index, 'unit_price', event.target.value)} required />
+                          <input type="number" min="0" step={currencyStep(currency)} value={item.unit_price} onChange={(event) => updateItem(index, 'unit_price', event.target.value)} required />
                         </label>
                         <label className={styles.formField}>
                           <span>{labels.purchaseCost}</span>
-                          <input type="number" min="0" step="0.01" value={item.purchase_unit_cost} onChange={(event) => updateItem(index, 'purchase_unit_cost', event.target.value)} />
+                          <input type="number" min="0" step={currencyStep(purchaseCurrency)} value={item.purchase_unit_cost} onChange={(event) => updateItem(index, 'purchase_unit_cost', event.target.value)} />
                         </label>
 
                         <label className={styles.formField}>
@@ -662,7 +663,7 @@ export function InvoiceForm({
                         </div>
 
                         {selectedSupplier && canSeeSupplierBalance ? (
-                          <div className={cn(styles.supplierBalancePanel, projectedSupplierBalance < 0 && styles.supplierBalancePanelNegative)} role={projectedSupplierBalance < 0 ? 'alert' : 'status'}>
+                          <div className={cn(styles.supplierBalancePanel, supplierBalanceIsNegative && styles.supplierBalancePanelNegative)} role={supplierBalanceIsNegative ? 'alert' : 'status'}>
                             <div>
                               <span>{labels.availableBalance}</span>
                               <strong dir="ltr">{formatCurrencyAmount(currentSupplierBalance, purchaseCurrency, locale)}</strong>
@@ -675,7 +676,7 @@ export function InvoiceForm({
                               <span>{labels.projectedBalance}</span>
                               <strong dir="ltr">{formatCurrencyAmount(projectedSupplierBalance, purchaseCurrency, locale)}</strong>
                             </div>
-                            {projectedSupplierBalance < 0 ? (
+                            {supplierBalanceIsNegative ? (
                               <p>{labels.supplierBalanceWarning.replace('{amount}', formatCurrencyAmount(projectedSupplierBalance, purchaseCurrency, locale))}</p>
                             ) : null}
                           </div>
@@ -718,11 +719,11 @@ export function InvoiceForm({
               <div className={styles.formGrid}>
                 <label className={styles.formField}>
                   <span>{copy.discount}</span>
-                  <input type="number" min="0" step="0.01" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
+                  <input type="number" min="0" step={currencyStep(currency)} value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
                 </label>
                 <label className={styles.formField}>
                   <span>{copy.tax}</span>
-                  <input type="number" min="0" step="0.01" value={taxAmount} onChange={(event) => setTaxAmount(event.target.value)} />
+                  <input type="number" min="0" step={currencyStep(currency)} value={taxAmount} onChange={(event) => setTaxAmount(event.target.value)} />
                 </label>
               </div>
 

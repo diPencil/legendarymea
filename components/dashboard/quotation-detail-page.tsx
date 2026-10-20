@@ -15,6 +15,7 @@ import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { getQuotation, deleteQuotation, sendQuotation, acceptQuotation, rejectQuotation, cancelQuotation, expireQuotation, type Quotation } from '@/lib/dashboard/quotations'
 import { dashboardApi } from '@/lib/dashboard/settings'
 import { cn } from '@/lib/utils'
+import { formatCurrencyAmount } from '@/lib/dashboard/format'
 import { QuotationForm } from './quotation-form'
 
 import styles from './dashboard.module.css'
@@ -356,19 +357,8 @@ export function DashboardQuotationDetailPage({ quotationId }: { quotationId: str
     return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(date)
   }
   function formatMoney(amount: string | number | null | undefined, currencyCode: string | null | undefined) {
-    const numericAmount = Number(amount)
-    if (!Number.isFinite(numericAmount)) return '-'
-
     const normalizedCurrency = normalizeCurrency(currencyCode)
-    if (!normalizedCurrency) {
-      return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 2 }).format(numericAmount)
-    }
-
-    try {
-      return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: normalizedCurrency }).format(numericAmount)
-    } catch {
-      return `${new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 2 }).format(numericAmount)} ${normalizedCurrency}`
-    }
+    return normalizedCurrency ? formatCurrencyAmount(amount, normalizedCurrency, locale) : String(amount ?? '-')
   }
 }
 

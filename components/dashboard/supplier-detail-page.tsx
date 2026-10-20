@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, ArrowLeft, Building2, ChevronRight, User2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Building2, ChevronRight, FileText, User2 } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { dashboardCopy } from '@/components/dashboard/copy'
@@ -64,6 +64,16 @@ export function SupplierDetailPage({ id }: { id: string }) {
             <span className={styles.statusBadge}>{supplier.status}</span>
           </div>
         </div>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Link
+            href={`/dashboard/suppliers/${id}/statement`}
+            className={styles.primaryButton}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <FileText size={16} aria-hidden="true" />
+            {copy.supplierAccountStatement || copy.accountStatement}
+          </Link>
+        </div>
       </section>
 
       {negativeBalances.map((balance) => (
@@ -98,6 +108,14 @@ export function SupplierDetailPage({ id }: { id: string }) {
             <span>{copy.finance}</span>
             <h2>{labels.balances}</h2>
           </div>
+          <Link
+            href={`/dashboard/suppliers/${id}/statement`}
+            className={styles.textLink}
+            style={{ fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          >
+            {copy.accountStatement}
+            <ChevronRight size={14} aria-hidden="true" />
+          </Link>
         </div>
         <div className={styles.employeeTableWrap}>
           <table className={styles.employeeTable}>
@@ -129,6 +147,14 @@ export function SupplierDetailPage({ id }: { id: string }) {
             <span>{copy.finance}</span>
             <h2>{labels.ledger}</h2>
           </div>
+          <Link
+            href={`/dashboard/suppliers/${id}/statement`}
+            className={styles.textLink}
+            style={{ fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          >
+            {copy.accountStatement}
+            <ChevronRight size={14} aria-hidden="true" />
+          </Link>
         </div>
         <div className={styles.employeeTableWrap}>
           <table className={styles.employeeTable}>

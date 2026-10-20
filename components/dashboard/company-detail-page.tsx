@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, ArrowLeft, Building2, ChevronLeft, ChevronRight, Pencil, Trash2, UserRoundCog, X, Eye } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Building2, ChevronLeft, ChevronRight, FileText, Pencil, Trash2, UserRoundCog, X, Eye } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { CountryPhoneFields } from '@/components/country-phone-fields'
@@ -64,6 +64,7 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
   const canViewCompanies = canAccessPermission(user, ['view_companies', 'manage_companies'])
   const canUpdateCompanies = canAccessPermission(user, ['update_companies', 'manage_companies'])
   const canDeleteCompanies = canAccessPermission(user, ['delete_companies', 'manage_companies'])
+  const canViewFinance = canAccessPermission(user, ['view_finance_reports', 'manage_finance_reports', 'view_invoices', 'view_payments', 'manage_invoices', 'manage_payments'])
 
   const handleDashboardError = useCallback((requestError: unknown) => {
     if (requestError instanceof DashboardApiError && requestError.code === 401) {
@@ -175,8 +176,13 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
             <RelationshipBadges relationships={currentCompany.relationships ?? []} />
           </div>
         </div>
-        {canUpdateCompanies || canDeleteCompanies ? (
+        {canUpdateCompanies || canDeleteCompanies || canViewFinance ? (
           <div className={styles.companyHeaderActions}>
+            {canViewFinance ? (
+              <Link href={`/dashboard/companies/${currentCompany.id}/statement`} className={styles.secondaryButton}>
+                <FileText aria-hidden="true" />{copy.accountStatement}
+              </Link>
+            ) : null}
             {canUpdateCompanies ? (
               <>
                 <button type="button" className={styles.secondaryButton} onClick={openEditDialog}>

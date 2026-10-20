@@ -451,8 +451,10 @@ export function DashboardOpportunityDetailPage({ opportunityId }: { opportunityI
     return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(new Date(value))
   }
 
-  function formatValue(value: number | null, currency: string | null) {
-    if (value === null) return null
-    return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: currency || 'USD' }).format(value)
+  function formatValue(value: string | number | null, currency: string | null) {
+    if (value === null || value === undefined || value === '') return null
+    const num = Number(value)
+    if (Number.isNaN(num)) return String(value)
+    return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: currency || 'USD' }).format(num)
   }
 }

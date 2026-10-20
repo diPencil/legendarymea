@@ -79,7 +79,7 @@ export type SupplierInput = {
 }
 
 export type SupplierFundingInput = {
-  amount: number
+  amount: string
   currency: string
   transaction_date: string
   payment_method?: PaymentMethod | null
@@ -88,7 +88,7 @@ export type SupplierFundingInput = {
 }
 
 export type SupplierAdjustmentInput = {
-  amount: number
+  amount: string
   currency: string
   reason: string
   transaction_date?: string | null
