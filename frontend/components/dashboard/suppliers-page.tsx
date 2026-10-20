@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { BanknoteArrowDown, ChevronLeft, ChevronRight, CircleDollarSign, Eye, Package2, Plus, Search, Trash2, X, PenLine } from 'lucide-react'
+import { BanknoteArrowDown, ChevronLeft, ChevronRight, CircleDollarSign, Eye, FileText, Package2, Plus, Search, Trash2, X, PenLine } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
@@ -11,7 +11,9 @@ import { dashboardCopy } from '@/components/dashboard/copy'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
 import { DashboardApiError } from '@/lib/dashboard/api'
 import { listCompanies, type CompanyRecord } from '@/lib/dashboard/companies'
-import { SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
+import { currencyPrecision, currencyStep, SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
+import { decimalAdd, decimalCompare } from '@/lib/dashboard/decimal'
+import { formatCurrencyAmount } from '@/lib/dashboard/format'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { listUsers, type User } from '@/lib/dashboard/users'
 import { adjustSupplierBalance, createSupplier, deleteSupplier, fundSupplierBalance, getSupplier, listSuppliers, updateSupplier, type SupplierInput, type SupplierRecord } from '@/lib/dashboard/suppliers'
@@ -92,10 +94,8 @@ export function SuppliersPage() {
   const perPage = pageSizes.includes(Number(searchParams.get('per_page') ?? '15')) ? Number(searchParams.get('per_page')) : 15
   const balanceCurrency = dialogMode === 'adjust' ? adjustmentForm.currency : fundingForm.currency
   const balanceAmount = dialogMode === 'adjust' ? adjustmentForm.amount : fundingForm.amount
-  const parsedBalanceAmount = Number(balanceAmount)
-  const normalizedBalanceAmount = Number.isFinite(parsedBalanceAmount) ? parsedBalanceAmount : 0
-  const currentBalance = Number(balanceSupplier?.balances?.find((balance) => balance.currency === balanceCurrency)?.available ?? '0')
-  const projectedBalance = currentBalance + normalizedBalanceAmount
+  const currentBalance = balanceSupplier?.balances?.find((balance) => balance.currency === balanceCurrency)?.available ?? '0'
+  const projectedBalance = decimalAdd([currentBalance, balanceAmount || '0'], currencyPrecision(balanceCurrency))
 
   const fetchData = useCallback(async (silent = false) => {
     if (!canView) {
@@ -263,7 +263,7 @@ export function SuppliersPage() {
 
     try {
       await fundSupplierBalance(selectedSupplier.id, {
-        amount: Number(fundingForm.amount),
+        amount: fundingForm.amount,
         currency: fundingForm.currency,
         transaction_date: fundingForm.transaction_date,
         payment_method: fundingForm.payment_method as 'bank_transfer' | 'cash' | 'card' | 'gateway' | 'other',
@@ -290,7 +290,7 @@ export function SuppliersPage() {
 
     try {
       await adjustSupplierBalance(selectedSupplier.id, {
-        amount: Number(adjustmentForm.amount),
+        amount: adjustmentForm.amount,
         currency: adjustmentForm.currency,
         reason: adjustmentForm.reason,
         transaction_date: adjustmentForm.transaction_date,
@@ -437,7 +437,7 @@ export function SuppliersPage() {
                       <td>
                         <div className={styles.supplierBalanceList}>
                           {(supplier.balances ?? []).map((balance) => (
-                            <span key={balance.currency} className={Number(balance.available) < 0 ? styles.negativeBalanceValue : undefined} dir="ltr">
+                            <span key={balance.currency} className={decimalCompare(balance.available, 0) < 0 ? styles.negativeBalanceValue : undefined} dir="ltr">
                               {balance.currency} {balance.available}
                             </span>
                           ))}
@@ -461,9 +461,9 @@ export function SuppliersPage() {
                     <div><dt>{labels.type}</dt><dd>{supplier.type}</dd></div>
                     <div><dt>{labels.linkedCompany}</dt><dd>{supplier.linked_company?.name ?? '—'}</dd></div>
                     <div><dt>{labels.linkedUser}</dt><dd>{supplier.linked_user?.name ?? '—'}</dd></div>
-                    <div><dt>{labels.balances}</dt><dd><div className={styles.supplierBalanceList}>{(supplier.balances ?? []).map((balance) => <span key={balance.currency} className={Number(balance.available) < 0 ? styles.negativeBalanceValue : undefined} dir="ltr">{balance.currency} {balance.available}</span>)}{!(supplier.balances ?? []).length ? '—' : null}</div></dd></div>
+                    <div><dt>{labels.balances}</dt><dd><div className={styles.supplierBalanceList}>{(supplier.balances ?? []).map((balance) => <span key={balance.currency} className={decimalCompare(balance.available, 0) < 0 ? styles.negativeBalanceValue : undefined} dir="ltr">{formatCurrencyAmount(balance.available, balance.currency, locale)}</span>)}{!(supplier.balances ?? []).length ? '—' : null}</div></dd></div>
                   </dl>
-                  {(supplier.balances ?? []).filter((balance) => Number(balance.available) < 0).map((balance) => (
+                  {(supplier.balances ?? []).filter((balance) => decimalCompare(balance.available, 0) < 0).map((balance) => (
                     <p key={balance.currency} className={styles.supplierNegativeWarning} role="alert">
                       {labels.negativeBalance.replace('{currency}', balance.currency).replace('{amount}', balance.available)}
                     </p>
@@ -570,7 +570,7 @@ export function SuppliersPage() {
                 <div className={cn(styles.formGrid, styles.supplierAmountCurrencyGrid)}>
                   <label className={styles.formField}>
                     <span>{copy.amount}</span>
-                    <input type="number" min="0.01" step="0.01" value={fundingForm.amount} onChange={(event) => setFundingForm((current) => ({ ...current, amount: event.target.value }))} required />
+                    <input type="number" min={currencyStep(fundingForm.currency)} step={currencyStep(fundingForm.currency)} value={fundingForm.amount} onChange={(event) => setFundingForm((current) => ({ ...current, amount: event.target.value }))} required />
                   </label>
                   <label className={styles.formField}>
                     <span>{copy.currency}</span>
@@ -586,7 +586,7 @@ export function SuppliersPage() {
                   </div>
                   <div>
                     <span>{labels.fundingAmount}</span>
-                    <strong dir="ltr">{formatSupplierAmount(normalizedBalanceAmount, balanceCurrency, locale)}</strong>
+                    <strong dir="ltr">{formatSupplierAmount(balanceAmount || '0', balanceCurrency, locale)}</strong>
                   </div>
                   <div>
                     <span>{labels.balanceAfterFunding}</span>
@@ -631,7 +631,7 @@ export function SuppliersPage() {
                 <div className={cn(styles.formGrid, styles.supplierAmountCurrencyGrid)}>
                   <label className={styles.formField}>
                     <span>{labels.adjustmentAmount}</span>
-                    <input type="number" step="0.01" value={adjustmentForm.amount} onChange={(event) => setAdjustmentForm((current) => ({ ...current, amount: event.target.value }))} required />
+                    <input type="number" step={currencyStep(adjustmentForm.currency)} value={adjustmentForm.amount} onChange={(event) => setAdjustmentForm((current) => ({ ...current, amount: event.target.value }))} required />
                     <p className={styles.fieldHint}>{locale === 'ar' ? 'استخدم قيمة موجبة للإضافة وسالبة للخصم.' : 'Use a positive amount to add funds and a negative amount to reduce them.'}</p>
                   </label>
                   <label className={styles.formField}>
@@ -641,20 +641,20 @@ export function SuppliersPage() {
                     </select>
                   </label>
                 </div>
-                <div className={cn(styles.supplierBalancePanel, balanceSupplier && projectedBalance < 0 && styles.supplierBalancePanelNegative)} role="status">
+                <div className={cn(styles.supplierBalancePanel, balanceSupplier && decimalCompare(projectedBalance, 0) < 0 && styles.supplierBalancePanelNegative)} role="status">
                   <div>
                     <span>{labels.currentBalance}</span>
                     <strong dir="ltr">{isBalanceLoading && !balanceSupplier ? labels.loadingBalance : formatSupplierAmount(currentBalance, balanceCurrency, locale)}</strong>
                   </div>
                   <div>
                     <span>{labels.adjustmentAmount}</span>
-                    <strong dir="ltr">{formatSupplierAmount(normalizedBalanceAmount, balanceCurrency, locale)}</strong>
+                    <strong dir="ltr">{formatSupplierAmount(balanceAmount || '0', balanceCurrency, locale)}</strong>
                   </div>
                   <div>
                     <span>{labels.balanceAfterAdjustment}</span>
                     <strong dir="ltr">{formatSupplierAmount(projectedBalance, balanceCurrency, locale)}</strong>
                   </div>
-                  {balanceSupplier && projectedBalance < 0 ? <p>{labels.projectedNegativeBalance}</p> : null}
+                  {balanceSupplier && decimalCompare(projectedBalance, 0) < 0 ? <p>{labels.projectedNegativeBalance}</p> : null}
                   {balanceError ? <p>{balanceError}</p> : null}
                 </div>
                 <label className={styles.formField}>
@@ -697,7 +697,7 @@ export function SuppliersPage() {
             {supplier.name}
           </Link>
           <small dir="ltr">{supplier.reference}</small>
-          {(supplier.balances ?? []).filter((balance) => Number(balance.available) < 0).map((balance) => (
+          {(supplier.balances ?? []).filter((balance) => decimalCompare(balance.available, 0) < 0).map((balance) => (
             <small key={balance.currency} className={styles.supplierNegativeInline} role="alert">
               {labels.negativeBalance.replace('{currency}', balance.currency).replace('{amount}', balance.available)}
             </small>
@@ -710,11 +710,12 @@ export function SuppliersPage() {
   function SupplierActions({ supplier }: { supplier: SupplierRecord }) {
     return (
       <div className={styles.rowActions}>
-        <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.iconButton} aria-label={copy.view}><Eye aria-hidden="true" /></Link>
-        {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => openEdit(supplier)} aria-label={copy.edit}><PenLine aria-hidden="true" /></button> : null}
-        {canFund ? <button type="button" className={styles.iconButton} onClick={() => openFunding(supplier)} aria-label={labels.fund}><BanknoteArrowDown aria-hidden="true" /></button> : null}
-        {canAdjust ? <button type="button" className={styles.iconButton} onClick={() => openAdjustment(supplier)} aria-label={labels.adjust}><CircleDollarSign aria-hidden="true" /></button> : null}
-        {canDelete ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => { setSelectedSupplier(supplier); setDialogMode('delete') }} aria-label={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
+        <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.iconButton} aria-label={copy.view} title={copy.view}><Eye aria-hidden="true" /></Link>
+        <Link href={`/dashboard/suppliers/${supplier.id}/statement`} className={styles.iconButton} aria-label={copy.supplierAccountStatement || 'Account Statement'} title={copy.supplierAccountStatement || 'Account Statement'}><FileText aria-hidden="true" /></Link>
+        {canUpdate ? <button type="button" className={styles.iconButton} onClick={() => openEdit(supplier)} aria-label={copy.edit} title={copy.edit}><PenLine aria-hidden="true" /></button> : null}
+        {canFund ? <button type="button" className={styles.iconButton} onClick={() => openFunding(supplier)} aria-label={labels.fund} title={labels.fund}><BanknoteArrowDown aria-hidden="true" /></button> : null}
+        {canAdjust ? <button type="button" className={styles.iconButton} onClick={() => openAdjustment(supplier)} aria-label={labels.adjust} title={labels.adjust}><CircleDollarSign aria-hidden="true" /></button> : null}
+        {canDelete ? <button type="button" className={cn(styles.iconButton, styles.dangerIconButton)} onClick={() => { setSelectedSupplier(supplier); setDialogMode('delete') }} aria-label={copy.delete} title={copy.delete}><Trash2 aria-hidden="true" /></button> : null}
       </div>
     )
   }
@@ -774,9 +775,6 @@ function cnDialog(mode: DialogMode) {
   return mode === 'delete' ? `${styles.employeeDialog}` : `${styles.employeeDialog} ${styles.companyDialog}`
 }
 
-function formatSupplierAmount(value: number, currency: string, locale: string) {
-  return `${currency} ${new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)}`
+function formatSupplierAmount(value: string | number, currency: string, locale: string) {
+  return formatCurrencyAmount(value, currency, locale)
 }

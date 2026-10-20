@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,10 +16,10 @@ class QuotationResource extends JsonResource
             'status'          => $this->status?->value,
             'currency'        => $this->currency,
 
-            'subtotal'        => $this->subtotal,
-            'discount_amount' => $this->discount_amount,
-            'tax_amount'      => $this->tax_amount,
-            'total_amount'    => $this->total_amount,
+            'subtotal'        => Money::normalize($this->subtotal, $this->currency),
+            'discount_amount' => Money::normalize($this->discount_amount, $this->currency),
+            'tax_amount'      => Money::normalize($this->tax_amount, $this->currency),
+            'total_amount'    => Money::normalize($this->total_amount, $this->currency),
 
             'issue_date'      => $this->issue_date?->toDateString(),
             'valid_until'     => $this->valid_until?->toDateString(),

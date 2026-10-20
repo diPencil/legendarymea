@@ -149,11 +149,11 @@ export interface InvoiceItemInput {
   service_end_date?: string | null
   booking_reference?: string | null
   supplier_id?: number | null
-  quantity: number
-  unit_price: number
-  purchase_unit_cost?: number | null
+  quantity: string
+  unit_price: string
+  purchase_unit_cost?: string | null
   purchase_currency?: string | null
-  exchange_rate?: number | null
+  exchange_rate?: string | null
   sort_order?: number
 }
 
@@ -192,8 +192,8 @@ export interface CreateInvoiceInput {
   currency: string
   issue_date?: string | null
   due_date?: string | null
-  discount_amount?: number | null
-  tax_amount?: number | null
+  discount_amount?: string | null
+  tax_amount?: string | null
   notes?: string | null
   internal_notes?: string | null
   terms?: string | null
@@ -210,8 +210,8 @@ export interface UpdateInvoiceInput {
   currency?: string
   issue_date?: string | null
   due_date?: string | null
-  discount_amount?: number | null
-  tax_amount?: number | null
+  discount_amount?: string | null
+  tax_amount?: string | null
   notes?: string | null
   internal_notes?: string | null
   terms?: string | null

@@ -22,7 +22,7 @@ export type OpportunityRecord = {
   name: string
   stage: OpportunityStage
   probability: number | null
-  estimated_value: number | null
+  estimated_value: string | null
   currency: string | null
   expected_close_date: string | null
   lost_reason: string | null
@@ -98,7 +98,7 @@ export type OpportunityCreateInput = {
   service_interest: ServiceInterest | null
   stage: OpportunityStage | null
   probability: number | null
-  estimated_value: number | null
+  estimated_value: string | null
   currency: string | null
   expected_close_date: string | null
   notes: string | null
@@ -110,7 +110,7 @@ export type OpportunityUpdateInput = {
   primary_contact_id: string | number | null
   service_interest: ServiceInterest | null
   probability: number | null
-  estimated_value: number | null
+  estimated_value: string | null
   currency: string | null
   expected_close_date: string | null
   notes: string | null

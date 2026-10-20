@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\CurrencyAmount;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -36,7 +37,7 @@ class StoreLeadRequest extends FormRequest
             'status' => ['nullable', 'string', Rule::enum(\App\Enums\LeadStatus::class), Rule::notIn([\App\Enums\LeadStatus::CONVERTED->value])],
             'priority' => ['nullable', 'string', Rule::enum(\App\Enums\LeadPriority::class)],
             'assigned_to' => 'nullable|exists:employees,id',
-            'estimated_value' => 'nullable|numeric|min:0',
+            'estimated_value' => ['nullable', 'numeric', 'min:0', new CurrencyAmount((string) $this->input('currency', 'AED'))],
             'currency' => 'nullable|string|size:3',
             'next_follow_up_at' => 'nullable|date',
             'notes' => 'nullable|string',

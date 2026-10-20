@@ -18,6 +18,7 @@ import {
 } from '@/lib/dashboard/leads'
 import { listCompanies, type CompanyRecord } from '@/lib/dashboard/companies'
 import { listCompanyContacts, type ContactRecord } from '@/lib/dashboard/contacts'
+import { currencyStep } from '@/lib/dashboard/currencies'
 import { listEmployeeManagers, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { DashboardApiError } from '@/lib/dashboard/api'
 import { listServiceInterestOptions, serviceInterestLabel, type ServiceInterestOption } from '@/lib/dashboard/service-interest'
@@ -136,7 +137,7 @@ export function LeadConversionDialog({ lead, onClose, onSuccess }: LeadConversio
         stage: opportunityData.stage,
         owner_id: opportunityData.owner_id,
         probability: opportunityData.probability ? Number(opportunityData.probability) : null,
-        estimated_value: opportunityData.estimated_value ? Number(opportunityData.estimated_value) : null,
+        estimated_value: opportunityData.estimated_value || null,
         currency: opportunityData.currency || null,
         expected_close_date: opportunityData.expected_close_date || null,
         service_interest: (opportunityData.service_interest as ServiceInterest) || null,
@@ -359,7 +360,7 @@ export function LeadConversionDialog({ lead, onClose, onSuccess }: LeadConversio
               </label>
               <label className={styles.formField}>
                 <span>{copy.estimatedValue}</span>
-                <input type="number" dir="ltr" step="0.01" value={opportunityData.estimated_value} onChange={e => setOpportunityData({...opportunityData, estimated_value: e.target.value})} />
+                <input type="number" dir="ltr" step={currencyStep(opportunityData.currency || 'AED')} value={opportunityData.estimated_value} onChange={e => setOpportunityData({...opportunityData, estimated_value: e.target.value})} />
                 {getFieldError('estimated_value')}
               </label>
               <label className={styles.formField}>

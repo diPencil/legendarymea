@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\CurrencyAmount;
 use App\Enums\ContractStatus;
 use App\Enums\CurrencyCode;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,7 +28,7 @@ class UpdateContractRequest extends FormRequest
             'end_date'       => ['nullable', 'date', 'after_or_equal:start_date'],
             'signed_at'      => ['nullable', 'date'],
             
-            'contract_value' => ['nullable', 'numeric', 'min:0'],
+            'contract_value' => ['nullable', 'numeric', 'min:0', new CurrencyAmount((string) $this->input('currency', $this->route('contract')?->currency ?? 'AED'))],
             'currency'       => [
                 'nullable', 
                 'string', 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Support\Decimal;
+use App\Support\Money;
 use App\Enums\ContractStatus;
 use App\Enums\EmailStatus;
 use App\Enums\LeadStatus;
@@ -170,15 +172,20 @@ class DashboardOverviewController extends Controller
                 $query->where('currency', $currency);
             }
 
-            $revenue = (float) $query->sum('amount');
+            $revenue = $query->pluck('amount')->reduce(
+                fn (string $total, mixed $amount) => Money::add($total, $amount, $currency ?? 'AED'),
+                Money::normalize(0, $currency ?? 'AED')
+            );
             $count = (int) (clone $query)->count();
 
             return [
                 'key' => $from->format('Y-m'),
                 'label' => $from->format('M'),
-                'revenue' => round($revenue, 2),
+                'revenue' => $revenue,
                 'count' => $count,
-                'average' => $count > 0 ? round($revenue / $count, 2) : 0,
+                'average' => $count > 0
+                    ? Decimal::normalize(Decimal::divide($revenue, $count, Money::precision($currency ?? 'AED')), Money::precision($currency ?? 'AED'))
+                    : Money::normalize(0, $currency ?? 'AED'),
             ];
         })->values()->all();
 

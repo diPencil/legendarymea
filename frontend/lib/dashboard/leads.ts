@@ -26,7 +26,7 @@ export type LeadRecord = {
   status: LeadStatus
   priority: LeadPriority | null
   assigned_to: number | null
-  estimated_value: number | null
+  estimated_value: string | null
   currency: string | null
   next_follow_up_at: string | null
   notes: string | null
@@ -86,7 +86,7 @@ export type LeadInput = {
   status: EditableLeadStatus | null
   priority: LeadPriority | null
   assigned_to: number | null
-  estimated_value: number | null
+  estimated_value: string | null
   currency: string | null
   next_follow_up_at: string | null
   notes: string | null
@@ -179,7 +179,7 @@ export type ConvertLeadOpportunityInput = {
   owner_id?: number | null
   stage?: ConvertOpportunityStage
   probability?: number | null
-  estimated_value?: number | null
+  estimated_value?: string | null
   currency?: string | null
   expected_close_date?: string | null
   service_interest?: ServiceInterest | null

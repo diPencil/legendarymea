@@ -540,9 +540,11 @@ export function DashboardOpportunitiesPage() {
     return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'medium' }).format(new Date(value))
   }
 
-  function formatValue(value: number | null, currency: string | null) {
-    if (value === null) return '-'
-    return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: currency || 'USD' }).format(value)
+  function formatValue(value: string | number | null, currency: string | null) {
+    if (value === null || value === undefined || value === '') return '-'
+    const num = Number(value)
+    if (Number.isNaN(num)) return String(value)
+    return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: currency || 'USD' }).format(num)
   }
 
   function ownerLabel(owner: OpportunityRecord['owner']) {

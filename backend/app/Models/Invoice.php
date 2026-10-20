@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\InvoiceCustomerType;
 use App\Enums\InvoiceStatus;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,12 +50,12 @@ class Invoice extends Model
         'status' => InvoiceStatus::class,
         'issue_date' => 'date',
         'due_date' => 'date',
-        'subtotal' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-        'supplier_total_cost' => 'decimal:2',
-        'gross_profit' => 'decimal:2',
+        'subtotal' => 'decimal:3',
+        'discount_amount' => 'decimal:3',
+        'tax_amount' => 'decimal:3',
+        'total_amount' => 'decimal:3',
+        'supplier_total_cost' => 'decimal:3',
+        'gross_profit' => 'decimal:3',
         'gross_margin' => 'decimal:4',
     ];
 
@@ -98,19 +99,37 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
+    }
+
     public function postedPaymentsTotal(): string
     {
-        $amount = (float) $this->payments()
-            ->where('status', 'posted')
-            ->sum('amount');
+        if ($this->allocations()->exists()) {
+            return $this->allocations()
+                ->whereNull('reversed_at')
+                ->whereHas('payment', fn ($q) => $q->where('status', 'posted'))
+                ->pluck('amount')
+                ->reduce(
+                    fn (string $total, mixed $amount) => Money::add($total, $amount, $this->currency),
+                    Money::normalize(0, $this->currency)
+                );
+        }
 
-        return number_format($amount, 2, '.', '');
+        return $this->payments()
+            ->where('status', 'posted')
+            ->pluck('amount')
+            ->reduce(
+                fn (string $total, mixed $amount) => Money::add($total, $amount, $this->currency),
+                Money::normalize(0, $this->currency)
+            );
     }
 
     public function balanceDue(): string
     {
-        $balance = max(0, ((float) $this->total_amount) - ((float) $this->postedPaymentsTotal()));
+        $balance = Money::subtract($this->total_amount, $this->postedPaymentsTotal(), $this->currency);
 
-        return number_format($balance, 2, '.', '');
+        return Money::compare($balance, 0) < 0 ? Money::normalize(0, $this->currency) : $balance;
     }
 }

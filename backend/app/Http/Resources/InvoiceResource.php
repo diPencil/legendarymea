@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -97,11 +98,11 @@ class InvoiceResource extends JsonResource
             }),
             'supplier_total_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => $this->supplier_total_cost
+                fn () => Money::normalize($this->supplier_total_cost, $this->currency)
             ),
             'gross_profit' => $this->when(
                 $canViewProfit,
-                fn () => $this->gross_profit
+                fn () => Money::normalize($this->gross_profit, $this->currency)
             ),
             'gross_margin' => $this->when(
                 $canViewProfit,

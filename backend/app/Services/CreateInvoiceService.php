@@ -32,18 +32,19 @@ class CreateInvoiceService
         $this->validateSuppliers($data['items']);
 
         return DB::transaction(function () use ($data, $creatorId) {
-            $discountFloat = (float) ($data['discount_amount'] ?? 0);
-            $taxFloat = (float) ($data['tax_amount'] ?? 0);
+            $discount = (string) ($data['discount_amount'] ?? 0);
+            $tax = (string) ($data['tax_amount'] ?? 0);
             $currency = strtoupper($data['currency']);
             $lineCalculation = $this->calculator->calculateItems($data['items'], $currency);
             $totals = $this->calculator->calculateInvoiceTotals(
                 $lineCalculation['subtotal'],
                 $lineCalculation['supplier_total_cost'],
-                $discountFloat,
-                $taxFloat
+                $discount,
+                $tax,
+                $currency
             );
 
-            if ((float) $totals['total_amount'] < 0) {
+            if (\App\Support\Money::compare($totals['total_amount'], 0) < 0) {
                 throw ValidationException::withMessages([
                     'discount_amount' => ['Total amount cannot be negative.'],
                 ]);

@@ -211,7 +211,7 @@ class SupplierApiTest extends TestCase
             ->assertJsonPath('data.direction', 'debit')
             ->assertJsonPath('data.balance_after', '750.00');
 
-        $this->assertSame('750.00', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('750.000', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
         $this->assertSame(2, SupplierLedgerEntry::where('supplier_id', $supplier->id)->where('type', SupplierLedgerType::ADJUSTMENT)->count());
         $this->assertDatabaseHas('supplier_ledger_entries', ['supplier_id' => $supplier->id, 'notes' => 'Correct duplicated credit']);
     }

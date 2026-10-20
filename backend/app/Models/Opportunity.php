@@ -33,7 +33,7 @@ class Opportunity extends Model
 
     protected $casts = [
         'expected_close_date' => 'date',
-        'estimated_value' => 'decimal:2',
+        'estimated_value' => 'decimal:3',
         'probability' => 'integer',
         'stage' => OpportunityStage::class,
         'closed_at' => 'datetime',

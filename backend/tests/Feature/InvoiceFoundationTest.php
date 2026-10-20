@@ -56,7 +56,7 @@ class InvoiceFoundationTest extends TestCase
         $this->assertEquals(InvoiceStatus::DRAFT, $invoice->status);
         
         $this->assertIsString($invoice->subtotal);
-        $this->assertEquals('1000.50', $invoice->subtotal);
+        $this->assertEquals('1000.500', $invoice->subtotal);
     }
 
     public function test_invoice_relationships()
@@ -99,9 +99,9 @@ class InvoiceFoundationTest extends TestCase
             'description' => 'Test Item',
         ]);
 
-        $this->assertEquals('2.50', $item->quantity);
-        $this->assertEquals('100.0000', $item->unit_price);
-        $this->assertEquals('250.0000', $item->line_total);
+        $this->assertEquals('2.500', $item->quantity);
+        $this->assertEquals('100.000', $item->unit_price);
+        $this->assertEquals('250.000', $item->line_total);
 
         $this->assertTrue($invoice->items->contains($item));
         $this->assertEquals($invoice->id, $item->invoice->id);

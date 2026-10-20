@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\LegendaryContractTemplate;
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class ContractResource extends JsonResource
             'start_date'     => $this->start_date?->format('Y-m-d'),
             'end_date'       => $this->end_date?->format('Y-m-d'),
             'signed_at'      => $this->signed_at?->toIso8601String(),
-            'contract_value' => $this->contract_value,
+            'contract_value' => $this->contract_value !== null ? Money::normalize($this->contract_value, $this->currency ?? 'AED') : null,
             'currency'       => $this->currency,
             'terms'          => $this->terms,
             'notes'          => $this->notes,
@@ -61,7 +62,7 @@ class ContractResource extends JsonResource
                     'id'           => $this->quotation->id,
                     'reference'    => $this->quotation->reference,
                     'status'       => $this->quotation->status,
-                    'total_amount' => $this->quotation->total_amount,
+                    'total_amount' => Money::normalize($this->quotation->total_amount, $this->quotation->currency),
                     'currency'     => $this->quotation->currency,
                 ];
             }),

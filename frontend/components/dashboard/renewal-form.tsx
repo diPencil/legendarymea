@@ -11,11 +11,11 @@ import { listContracts, type ContractRecord } from '@/lib/dashboard/contracts'
 import { listActiveServices, type ActiveService } from '@/lib/dashboard/active-services'
 import { listEmployees, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { createRenewal, updateRenewal, type RenewalRecord } from '@/lib/dashboard/renewals'
+import { currencyStep, SUPPORTED_CURRENCIES } from '@/lib/dashboard/currencies'
 import { cn } from '@/lib/utils'
 import styles from '@/components/dashboard/dashboard.module.css'
 
 type FieldErrors = Record<string, string[]>
-const CURRENCIES = ['AED', 'SAR', 'USD', 'EUR', 'GBP', 'KWD', 'BHD', 'QAR', 'OMR', 'EGP', 'JOD', 'LBP', 'MAD', 'TND', 'DZD']
 
 export function RenewalForm({
   renewal,
@@ -97,7 +97,7 @@ export function RenewalForm({
       renewal_due_date: renewalDueDate,
       proposed_start_date: proposedStartDate || null,
       proposed_end_date: proposedEndDate || null,
-      renewal_amount: renewalAmount ? Number(renewalAmount) : null,
+      renewal_amount: renewalAmount || null,
       currency: currency || null,
       assigned_to: assignedTo ? Number(assignedTo) : null,
       notes: notes || null,
@@ -177,7 +177,7 @@ export function RenewalForm({
                 </label>
                 <label className={styles.formField}>
                   <span>{copy.renewalAmount}</span>
-                  <input type="number" min="0" step="0.01" value={renewalAmount} onChange={(event) => setRenewalAmount(event.target.value)} />
+                  <input type="number" min="0" step={currencyStep(currency || 'AED')} value={renewalAmount} onChange={(event) => setRenewalAmount(event.target.value)} />
                 </label>
                 <CurrencySelect
                   label={copy.currency}
@@ -254,7 +254,7 @@ function CurrencySelect({
                     <Check aria-hidden="true" />
                   </Select.ItemIndicator>
                 </Select.Item>
-                {CURRENCIES.map((option) => (
+                {SUPPORTED_CURRENCIES.map((option) => (
                   <Select.Item key={option} value={option} className={styles.selectItem}>
                     <Select.ItemText>{option}</Select.ItemText>
                     <Select.ItemIndicator className={styles.selectItemIndicator}>

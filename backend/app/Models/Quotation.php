@@ -36,10 +36,10 @@ class Quotation extends Model
         'status' => QuotationStatus::class,
         'issue_date' => 'date',
         'valid_until' => 'date',
-        'subtotal' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'subtotal' => 'decimal:3',
+        'discount_amount' => 'decimal:3',
+        'tax_amount' => 'decimal:3',
+        'total_amount' => 'decimal:3',
     ];
 
     public function creator(): BelongsTo

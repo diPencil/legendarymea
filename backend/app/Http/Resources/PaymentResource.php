@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,19 +15,22 @@ class PaymentResource extends JsonResource
             'reference' => $this->reference,
             'customer_type' => $this->customer_type->value,
             'status' => $this->status->value,
-            'amount' => $this->amount,
+            'amount' => Money::normalize($this->amount, $this->currency),
+            'allocated_amount' => Money::normalize($this->allocated_amount ?? $this->amount, $this->currency),
+            'unallocated_amount' => Money::normalize($this->unallocated_amount ?? 0, $this->currency),
             'currency' => $this->currency,
             'method' => $this->method->value,
             'transaction_reference' => $this->transaction_reference,
             'paid_at' => $this->paid_at?->toIso8601String(),
             'notes' => $this->notes,
+            'allocations' => PaymentAllocationResource::collection($this->whenLoaded('allocations')),
             'invoice' => $this->whenLoaded('invoice', function () {
                 return $this->invoice ? [
                     'id' => $this->invoice->id,
                     'reference' => $this->invoice->reference,
                     'status' => $this->invoice->status->value,
                     'currency' => $this->invoice->currency,
-                    'total_amount' => $this->invoice->total_amount,
+                    'total_amount' => Money::normalize($this->invoice->total_amount, $this->invoice->currency),
                     'paid_amount' => $this->invoice->postedPaymentsTotal(),
                     'balance_due' => $this->invoice->balanceDue(),
                 ] : null;

@@ -10,6 +10,7 @@ import { listEmployeeManagers, type EmployeeRecord } from '@/lib/dashboard/emplo
 import { listLeads, type LeadRecord } from '@/lib/dashboard/leads'
 import { listServiceInterestOptions, serviceInterestLabel, type ServiceInterest, type ServiceInterestOption } from '@/lib/dashboard/service-interest'
 import styles from './dashboard.module.css'
+import { currencyStep } from '@/lib/dashboard/currencies'
 
 export type DialogMode = 'create' | 'edit'
 type FieldErrors = Record<string, string[]>
@@ -250,7 +251,7 @@ export function OpportunityForm({ mode, opportunity, onClose, onSuccess }: Oppor
 
         <label className={styles.formField}>
           <span>{copy.estimatedValue} <em>{copy.optional}</em></span>
-          <input type="number" step="0.01" value={form.estimated_value ?? ''} onChange={(e) => setForm({ ...form, estimated_value: e.target.value ? Number(e.target.value) : null })} dir="ltr" />
+          <input type="number" step={currencyStep(form.currency ?? 'AED')} value={form.estimated_value ?? ''} onChange={(e) => setForm({ ...form, estimated_value: e.target.value || null })} dir="ltr" />
           {fieldErrors.estimated_value?.[0] && <small className={styles.fieldError}>{fieldErrors.estimated_value[0]}</small>}
         </label>
 

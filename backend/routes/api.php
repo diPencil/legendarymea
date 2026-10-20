@@ -96,6 +96,11 @@ Route::prefix('v1')->group(function () {
         
         // Companies
         Route::apiResource('companies', CompanyController::class);
+        Route::get('companies/{company}/statement', [\App\Http\Controllers\Api\V1\CompanyStatementController::class, 'show']);
+        Route::get('companies/{company}/statement/currencies', [\App\Http\Controllers\Api\V1\CompanyStatementController::class, 'currencies']);
+        Route::get('companies/{company}/statement/print', [\App\Http\Controllers\Api\V1\CompanyStatementController::class, 'print']);
+        Route::get('companies/{company}/statement/pdf', [\App\Http\Controllers\Api\V1\CompanyStatementController::class, 'downloadPdf']);
+        Route::get('companies/{company}/statement/excel', [\App\Http\Controllers\Api\V1\CompanyStatementController::class, 'downloadExcel']);
         Route::post('companies/{company}/account-manager', [CompanyController::class, 'accountManager']);
         Route::post('companies/{company}/portal/resend-invite', [CompanyController::class, 'resendPortalInvite']);
         Route::post('companies/{company}/portal/reset-password', [CompanyController::class, 'resetPortalPassword']);
@@ -183,8 +188,13 @@ Route::prefix('v1')->group(function () {
         Route::post('invoices/{invoice}/issue', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'issue']);
         Route::post('invoices/{invoice}/cancel', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'cancel']);
         Route::post('invoices/{invoice}/mark-overdue', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'markOverdue']);
+        Route::get('payments/outstanding-invoices', [PaymentController::class, 'outstandingInvoices']);
+        Route::get('payments/available-credits', [PaymentController::class, 'availableCredits']);
         Route::apiResource('payments', PaymentController::class)->only(['index', 'store', 'show']);
         Route::post('payments/{payment}/reverse', [PaymentController::class, 'reverse']);
+        Route::get('payments/{payment}/allocations', [PaymentController::class, 'allocations']);
+        Route::post('payments/{payment}/apply-credit', [PaymentController::class, 'applyCredit']);
+        Route::post('payment-allocations/{allocation}/reverse', [PaymentController::class, 'reverseAllocation']);
         Route::apiResource('renewals', RenewalController::class);
         Route::post('renewals/{renewal}/mark-due', [RenewalController::class, 'markDue']);
         Route::post('renewals/{renewal}/complete', [RenewalController::class, 'complete']);
@@ -193,6 +203,11 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('suppliers', SupplierController::class);
         Route::post('suppliers/{supplier}/fund', [SupplierController::class, 'fund']);
         Route::post('suppliers/{supplier}/adjust', [SupplierController::class, 'adjust']);
+        Route::get('suppliers/{supplier}/statement', [\App\Http\Controllers\Api\V1\SupplierStatementController::class, 'show']);
+        Route::get('suppliers/{supplier}/statement/currencies', [\App\Http\Controllers\Api\V1\SupplierStatementController::class, 'currencies']);
+        Route::get('suppliers/{supplier}/statement/print', [\App\Http\Controllers\Api\V1\SupplierStatementController::class, 'print']);
+        Route::get('suppliers/{supplier}/statement/pdf', [\App\Http\Controllers\Api\V1\SupplierStatementController::class, 'downloadPdf']);
+        Route::get('suppliers/{supplier}/statement/excel', [\App\Http\Controllers\Api\V1\SupplierStatementController::class, 'downloadExcel']);
         Route::prefix('finance-reports')->group(function () {
             Route::get('overview', [FinanceReportController::class, 'overview']);
             Route::get('cash-flow', [FinanceReportController::class, 'cashFlow']);

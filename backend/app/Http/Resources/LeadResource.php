@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -29,7 +30,7 @@ class LeadResource extends JsonResource
             'status' => $this->status,
             'priority' => $this->priority,
             'assigned_to' => $this->assigned_to,
-            'estimated_value' => $this->estimated_value,
+            'estimated_value' => $this->estimated_value !== null ? Money::normalize($this->estimated_value, $this->currency ?? 'AED') : null,
             'currency' => $this->currency,
             'next_follow_up_at' => $this->next_follow_up_at,
             'notes' => $this->notes,

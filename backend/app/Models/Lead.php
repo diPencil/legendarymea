@@ -15,7 +15,7 @@ class Lead extends Model
         'status' => \App\Enums\LeadStatus::class,
         'priority' => \App\Enums\LeadPriority::class,
         'source' => \App\Enums\LeadSource::class,
-        'estimated_value' => 'decimal:2',
+        'estimated_value' => 'decimal:3',
         'next_follow_up_at' => 'datetime',
         'converted_at' => 'datetime',
     ];

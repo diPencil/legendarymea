@@ -47,7 +47,7 @@ export interface ContractRecord {
   end_date: string | null
   signed_at: string | null
   
-  contract_value: number | null
+  contract_value: string | null
   currency: string | null
   
   terms: string | null
@@ -106,7 +106,7 @@ export interface ContractStorePayload {
   start_date?: string | null
   end_date?: string | null
   signed_at?: string | null
-  contract_value?: number | null
+  contract_value?: string | null
   currency?: string | null
   terms?: string | null
   notes?: string | null
@@ -128,7 +128,7 @@ export interface ContractUpdatePayload {
   start_date?: string | null
   end_date?: string | null
   signed_at?: string | null
-  contract_value?: number | null
+  contract_value?: string | null
   currency?: string | null
   terms?: string | null
   notes?: string | null

@@ -47,7 +47,7 @@ class Contract extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'signed_at' => 'datetime',
-        'contract_value' => 'decimal:2',
+        'contract_value' => 'decimal:3',
         'contract_content' => 'array',
         'first_party_date' => 'date',
         'second_party_date' => 'date',

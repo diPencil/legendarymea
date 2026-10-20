@@ -19,6 +19,7 @@ import { listContacts, type ContactRecord } from '@/lib/dashboard/contacts'
 import { listQuotations, type Quotation } from '@/lib/dashboard/quotations'
 import { cn } from '@/lib/utils'
 import styles from '@/components/dashboard/dashboard.module.css'
+import { currencyStep } from '@/lib/dashboard/currencies'
 
 type FieldErrors = Record<string, string[]>
 
@@ -304,7 +305,7 @@ export function ContractForm({
     payload.start_date = startDate || null
     payload.end_date = endDate || null
     payload.signed_at = signedAt ? new Date(signedAt).toISOString() : null
-    payload.contract_value = contractValue ? parseFloat(contractValue) : null
+    payload.contract_value = contractValue || null
     payload.currency = currency || null
     payload.terms = terms || null
     payload.notes = notes || null
@@ -533,7 +534,7 @@ export function ContractForm({
                   value={contractValue}
                   onChange={(event) => setContractValue(event.target.value)}
                   min="0"
-                  step="0.01"
+                  step={currencyStep(currency || 'AED')}
                   aria-invalid={Boolean(errors.contract_value)}
                 />
                 <FieldError name="contract_value" errors={errors} />

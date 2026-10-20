@@ -12,6 +12,7 @@ import { ManagementPage, ManagementPageHeader, ManagementToolbar, ManagementSear
 import { DashboardState, DashboardLoading } from '@/components/dashboard/dashboard-states'
 import { ContractForm } from '@/components/dashboard/contract-form'
 import styles from '@/components/dashboard/dashboard.module.css'
+import { formatCurrencyAmount } from '@/lib/dashboard/format'
 import {
   getContract,
   listContracts,
@@ -369,7 +370,7 @@ export function ContractsPage() {
                           </Link>
                         </td>
                         <td><StatusBadge status={contract.status} label={statusLabel(contract.status, copy)} /></td>
-                        <td dir="ltr">{contract.contract_value !== null ? `${contract.currency} ${formatMoney(contract.contract_value)}` : '-'}</td>
+                        <td dir="ltr">{contract.contract_value !== null ? formatCurrencyAmount(contract.contract_value, contract.currency ?? 'AED', locale) : '-'}</td>
                         <td dir="ltr">
                           {contract.start_date || '?'} &rarr; {contract.end_date || '...'}
                         </td>
@@ -402,7 +403,7 @@ export function ContractsPage() {
                     <dl>
                       <div><dt>{copy.contractReference}</dt><dd dir="ltr">{contract.reference}</dd></div>
                       <div><dt>{copy.contractTitle}</dt><dd>{contract.title}</dd></div>
-                      <div><dt>{copy.contractValue}</dt><dd dir="ltr">{contract.contract_value !== null ? `${contract.currency} ${formatMoney(contract.contract_value)}` : '-'}</dd></div>
+                      <div><dt>{copy.contractValue}</dt><dd dir="ltr">{contract.contract_value !== null ? formatCurrencyAmount(contract.contract_value, contract.currency ?? 'AED', locale) : '-'}</dd></div>
                       <div><dt>{copy.contractPeriod}</dt><dd dir="ltr">{contract.start_date || '?'} &rarr; {contract.end_date || '...'}</dd></div>
                     </dl>
                     <div className={styles.rowActions}>
@@ -550,12 +551,6 @@ function StatusBadge({ status, label }: { status: ContractStatus; label: string 
       {label}
     </span>
   )
-}
-
-function formatMoney(num: number | string | null | undefined): string {
-  const parsed = typeof num === 'string' ? parseFloat(num) : num
-  if (parsed == null || Number.isNaN(parsed)) return '-'
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parsed)
 }
 
 function formatDate(iso: string) {

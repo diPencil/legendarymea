@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +22,8 @@ class InvoiceItemResource extends JsonResource
             || $user?->hasAnyPermission(['view_purchase_cost', 'manage_invoices', 'view_finance_reports', 'manage_finance_reports']);
         $canViewProfit = $user?->hasRole('super_admin')
             || $user?->hasAnyPermission(['view_profit', 'manage_invoices', 'view_finance_reports', 'manage_finance_reports']);
+        $invoiceCurrency = $this->invoice?->currency ?? 'AED';
+        $purchaseCurrency = $this->purchase_currency ?? $invoiceCurrency;
 
         return [
             'id' => $this->id,
@@ -39,8 +42,8 @@ class InvoiceItemResource extends JsonResource
             'service_end_date' => $this->service_end_date?->format('Y-m-d'),
             'booking_reference' => $this->booking_reference,
             'quantity' => $this->quantity,
-            'unit_price' => $this->unit_price,
-            'line_total' => $this->line_total,
+            'unit_price' => Money::normalize($this->unit_price, $invoiceCurrency),
+            'line_total' => Money::normalize($this->line_total, $invoiceCurrency),
             'sort_order' => $this->sort_order,
             'supplier' => $this->when(
                 $canViewSupplier,
@@ -52,7 +55,7 @@ class InvoiceItemResource extends JsonResource
             ),
             'purchase_unit_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => $this->purchase_unit_cost
+                fn () => Money::normalize($this->purchase_unit_cost, $purchaseCurrency)
             ),
             'purchase_currency' => $this->when(
                 $canViewPurchaseCost,
@@ -64,15 +67,15 @@ class InvoiceItemResource extends JsonResource
             ),
             'converted_unit_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => $this->converted_unit_cost
+                fn () => Money::normalize($this->converted_unit_cost, $invoiceCurrency)
             ),
             'converted_line_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => $this->converted_line_cost
+                fn () => Money::normalize($this->converted_line_cost, $invoiceCurrency)
             ),
             'line_profit' => $this->when(
                 $canViewProfit,
-                fn () => $this->line_profit
+                fn () => Money::normalize($this->line_profit, $invoiceCurrency)
             ),
             'line_margin' => $this->when(
                 $canViewProfit,

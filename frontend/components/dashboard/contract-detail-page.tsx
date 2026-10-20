@@ -9,6 +9,7 @@ import { ArrowLeft, Download, ExternalLink, FileText, PenLine, Power, XCircle, C
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy } from '@/components/dashboard/copy'
+import { formatCurrencyAmount } from '@/lib/dashboard/format'
 import {
   getContract,
   activateContract,
@@ -185,7 +186,7 @@ export function ContractDetailPage({ id }: { id: string }) {
   const issuerPhone = settings?.contact?.phone?.trim() || settings?.contact?.whatsapp?.trim() || ''
   const issuerAddress = (locale === 'ar' ? settings?.contact?.address_ar : settings?.contact?.address_en)?.trim() || ''
   const contractCurrency = contract.currency ?? '-'
-  const contractValue = contract.contract_value !== null ? formatCurrencyValue(contractCurrency, contract.contract_value) : '-'
+  const contractValue = contract.contract_value !== null ? formatCurrencyAmount(contract.contract_value, contractCurrency, locale) : '-'
   const downloadPdfLabel = locale === 'ar' ? 'تنزيل PDF' : 'Download PDF'
 
   return (
@@ -584,16 +585,6 @@ function StatusBadge({ status, label }: { status: ContractStatus; label: string 
       {label}
     </span>
   )
-}
-
-function formatMoney(num: number | string): string {
-  const parsed = typeof num === 'string' ? parseFloat(num) : num
-  if (Number.isNaN(parsed)) return String(num)
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parsed)
-}
-
-function formatCurrencyValue(currency: string, value: number | string): string {
-  return `${currency} ${formatMoney(value)}`
 }
 
 function formatContractPeriod(startDate: string | null, endDate: string | null): string {

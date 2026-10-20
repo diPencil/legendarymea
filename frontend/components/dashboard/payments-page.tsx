@@ -3,17 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ChevronLeft, ChevronRight, ChevronsUpDown, Eye, Plus, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsUpDown, Coins, Eye, Plus, Search, X } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { useDashboardAuth } from '@/components/dashboard/auth-provider'
 import { dashboardCopy, type DashboardCopy } from '@/components/dashboard/copy'
 import { DashboardLoading, DashboardState } from '@/components/dashboard/dashboard-states'
 import { PaymentForm } from '@/components/dashboard/payment-form'
+import { ApplyCreditModal } from '@/components/dashboard/apply-credit-modal'
 import { canAccessPermission } from '@/lib/dashboard/permissions'
 import { listPayments, type PaymentListParams, type PaymentRecord, type PaymentStatus } from '@/lib/dashboard/payments'
 import type { PaginationMeta } from '@/lib/dashboard/companies'
 import { cn } from '@/lib/utils'
+import { decimalCompare } from '@/lib/dashboard/decimal'
 import styles from '@/components/dashboard/dashboard.module.css'
 
 type QueryParamUpdates = Partial<Record<'page' | 'per_page' | 'search' | 'status' | 'method' | 'currency' | 'paid_from' | 'paid_to' | 'sort_by' | 'sort_order', string>>
@@ -45,6 +47,8 @@ export function PaymentsPage() {
   const [notice, setNotice] = useState('')
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '')
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showApplyCreditModal, setShowApplyCreditModal] = useState(false)
+  const [selectedPaymentForCredit, setSelectedPaymentForCredit] = useState<PaymentRecord | null>(null)
 
   const canViewPayments = canAccessPermission(user, ['view_payments', 'manage_payments'])
   const canCreatePayments = canAccessPermission(user, ['create_payments', 'manage_payments'])
@@ -155,10 +159,24 @@ export function PaymentsPage() {
           <p>{copy.paymentsDescription}</p>
         </div>
         {canCreatePayments ? (
-          <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
-            <Plus aria-hidden="true" />
-            {copy.recordPayment}
-          </button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => {
+                setSelectedPaymentForCredit(null)
+                setShowApplyCreditModal(true)
+              }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Coins aria-hidden="true" size={16} />
+              {copy.applyExistingCredit}
+            </button>
+            <button type="button" className={styles.primaryButton} onClick={() => setShowCreateModal(true)}>
+              <Plus aria-hidden="true" />
+              {copy.recordPayment}
+            </button>
+          </div>
         ) : null}
       </section>
 
@@ -247,13 +265,43 @@ export function PaymentsPage() {
                     <tr key={payment.id}>
                       <td><PaymentCustomerIdentity payment={payment} /></td>
                       <td><Link href={`/dashboard/payments/${payment.id}`} className={styles.textLink} dir="ltr">{payment.reference}</Link></td>
-                      <td>{payment.invoice ? <span dir="ltr">{payment.invoice.reference}</span> : '—'}</td>
+                      <td>
+                        {payment.invoice ? (
+                          <span dir="ltr">{payment.invoice.reference}</span>
+                        ) : payment.company_id ? (
+                          <span className={styles.categoryBadge}>{copy.multiInvoiceBadge}</span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       <td><span className={cn(styles.statusBadge, payment.status === 'reversed' ? styles.status_lost : styles.status_active)}>{paymentStatusLabel(payment.status, copy)}</span></td>
-                      <td dir="ltr">{payment.currency} {payment.amount}</td>
+                      <td dir="ltr">
+                        <div>{payment.currency} {payment.amount}</div>
+                        {payment.unallocated_amount && decimalCompare(payment.unallocated_amount, '0') > 0 ? (
+                          <div className={styles.metaSubtext} style={{ color: 'var(--color-navy-light, #2563eb)' }}>
+                            {copy.unallocatedCreditShort}: {payment.currency} {payment.unallocated_amount}
+                          </div>
+                        ) : null}
+                      </td>
                       <td>{paymentMethodLabel(payment.method, copy)}</td>
                       <td dir="ltr">{formatDate(payment.paid_at)}</td>
                       <td>
                         <div className={styles.rowActions}>
+                          {canCreatePayments && payment.status === 'posted' && payment.unallocated_amount && decimalCompare(payment.unallocated_amount, '0') > 0 ? (
+                            <button
+                              type="button"
+                              className={styles.iconButton}
+                              onClick={() => {
+                                setSelectedPaymentForCredit(payment)
+                                setShowApplyCreditModal(true)
+                              }}
+                              title={copy.applyCredit}
+                              aria-label={copy.applyCredit}
+                              style={{ color: '#38bdf8' }}
+                            >
+                              <Coins size={16} aria-hidden="true" />
+                            </button>
+                          ) : null}
                           <Link href={`/dashboard/payments/${payment.id}`} className={styles.iconButton} aria-label={copy.view}>
                             <Eye aria-hidden="true" />
                           </Link>
@@ -274,12 +322,48 @@ export function PaymentsPage() {
                   </header>
                   <dl>
                     <div><dt>{copy.paymentReference}</dt><dd dir="ltr">{payment.reference}</dd></div>
-                    <div><dt>{copy.invoice}</dt><dd dir="ltr">{payment.invoice?.reference ?? '—'}</dd></div>
-                    <div><dt>{copy.amount}</dt><dd dir="ltr">{payment.currency} {payment.amount}</dd></div>
+                    <div>
+                      <dt>{copy.invoice}</dt>
+                      <dd dir="ltr">
+                        {payment.invoice ? (
+                          payment.invoice.reference
+                        ) : payment.company_id ? (
+                          copy.multiInvoiceBadge
+                        ) : (
+                          '—'
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{copy.amount}</dt>
+                      <dd dir="ltr">
+                        <div>{payment.currency} {payment.amount}</div>
+                        {payment.unallocated_amount && decimalCompare(payment.unallocated_amount, '0') > 0 ? (
+                          <div className={styles.metaSubtext} style={{ color: 'var(--color-navy-light, #2563eb)' }}>
+                            {copy.unallocatedCreditShort}: {payment.currency} {payment.unallocated_amount}
+                          </div>
+                        ) : null}
+                      </dd>
+                    </div>
                     <div><dt>{copy.method}</dt><dd>{paymentMethodLabel(payment.method, copy)}</dd></div>
                     <div><dt>{copy.paidAt}</dt><dd dir="ltr">{formatDate(payment.paid_at)}</dd></div>
                   </dl>
                   <div className={styles.rowActions}>
+                    {canCreatePayments && payment.status === 'posted' && payment.unallocated_amount && decimalCompare(payment.unallocated_amount, '0') > 0 ? (
+                      <button
+                        type="button"
+                        className={styles.iconButton}
+                        onClick={() => {
+                          setSelectedPaymentForCredit(payment)
+                          setShowApplyCreditModal(true)
+                        }}
+                        title={copy.applyCredit}
+                        aria-label={copy.applyCredit}
+                        style={{ color: '#38bdf8' }}
+                      >
+                        <Coins size={16} aria-hidden="true" />
+                      </button>
+                    ) : null}
                     <Link href={`/dashboard/payments/${payment.id}`} className={styles.iconButton} aria-label={copy.view}>
                       <Eye aria-hidden="true" />
                     </Link>
@@ -310,6 +394,20 @@ export function PaymentsPage() {
           }}
         />
       ) : null}
+
+      <ApplyCreditModal
+        isOpen={showApplyCreditModal}
+        onClose={() => {
+          setShowApplyCreditModal(false)
+          setSelectedPaymentForCredit(null)
+        }}
+        onSuccess={() => {
+          void fetchList(true)
+          setNotice(copy.creditAppliedSuccess)
+        }}
+        initialCompanyId={selectedPaymentForCredit?.company_id ?? null}
+        initialPaymentId={selectedPaymentForCredit?.id ?? null}
+      />
     </div>
   )
 

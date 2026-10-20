@@ -38,9 +38,9 @@ class SupplierLedgerEntry extends Model
         'type' => SupplierLedgerType::class,
         'direction' => SupplierLedgerDirection::class,
         'payment_method' => PaymentMethod::class,
-        'amount' => 'decimal:2',
-        'balance_before' => 'decimal:2',
-        'balance_after' => 'decimal:2',
+        'amount' => 'decimal:3',
+        'balance_before' => 'decimal:3',
+        'balance_after' => 'decimal:3',
         'transaction_date' => 'date',
     ];
 

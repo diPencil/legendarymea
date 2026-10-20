@@ -2,30 +2,38 @@
 
 namespace App\Services;
 
+use App\Support\Decimal;
+use App\Support\Money;
+
 class InvoiceFinanceCalculator
 {
     public function calculateItems(array $items, string $invoiceCurrency): array
     {
         $itemsToCreate = [];
-        $subtotal = 0.0;
-        $supplierTotalCost = 0.0;
+        $subtotal = Money::normalize(0, $invoiceCurrency);
+        $supplierTotalCost = Money::normalize(0, $invoiceCurrency);
 
         foreach ($items as $item) {
-            $quantity = (float) $item['quantity'];
-            $unitPrice = (float) $item['unit_price'];
-            $purchaseUnitCost = (float) ($item['purchase_unit_cost'] ?? 0);
+            $quantity = Decimal::normalize($item['quantity'], 3);
+            $unitPrice = Money::normalize($item['unit_price'], $invoiceCurrency);
             $purchaseCurrency = strtoupper($item['purchase_currency'] ?? $invoiceCurrency);
+            $purchaseUnitCost = Money::normalize($item['purchase_unit_cost'] ?? 0, $purchaseCurrency);
             $exchangeRate = $purchaseCurrency === $invoiceCurrency
-                ? 1.0
-                : (float) ($item['exchange_rate'] ?? 1);
-            $lineTotal = round($quantity * $unitPrice, 4);
-            $convertedUnitCost = round($purchaseUnitCost * $exchangeRate, 4);
-            $convertedLineCost = round($quantity * $purchaseUnitCost * $exchangeRate, 4);
-            $lineProfit = round($lineTotal - $convertedLineCost, 4);
-            $lineMargin = $lineTotal > 0 ? round($lineProfit / $lineTotal, 4) : null;
+                ? Decimal::normalize(1, 8)
+                : Decimal::normalize($item['exchange_rate'] ?? 1, 8);
+            $lineTotal = Money::multiply($quantity, $unitPrice, $invoiceCurrency);
+            $convertedUnitCost = Money::normalize(Decimal::multiply($purchaseUnitCost, $exchangeRate, 8), $invoiceCurrency);
+            $convertedLineCost = Money::normalize(
+                Decimal::multiply(Decimal::multiply($quantity, $purchaseUnitCost, 8), $exchangeRate, 8),
+                $invoiceCurrency
+            );
+            $lineProfit = Money::subtract($lineTotal, $convertedLineCost, $invoiceCurrency);
+            $lineMargin = Money::compare($lineTotal, 0) > 0
+                ? Decimal::divide($lineProfit, $lineTotal, 4)
+                : null;
 
-            $subtotal += $lineTotal;
-            $supplierTotalCost += $convertedLineCost;
+            $subtotal = Money::add($subtotal, $lineTotal, $invoiceCurrency);
+            $supplierTotalCost = Money::add($supplierTotalCost, $convertedLineCost, $invoiceCurrency);
 
             $itemsToCreate[] = [
                 'description' => $item['description'],
@@ -37,16 +45,16 @@ class InvoiceFinanceCalculator
                 'service_end_date' => $item['service_end_date'] ?? null,
                 'booking_reference' => $item['booking_reference'] ?? null,
                 'supplier_id' => $item['supplier_id'] ?? null,
-                'quantity' => number_format($quantity, 3, '.', ''),
-                'unit_price' => number_format($unitPrice, 4, '.', ''),
-                'purchase_unit_cost' => number_format($purchaseUnitCost, 4, '.', ''),
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'purchase_unit_cost' => $purchaseUnitCost,
                 'purchase_currency' => $purchaseCurrency,
-                'exchange_rate' => number_format($exchangeRate, 8, '.', ''),
-                'converted_unit_cost' => number_format($convertedUnitCost, 4, '.', ''),
-                'line_total' => number_format($lineTotal, 4, '.', ''),
-                'converted_line_cost' => number_format($convertedLineCost, 4, '.', ''),
-                'line_profit' => number_format($lineProfit, 4, '.', ''),
-                'line_margin' => $lineMargin !== null ? number_format($lineMargin, 4, '.', '') : null,
+                'exchange_rate' => $exchangeRate,
+                'converted_unit_cost' => $convertedUnitCost,
+                'line_total' => $lineTotal,
+                'converted_line_cost' => $convertedLineCost,
+                'line_profit' => $lineProfit,
+                'line_margin' => $lineMargin,
                 'sort_order' => $item['sort_order'] ?? 0,
                 'currency' => $invoiceCurrency,
             ];
@@ -54,25 +62,29 @@ class InvoiceFinanceCalculator
 
         return [
             'items' => $itemsToCreate,
-            'subtotal' => round($subtotal, 2),
-            'supplier_total_cost' => round($supplierTotalCost, 2),
+            'subtotal' => $subtotal,
+            'supplier_total_cost' => $supplierTotalCost,
         ];
     }
 
-    public function calculateInvoiceTotals(float $subtotal, float $supplierTotalCost, float $discount, float $tax): array
+    public function calculateInvoiceTotals(mixed $subtotal, mixed $supplierTotalCost, mixed $discount, mixed $tax, string $currency): array
     {
-        $total = round($subtotal - $discount + $tax, 2);
-        $grossProfit = round($total - $supplierTotalCost, 2);
-        $grossMargin = $total > 0 ? round($grossProfit / $total, 4) : null;
+        $subtotal = Money::normalize($subtotal, $currency);
+        $supplierTotalCost = Money::normalize($supplierTotalCost, $currency);
+        $discount = Money::normalize($discount, $currency);
+        $tax = Money::normalize($tax, $currency);
+        $total = Money::add(Money::subtract($subtotal, $discount, $currency), $tax, $currency);
+        $grossProfit = Money::subtract($total, $supplierTotalCost, $currency);
+        $grossMargin = Money::compare($total, 0) > 0 ? Decimal::divide($grossProfit, $total, 4) : null;
 
         return [
-            'subtotal' => number_format($subtotal, 2, '.', ''),
-            'discount_amount' => number_format($discount, 2, '.', ''),
-            'tax_amount' => number_format($tax, 2, '.', ''),
-            'total_amount' => number_format($total, 2, '.', ''),
-            'supplier_total_cost' => number_format($supplierTotalCost, 2, '.', ''),
-            'gross_profit' => number_format($grossProfit, 2, '.', ''),
-            'gross_margin' => $grossMargin !== null ? number_format($grossMargin, 4, '.', '') : null,
+            'subtotal' => $subtotal,
+            'discount_amount' => $discount,
+            'tax_amount' => $tax,
+            'total_amount' => $total,
+            'supplier_total_cost' => $supplierTotalCost,
+            'gross_profit' => $grossProfit,
+            'gross_margin' => $grossMargin,
         ];
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use App\Enums\OpportunityStage;
 use App\Models\Contact;
 use App\Models\Lead;
+use App\Rules\CurrencyAmount;
 
 class StoreOpportunityRequest extends FormRequest
 {
@@ -42,7 +43,7 @@ class StoreOpportunityRequest extends FormRequest
                 OpportunityStage::NEGOTIATION->value,
             ])],
             'probability' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'estimated_value' => ['nullable', 'numeric', 'min:0'],
+            'estimated_value' => ['nullable', 'numeric', 'min:0', new CurrencyAmount((string) $this->input('currency', 'AED'))],
             'currency' => ['nullable', 'string', 'size:3'],
             'expected_close_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],

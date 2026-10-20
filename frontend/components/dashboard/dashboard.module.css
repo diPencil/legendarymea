@@ -3624,8 +3624,10 @@ dialog.dialogOverlay {
     margin: 9mm;
   }
 
-  :global(html),
-  :global(body) {
+  :global(html):has(.invoiceDocument),
+  :global(body):has(.invoiceDocument),
+  :global(html):has(.contractDocument),
+  :global(body):has(.contractDocument) {
     background: #fff !important;
     height: auto !important;
     min-height: auto !important;
@@ -3635,7 +3637,8 @@ dialog.dialogOverlay {
     print-color-adjust: exact !important;
   }
 
-  :global(body) * {
+  :global(body):has(.invoiceDocument) *,
+  :global(body):has(.contractDocument) * {
     visibility: hidden !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;

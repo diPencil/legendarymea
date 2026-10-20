@@ -35,7 +35,7 @@ class Renewal extends Model
         'renewal_due_date' => 'date',
         'proposed_start_date' => 'date',
         'proposed_end_date' => 'date',
-        'renewal_amount' => 'decimal:2',
+        'renewal_amount' => 'decimal:3',
         'completed_at' => 'datetime',
     ];
 

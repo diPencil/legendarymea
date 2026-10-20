@@ -9,6 +9,7 @@ use App\Enums\RenewalStatus;
 use App\Models\ActiveService;
 use App\Models\Contract;
 use App\Models\Renewal;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -35,7 +36,7 @@ class CreateRenewalService
                 'renewal_due_date' => $data['renewal_due_date'],
                 'proposed_start_date' => $data['proposed_start_date'] ?? null,
                 'proposed_end_date' => $data['proposed_end_date'] ?? null,
-                'renewal_amount' => isset($data['renewal_amount']) ? number_format((float) $data['renewal_amount'], 2, '.', '') : null,
+                'renewal_amount' => isset($data['renewal_amount']) ? Money::normalize($data['renewal_amount'], $data['currency']) : null,
                 'currency' => isset($data['currency']) ? strtoupper((string) $data['currency']) : null,
                 'assigned_to' => $data['assigned_to'] ?? null,
                 'notes' => $data['notes'] ?? null,

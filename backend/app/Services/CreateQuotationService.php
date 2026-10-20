@@ -33,10 +33,11 @@ class CreateQuotationService
             );
 
             // Server calculates all items and totals
+            $currency = strtoupper($data['currency']);
             $itemsData = $data['items'];
             $calculatedItems = [];
             foreach ($itemsData as $index => $item) {
-                $lineTotal = $this->calculator->itemLineTotal($item['quantity'], $item['unit_price']);
+                $lineTotal = $this->calculator->itemLineTotal($item['quantity'], $item['unit_price'], $currency);
                 $calculatedItems[] = [
                     'description' => $item['description'],
                     'quantity'    => (string) $item['quantity'],
@@ -49,10 +50,10 @@ class CreateQuotationService
             $subtotal        = $this->calculator->subtotalFromLines(array_map(fn($i) => [
                 'quantity'   => $i['quantity'],
                 'unit_price' => $i['unit_price'],
-            ], $calculatedItems));
+            ], $calculatedItems), $currency);
             $discountAmount  = (string) ($data['discount_amount'] ?? 0);
             $taxAmount       = (string) ($data['tax_amount'] ?? 0);
-            $totalAmount     = $this->calculator->total($subtotal, $discountAmount, $taxAmount);
+            $totalAmount     = $this->calculator->total($subtotal, $discountAmount, $taxAmount, $currency);
 
             $quotation = Quotation::create([
                 'reference'       => $reference,
@@ -61,7 +62,7 @@ class CreateQuotationService
                 'opportunity_id'  => $data['opportunity_id'] ?? null,
                 'request_id'      => $data['request_id'] ?? null,
                 'status'          => QuotationStatus::DRAFT,
-                'currency'        => strtoupper($data['currency']),
+                'currency'        => $currency,
                 'issue_date'      => $data['issue_date'] ?? null,
                 'valid_until'     => $data['valid_until'] ?? null,
                 'subtotal'        => $subtotal,

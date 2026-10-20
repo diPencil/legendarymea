@@ -17,6 +17,7 @@ import {
 } from '@/lib/dashboard/approvals'
 import { listEmployees, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { listQuotations, type Quotation } from '@/lib/dashboard/quotations'
+import { formatCurrencyAmount } from '@/lib/dashboard/format'
 
 export type ApprovalDialogMode = 'create' | 'edit'
 
@@ -299,17 +300,7 @@ async function getQuotation(id: number) {
 }
 
 function formatMoney(value: string, currency: string, locale: string) {
-  const amount = Number(value)
-  if (!Number.isFinite(amount)) {
-    return `${value} ${currency}`
-  }
-
-  return new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'code',
-    maximumFractionDigits: 2,
-  }).format(amount)
+  return formatCurrencyAmount(value, currency, locale)
 }
 
 function FieldError({ name, fieldErrors }: { name: string; fieldErrors: FieldErrors }) {
