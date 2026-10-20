@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class RenewalResource extends JsonResource
             'renewal_due_date' => $this->renewal_due_date?->format('Y-m-d'),
             'proposed_start_date' => $this->proposed_start_date?->format('Y-m-d'),
             'proposed_end_date' => $this->proposed_end_date?->format('Y-m-d'),
-            'renewal_amount' => $this->renewal_amount,
+            'renewal_amount' => $this->renewal_amount !== null ? Money::normalize($this->renewal_amount, $this->currency ?? 'AED') : null,
             'currency' => $this->currency,
             'completed_at' => $this->completed_at?->toIso8601String(),
             'notes' => $this->notes,

@@ -8,6 +8,8 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
@@ -15,12 +17,15 @@ class Payment extends Model
 
     protected $fillable = [
         'reference',
+        'idempotency_key',
         'invoice_id',
         'customer_type',
         'company_id',
         'customer_user_id',
         'status',
         'amount',
+        'allocated_amount',
+        'unallocated_amount',
         'currency',
         'method',
         'transaction_reference',
@@ -36,7 +41,9 @@ class Payment extends Model
         'customer_type' => InvoiceCustomerType::class,
         'status' => PaymentStatus::class,
         'method' => PaymentMethod::class,
-        'amount' => 'decimal:2',
+        'amount' => 'decimal:3',
+        'allocated_amount' => 'decimal:3',
+        'unallocated_amount' => 'decimal:3',
         'paid_at' => 'datetime',
         'reversed_at' => 'datetime',
     ];
@@ -44,6 +51,18 @@ class Payment extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
+    }
+
+    public function invoices(): BelongsToMany
+    {
+        return $this->belongsToMany(Invoice::class, 'payment_allocations')
+            ->withPivot(['amount', 'notes', 'reversed_at'])
+            ->withTimestamps();
     }
 
     public function company(): BelongsTo

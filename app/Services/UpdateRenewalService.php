@@ -6,6 +6,7 @@ use App\Services\SystemActivityService;
 
 use App\Enums\RenewalStatus;
 use App\Models\Renewal;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -36,7 +37,9 @@ class UpdateRenewalService
                 'renewal_due_date' => $data['renewal_due_date'] ?? $renewal->renewal_due_date,
                 'proposed_start_date' => array_key_exists('proposed_start_date', $data) ? $data['proposed_start_date'] : $renewal->proposed_start_date,
                 'proposed_end_date' => array_key_exists('proposed_end_date', $data) ? $data['proposed_end_date'] : $renewal->proposed_end_date,
-                'renewal_amount' => array_key_exists('renewal_amount', $data) ? (isset($data['renewal_amount']) ? number_format((float) $data['renewal_amount'], 2, '.', '') : null) : $renewal->renewal_amount,
+                'renewal_amount' => array_key_exists('renewal_amount', $data)
+                    ? (isset($data['renewal_amount']) ? Money::normalize($data['renewal_amount'], $data['currency'] ?? $renewal->currency) : null)
+                    : $renewal->renewal_amount,
                 'currency' => array_key_exists('currency', $data) ? ($data['currency'] ? strtoupper((string) $data['currency']) : null) : $renewal->currency,
                 'assigned_to' => array_key_exists('assigned_to', $data) ? $data['assigned_to'] : $renewal->assigned_to,
                 'notes' => array_key_exists('notes', $data) ? $data['notes'] : $renewal->notes,

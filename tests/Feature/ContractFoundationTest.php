@@ -117,7 +117,7 @@ class ContractFoundationTest extends TestCase
         ]);
 
         $this->assertIsString($contract->contract_value); // Due to decimal casting it might be string, depending on Laravel setup, but lets check value
-        $this->assertEquals('150000.50', $contract->contract_value);
+        $this->assertEquals('150000.500', $contract->contract_value);
         $this->assertEquals('SAR', $contract->currency);
         
         $this->assertDatabaseHas('contracts', [

@@ -285,14 +285,14 @@ class QuotationFoundationTest extends TestCase
     {
         $calc = new QuotationCalculationService();
         $result = $calc->itemLineTotal(2, 100);
-        $this->assertEquals('200', $result);
+        $this->assertEquals('200.00', $result);
     }
 
     public function test_item_line_total_decimal_quantity()
     {
         $calc = new QuotationCalculationService();
         $result = $calc->itemLineTotal('1.5', '200.00');
-        $this->assertEquals('300', $result);
+        $this->assertEquals('300.00', $result);
     }
 
     public function test_subtotal_from_multiple_lines()
@@ -305,7 +305,7 @@ class QuotationFoundationTest extends TestCase
         ];
         // 200 + 150 + 75.50 = 425.50
         $result = $calc->subtotalFromLines($lines);
-        $this->assertEquals('425.5', $result);
+        $this->assertEquals('425.50', $result);
     }
 
     public function test_total_with_discount()
@@ -313,7 +313,7 @@ class QuotationFoundationTest extends TestCase
         $calc = new QuotationCalculationService();
         // subtotal 1000, discount 100, tax 0 → total 900
         $result = $calc->total('1000.00', '100.00', '0.00');
-        $this->assertEquals('900', $result);
+        $this->assertEquals('900.00', $result);
     }
 
     public function test_total_with_tax()
@@ -321,7 +321,7 @@ class QuotationFoundationTest extends TestCase
         $calc = new QuotationCalculationService();
         // subtotal 1000, discount 0, tax 150 → total 1150
         $result = $calc->total('1000.00', '0.00', '150.00');
-        $this->assertEquals('1150', $result);
+        $this->assertEquals('1150.00', $result);
     }
 
     public function test_total_formula_complete()
@@ -329,7 +329,7 @@ class QuotationFoundationTest extends TestCase
         $calc = new QuotationCalculationService();
         // subtotal 1000, discount 100, tax 150 → total 1050
         $result = $calc->total('1000.00', '100.00', '150.00');
-        $this->assertEquals('1050', $result);
+        $this->assertEquals('1050.00', $result);
     }
 
     public function test_total_cannot_be_negative()
@@ -337,7 +337,7 @@ class QuotationFoundationTest extends TestCase
         $calc = new QuotationCalculationService();
         // discount larger than subtotal+tax → clamped to 0
         $result = $calc->total('100.00', '500.00', '0.00');
-        $this->assertEquals('0', $result);
+        $this->assertEquals('0.00', $result);
     }
 
     public function test_no_float_precision_error()
@@ -345,7 +345,7 @@ class QuotationFoundationTest extends TestCase
         $calc = new QuotationCalculationService();
         // Classic 0.1 + 0.2 float issue
         $result = $calc->itemLineTotal('0.1', '3.00');
-        $this->assertEquals('0.3', $result);
+        $this->assertEquals('0.30', $result);
     }
 
     public function test_subtotal_from_persisted_items()
@@ -366,7 +366,7 @@ class QuotationFoundationTest extends TestCase
         ]);
 
         $subtotal = $calc->subtotalFromItems($quotation->items);
-        $this->assertEquals('350', $subtotal);
+        $this->assertEquals('350.00', $subtotal);
     }
 
     // ─── Permissions ─────────────────────────────────────────────────────────

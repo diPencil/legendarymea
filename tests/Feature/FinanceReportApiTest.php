@@ -133,7 +133,7 @@ class FinanceReportApiTest extends TestCase
         $account = SupplierBalanceAccount::create([
             'supplier_id' => $this->supplier->id,
             'currency' => 'USD',
-            'current_balance' => '900.00',
+            'current_balance' => '1200.00',
         ]);
 
         SupplierLedgerEntry::create([
@@ -150,7 +150,7 @@ class FinanceReportApiTest extends TestCase
             'created_by' => $this->admin->id,
         ]);
 
-        SupplierLedgerEntry::create([
+        $usage = SupplierLedgerEntry::create([
             'reference' => 'LM-SUPLED-2026-000002',
             'supplier_id' => $this->supplier->id,
             'supplier_balance_account_id' => $account->id,
@@ -163,6 +163,37 @@ class FinanceReportApiTest extends TestCase
             'transaction_date' => '2026-08-15',
             'invoice_id' => $invoice->id,
             'invoice_item_id' => $invoice->items()->first()->id,
+            'created_by' => $this->admin->id,
+        ]);
+
+        SupplierLedgerEntry::create([
+            'reference' => 'LM-SUPLED-2026-000003',
+            'supplier_id' => $this->supplier->id,
+            'supplier_balance_account_id' => $account->id,
+            'currency' => 'USD',
+            'type' => 'adjustment',
+            'direction' => 'credit',
+            'amount' => '100.00',
+            'balance_before' => '900.00',
+            'balance_after' => '1000.00',
+            'transaction_date' => '2026-08-16',
+            'created_by' => $this->admin->id,
+        ]);
+
+        SupplierLedgerEntry::create([
+            'reference' => 'LM-SUPLED-2026-000004',
+            'supplier_id' => $this->supplier->id,
+            'supplier_balance_account_id' => $account->id,
+            'currency' => 'USD',
+            'type' => 'reversal',
+            'direction' => 'credit',
+            'amount' => '200.00',
+            'balance_before' => '1000.00',
+            'balance_after' => '1200.00',
+            'transaction_date' => '2026-08-17',
+            'invoice_id' => $invoice->id,
+            'invoice_item_id' => $invoice->items()->first()->id,
+            'reversal_of_id' => $usage->id,
             'created_by' => $this->admin->id,
         ]);
 
@@ -192,6 +223,8 @@ class FinanceReportApiTest extends TestCase
             ->getJson('/api/v1/finance-reports/suppliers?supplier_id=' . $this->supplier->id)
             ->assertOk()
             ->assertJsonPath('0.supplier.id', $this->supplier->id)
-            ->assertJsonPath('0.currencies.0.available', '900.00');
+            ->assertJsonPath('0.currencies.0.funded', '1500.00')
+            ->assertJsonPath('0.currencies.0.used', '400.00')
+            ->assertJsonPath('0.currencies.0.available', '1200.00');
     }
 }

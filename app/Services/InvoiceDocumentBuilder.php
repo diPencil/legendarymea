@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Money;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 
@@ -50,14 +51,14 @@ class InvoiceDocumentBuilder
                     'service_start_date' => $item->service_start_date?->format('Y-m-d'),
                     'service_end_date' => $item->service_end_date?->format('Y-m-d'),
                     'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'line_total' => $item->line_total,
+                    'unit_price' => Money::normalize($item->unit_price, $invoice->currency),
+                    'line_total' => Money::normalize($item->line_total, $invoice->currency),
                 ]
             )->all(),
-            'subtotal' => $invoice->subtotal,
-            'discount_amount' => $invoice->discount_amount,
-            'tax_amount' => $invoice->tax_amount,
-            'total_amount' => $invoice->total_amount,
+            'subtotal' => Money::normalize($invoice->subtotal, $invoice->currency),
+            'discount_amount' => Money::normalize($invoice->discount_amount, $invoice->currency),
+            'tax_amount' => Money::normalize($invoice->tax_amount, $invoice->currency),
+            'total_amount' => Money::normalize($invoice->total_amount, $invoice->currency),
             'paid_amount' => $invoice->postedPaymentsTotal(),
             'balance_due' => $invoice->balanceDue(),
             'notes' => $invoice->notes,

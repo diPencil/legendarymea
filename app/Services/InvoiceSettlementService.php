@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
-use Illuminate\Support\Facades\DB;
+use App\Support\Money;
 
 class InvoiceSettlementService
 {
@@ -14,15 +14,15 @@ class InvoiceSettlementService
             return $invoice;
         }
 
-        $postedTotalCents = $this->postedPaymentsTotalCents($invoice);
-        $invoiceTotalCents = $this->decimalToCents((string) $invoice->total_amount);
-        $isPastDue = $invoice->due_date?->isPast() ?? false;
+        $postedTotalMinorUnits = $this->postedPaymentsTotalMinorUnits($invoice);
+        $invoiceTotalMinorUnits = Money::toMinorUnits($invoice->total_amount, $invoice->currency);
+        $isPastDue = $invoice->due_date?->lt(today()) ?? false;
 
-        if ($postedTotalCents >= $invoiceTotalCents) {
+        if ($postedTotalMinorUnits >= $invoiceTotalMinorUnits) {
             $status = InvoiceStatus::PAID;
-        } elseif ($postedTotalCents > 0 && $isPastDue) {
+        } elseif ($postedTotalMinorUnits > 0 && $isPastDue) {
             $status = InvoiceStatus::OVERDUE;
-        } elseif ($postedTotalCents > 0) {
+        } elseif ($postedTotalMinorUnits > 0) {
             $status = InvoiceStatus::PARTIALLY_PAID;
         } elseif ($isPastDue) {
             $status = InvoiceStatus::OVERDUE;
@@ -37,20 +37,30 @@ class InvoiceSettlementService
         return $invoice->refresh();
     }
 
-    public function postedPaymentsTotalCents(Invoice $invoice): int
+    public function postedPaymentsTotalMinorUnits(Invoice $invoice): int
     {
-        return (int) $invoice->payments()
+        if ($invoice->allocations()->exists()) {
+            return $invoice->allocations()
+                ->whereNull('reversed_at')
+                ->whereHas('payment', fn ($q) => $q->where('status', 'posted'))
+                ->pluck('amount')
+                ->reduce(
+                    fn (int $total, mixed $amount) => $total + Money::toMinorUnits($amount, $invoice->currency),
+                    0
+                );
+        }
+
+        return $invoice->payments()
             ->where('status', 'posted')
-            ->sum(DB::raw('ROUND(amount * 100)'));
+            ->pluck('amount')
+            ->reduce(
+                fn (int $total, mixed $amount) => $total + Money::toMinorUnits($amount, $invoice->currency),
+                0
+            );
     }
 
-    public function balanceDueCents(Invoice $invoice): int
+    public function balanceDueMinorUnits(Invoice $invoice): int
     {
-        return max(0, $this->decimalToCents((string) $invoice->total_amount) - $this->postedPaymentsTotalCents($invoice));
-    }
-
-    private function decimalToCents(string $value): int
-    {
-        return (int) round(((float) $value) * 100);
+        return max(0, Money::toMinorUnits($invoice->total_amount, $invoice->currency) - $this->postedPaymentsTotalMinorUnits($invoice));
     }
 }

@@ -18,7 +18,7 @@ class SupplierBalanceAccount extends Model
     ];
 
     protected $casts = [
-        'current_balance' => 'decimal:2',
+        'current_balance' => 'decimal:3',
     ];
 
     public function supplier(): BelongsTo

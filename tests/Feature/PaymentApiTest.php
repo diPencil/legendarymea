@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PaymentApiTest extends TestCase
@@ -129,6 +130,144 @@ class PaymentApiTest extends TestCase
             ->assertCreated();
 
         $this->assertEquals(InvoiceStatus::PAID, $invoice->fresh()->status);
+    }
+
+    public function test_duplicate_payment_submission_with_same_idempotency_key_returns_original_payment(): void
+    {
+        $invoice = $this->createInvoice();
+        $paidAt = now()->startOfSecond()->toIso8601String();
+        $payload = [
+            'invoice_id' => $invoice->id,
+            'idempotency_key' => 'payment-test-idempotency-key',
+            'amount' => '250.00',
+            'method' => PaymentMethod::BANK_TRANSFER->value,
+            'transaction_reference' => 'BANK-IDEMPOTENT-001',
+            'paid_at' => $paidAt,
+            'notes' => 'Idempotent payment submission.',
+        ];
+
+        $first = $this->actingAs($this->admin)->postJson('/api/v1/payments', $payload)->assertCreated();
+        $second = $this->actingAs($this->admin)->postJson('/api/v1/payments', $payload)->assertCreated();
+
+        $this->assertSame($first->json('data.id'), $second->json('data.id'));
+        $this->assertSame($first->json('data.reference'), $second->json('data.reference'));
+        $this->assertDatabaseCount('payments', 1);
+        $this->assertSame('250.00', $invoice->fresh()->postedPaymentsTotal());
+    }
+
+    public function test_reusing_idempotency_key_for_different_payment_is_rejected(): void
+    {
+        $invoice = $this->createInvoice();
+        $paidAt = now()->startOfSecond()->toIso8601String();
+        $payload = [
+            'invoice_id' => $invoice->id,
+            'idempotency_key' => 'payment-test-conflicting-key',
+            'amount' => '200.00',
+            'method' => PaymentMethod::CASH->value,
+            'paid_at' => $paidAt,
+        ];
+
+        $this->actingAs($this->admin)->postJson('/api/v1/payments', $payload)->assertCreated();
+
+        $this->actingAs($this->admin)
+            ->postJson('/api/v1/payments', [...$payload, 'amount' => '300.00'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['idempotency_key']);
+
+        $this->assertDatabaseCount('payments', 1);
+    }
+
+    public function test_payment_creation_locks_invoice_and_rejects_competing_overpayment(): void
+    {
+        $invoice = $this->createInvoice();
+        DB::enableQueryLog();
+
+        $this->actingAs($this->admin)->postJson('/api/v1/payments', [
+            'invoice_id' => $invoice->id,
+            'amount' => '600.00',
+            'method' => PaymentMethod::BANK_TRANSFER->value,
+            'paid_at' => now()->toIso8601String(),
+        ])->assertCreated();
+
+        $queries = collect(DB::getQueryLog())->pluck('query')->map(fn (string $query) => strtolower($query));
+        DB::disableQueryLog();
+
+        $this->assertTrue($queries->contains(
+            fn (string $query) => str_contains($query, 'invoices') && str_contains($query, 'for update')
+        ));
+
+        $this->actingAs($this->admin)->postJson('/api/v1/payments', [
+            'invoice_id' => $invoice->id,
+            'amount' => '500.00',
+            'method' => PaymentMethod::CARD->value,
+            'paid_at' => now()->toIso8601String(),
+        ])->assertUnprocessable()->assertJsonValidationErrors(['amount']);
+
+        $this->assertSame('600.00', $invoice->fresh()->postedPaymentsTotal());
+        $this->assertDatabaseCount('payments', 1);
+    }
+
+    public function test_user_customer_invoice_accepts_payment_without_company_id(): void
+    {
+        $client = User::factory()->create();
+        $client->assignRole('client');
+        $invoice = $this->createInvoice([
+            'customer_type' => 'user',
+            'company_id' => null,
+            'customer_user_id' => $client->id,
+        ]);
+
+        $response = $this->actingAs($this->admin)->postJson('/api/v1/payments', [
+            'invoice_id' => $invoice->id,
+            'amount' => '125.00',
+            'method' => PaymentMethod::CARD->value,
+            'paid_at' => now()->toIso8601String(),
+        ])->assertCreated();
+
+        $response->assertJsonPath('data.customer_type', 'user')
+            ->assertJsonPath('data.company', null)
+            ->assertJsonPath('data.customer_user.id', $client->id);
+        $this->assertDatabaseHas('payments', [
+            'id' => $response->json('data.id'),
+            'company_id' => null,
+            'customer_user_id' => $client->id,
+        ]);
+    }
+
+    public function test_partial_payment_on_due_date_is_not_marked_overdue(): void
+    {
+        $invoice = $this->createInvoice(['due_date' => today()->toDateString()]);
+
+        $this->actingAs($this->admin)->postJson('/api/v1/payments', [
+            'invoice_id' => $invoice->id,
+            'amount' => '100.00',
+            'method' => PaymentMethod::OTHER->value,
+            'paid_at' => now()->toIso8601String(),
+        ])->assertCreated();
+
+        $this->assertEquals(InvoiceStatus::PARTIALLY_PAID, $invoice->fresh()->status);
+    }
+
+    public function test_user_with_reverse_permission_can_reverse_payment(): void
+    {
+        $reverser = User::factory()->create();
+        $reverser->givePermissionTo(['view_payments', 'reverse_payments']);
+        $invoice = $this->createInvoice(['status' => InvoiceStatus::PARTIALLY_PAID]);
+        $payment = Payment::factory()->create([
+            'invoice_id' => $invoice->id,
+            'company_id' => $invoice->company_id,
+            'recorded_by' => $this->admin->id,
+            'currency' => $invoice->currency,
+            'amount' => '100.00',
+            'status' => PaymentStatus::POSTED,
+        ]);
+
+        $this->actingAs($reverser)
+            ->postJson("/api/v1/payments/{$payment->id}/reverse", [
+                'reversal_reason' => 'Authorized reversal test.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', PaymentStatus::REVERSED->value);
     }
 
     public function test_blocks_ineligible_invoice_states_and_overpayment(): void
@@ -288,7 +427,7 @@ class PaymentApiTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame($invoice->company_id, $log->new_values['company_id']);
-        $this->assertSame('100.00', $log->new_values['amount']);
+        $this->assertSame('100.000', $log->new_values['amount']);
         $this->assertSame($invoice->reference, $log->request_context['metadata']['invoice_reference']);
     }
 

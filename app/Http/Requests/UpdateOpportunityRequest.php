@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Models\Contact;
+use App\Rules\CurrencyAmount;
 
 class UpdateOpportunityRequest extends FormRequest
 {
@@ -35,7 +36,7 @@ class UpdateOpportunityRequest extends FormRequest
             ],
             'service_interest' => ['nullable', 'string', $this->serviceCatalogRule()],
             'probability' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'estimated_value' => ['nullable', 'numeric', 'min:0'],
+            'estimated_value' => ['nullable', 'numeric', 'min:0', new CurrencyAmount((string) $this->input('currency', $opportunity?->currency ?? 'AED'))],
             'currency' => ['nullable', 'string', 'size:3'],
             'expected_close_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],

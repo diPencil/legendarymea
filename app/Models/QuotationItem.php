@@ -21,8 +21,8 @@ class QuotationItem extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
-        'unit_price' => 'decimal:2',
-        'line_total' => 'decimal:2',
+        'unit_price' => 'decimal:3',
+        'line_total' => 'decimal:3',
         'sort_order' => 'integer',
     ];
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Money;
 use App\Enums\InvoiceStatus;
 use App\Enums\SupplierLedgerType;
 use App\Models\Invoice;
@@ -103,14 +104,21 @@ class FinanceReportService
                     'name' => $supplier->name,
                 ],
                 'currencies' => $supplier->balanceAccounts->map(function ($account) {
-                    $funded = (float) $account->ledgerEntries->where('type', SupplierLedgerType::FUNDING)->sum('amount');
-                    $used = (float) $account->ledgerEntries->where('type', SupplierLedgerType::INVOICE_USAGE)->sum('amount');
+                    $currency = $account->currency;
+                    $sum = fn ($entries) => $entries->reduce(
+                        fn (string $total, $entry) => Money::add($total, $entry->amount, $currency),
+                        Money::normalize(0, $currency)
+                    );
+                    $funded = $sum($account->ledgerEntries->where('type', SupplierLedgerType::FUNDING));
+                    $usage = $sum($account->ledgerEntries->where('type', SupplierLedgerType::INVOICE_USAGE));
+                    $reversed = $sum($account->ledgerEntries->where('type', SupplierLedgerType::REVERSAL));
+                    $used = Money::subtract($usage, $reversed, $currency);
 
                     return [
                         'currency' => $account->currency,
-                        'funded' => number_format($funded, 2, '.', ''),
-                        'used' => number_format($used, 2, '.', ''),
-                        'available' => number_format($funded - $used, 2, '.', ''),
+                        'funded' => $funded,
+                        'used' => $used,
+                        'available' => Money::normalize($account->current_balance, $currency),
                     ];
                 })->values(),
             ];
@@ -277,15 +285,15 @@ class FinanceReportService
 
         foreach ($rows as $row) {
             $currency = strtoupper((string) data_get($row, $currencyField));
-            $amount = (float) data_get($row, $amountField);
-            $totals[$currency] = ($totals[$currency] ?? 0) + $amount;
+            $amount = data_get($row, $amountField);
+            $totals[$currency] = Money::add($totals[$currency] ?? 0, $amount, $currency);
         }
 
         ksort($totals);
 
-        return collect($totals)->map(fn (float $amount, string $currency) => [
+        return collect($totals)->map(fn (string $amount, string $currency) => [
             'currency' => $currency,
-            'amount' => number_format($amount, 2, '.', ''),
+            'amount' => Money::normalize($amount, $currency),
         ])->values()->all();
     }
 
@@ -294,18 +302,18 @@ class FinanceReportService
         $totals = [];
 
         foreach ($left as $row) {
-            $totals[$row['currency']] = ($totals[$row['currency']] ?? 0) + (float) $row['amount'];
+            $totals[$row['currency']] = Money::add($totals[$row['currency']] ?? 0, $row['amount'], $row['currency']);
         }
 
         foreach ($right as $row) {
-            $totals[$row['currency']] = ($totals[$row['currency']] ?? 0) - (float) $row['amount'];
+            $totals[$row['currency']] = Money::subtract($totals[$row['currency']] ?? 0, $row['amount'], $row['currency']);
         }
 
         ksort($totals);
 
-        return collect($totals)->map(fn (float $amount, string $currency) => [
+        return collect($totals)->map(fn (string $amount, string $currency) => [
             'currency' => $currency,
-            'amount' => number_format($amount, 2, '.', ''),
+            'amount' => Money::normalize($amount, $currency),
         ])->values()->all();
     }
 

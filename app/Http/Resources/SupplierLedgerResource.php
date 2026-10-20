@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,9 +16,9 @@ class SupplierLedgerResource extends JsonResource
             'currency' => $this->currency,
             'type' => $this->type->value,
             'direction' => $this->direction->value,
-            'amount' => $this->amount,
-            'balance_before' => $this->balance_before,
-            'balance_after' => $this->balance_after,
+            'amount' => Money::normalize($this->amount, $this->currency),
+            'balance_before' => Money::normalize($this->balance_before, $this->currency),
+            'balance_after' => Money::normalize($this->balance_after, $this->currency),
             'transaction_date' => $this->transaction_date?->format('Y-m-d'),
             'payment_method' => $this->payment_method?->value,
             'external_reference' => $this->external_reference,

@@ -36,14 +36,14 @@ class InvoiceItem extends Model
     protected $casts = [
         'service_start_date' => 'date',
         'service_end_date' => 'date',
-        'quantity' => 'decimal:2',
-        'unit_price' => 'decimal:4',
-        'purchase_unit_cost' => 'decimal:4',
+        'quantity' => 'decimal:3',
+        'unit_price' => 'decimal:3',
+        'purchase_unit_cost' => 'decimal:3',
         'exchange_rate' => 'decimal:8',
-        'converted_unit_cost' => 'decimal:4',
-        'line_total' => 'decimal:4',
-        'converted_line_cost' => 'decimal:4',
-        'line_profit' => 'decimal:4',
+        'converted_unit_cost' => 'decimal:3',
+        'line_total' => 'decimal:3',
+        'converted_line_cost' => 'decimal:3',
+        'line_profit' => 'decimal:3',
         'line_margin' => 'decimal:4',
     ];
 

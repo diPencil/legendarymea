@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Money;
 use App\Models\Invoice;
 
 class InvoicePdfHtmlRenderer
@@ -130,7 +131,10 @@ class InvoicePdfHtmlRenderer
 
     private function money(mixed $amount, string $currency): string
     {
-        return $this->e(strtoupper($currency) . ' ' . number_format((float) $amount, 2, '.', ','));
+        $normalized = Money::normalize($amount, $currency);
+        [$whole, $fraction] = array_pad(explode('.', $normalized, 2), 2, '');
+
+        return $this->e(strtoupper($currency) . ' ' . number_format((int) $whole, 0, '.', ',') . ($fraction !== '' ? '.' . $fraction : ''));
     }
 
     private function logoDataUri(): string

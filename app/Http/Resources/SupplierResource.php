@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\SupplierLedgerType;
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,21 +18,20 @@ class SupplierResource extends JsonResource
             || $user?->hasAnyPermission(['view_supplier_ledger', 'fund_supplier_balances', 'adjust_supplier_balances', 'manage_suppliers', 'view_finance_reports', 'manage_finance_reports']);
 
         $balances = $this->balanceAccounts->map(function ($account) {
-            $funded = (string) $account->ledgerEntries
-                ->where('type', SupplierLedgerType::FUNDING)
-                ->sum('amount');
-            $used = (float) $account->ledgerEntries
-                ->where('type', SupplierLedgerType::INVOICE_USAGE)
-                ->sum('amount');
-            $restored = (float) $account->ledgerEntries
-                ->where('type', SupplierLedgerType::REVERSAL)
-                ->sum('amount');
+            $currency = $account->currency;
+            $sum = fn ($entries) => $entries->reduce(
+                fn (string $total, $entry) => Money::add($total, $entry->amount, $currency),
+                Money::normalize(0, $currency)
+            );
+            $funded = $sum($account->ledgerEntries->where('type', SupplierLedgerType::FUNDING));
+            $used = $sum($account->ledgerEntries->where('type', SupplierLedgerType::INVOICE_USAGE));
+            $restored = $sum($account->ledgerEntries->where('type', SupplierLedgerType::REVERSAL));
 
             return [
                 'currency' => $account->currency,
-                'funded' => number_format((float) $funded, 2, '.', ''),
-                'used' => number_format($used - $restored, 2, '.', ''),
-                'available' => $account->current_balance,
+                'funded' => $funded,
+                'used' => Money::subtract($used, $restored, $currency),
+                'available' => Money::normalize($account->current_balance, $currency),
             ];
         })->values();
 

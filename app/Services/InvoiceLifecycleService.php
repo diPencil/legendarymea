@@ -17,19 +17,21 @@ class InvoiceLifecycleService
 
     public function issue(Invoice $invoice, int $userId): Invoice
     {
-        if ($invoice->status !== InvoiceStatus::DRAFT) {
-            throw ValidationException::withMessages([
-                'status' => ['Only draft invoices can be issued.'],
-            ]);
-        }
-
-        if ($invoice->items()->count() === 0) {
-            throw ValidationException::withMessages([
-                'items' => ['Cannot issue an invoice without items.'],
-            ]);
-        }
-
         return DB::transaction(function () use ($invoice, $userId) {
+            $invoice = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if ($invoice->status !== InvoiceStatus::DRAFT) {
+                throw ValidationException::withMessages([
+                    'status' => ['Only draft invoices can be issued.'],
+                ]);
+            }
+
+            if ($invoice->items()->count() === 0) {
+                throw ValidationException::withMessages([
+                    'items' => ['Cannot issue an invoice without items.'],
+                ]);
+            }
+
             $invoice->loadMissing(['company', 'customerUser', 'soldByEmployee.user', 'items.supplier']);
             $issueDate = $invoice->issue_date
                 ? $invoice->issue_date->format('Y-m-d')
@@ -76,18 +78,20 @@ class InvoiceLifecycleService
         );
 
             return $invoice->fresh(['company', 'customerUser', 'soldByEmployee.user', 'contract', 'activeService', 'creator', 'items.supplier', 'payments']);
-        });
+        }, 3);
     }
 
     public function cancel(Invoice $invoice, int $userId): Invoice
     {
-        if ($invoice->status !== InvoiceStatus::DRAFT) {
-            throw ValidationException::withMessages([
-                'status' => ['Only draft invoices can be cancelled through this endpoint.'],
-            ]);
-        }
-
         return DB::transaction(function () use ($invoice, $userId) {
+            $invoice = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if ($invoice->status !== InvoiceStatus::DRAFT) {
+                throw ValidationException::withMessages([
+                    'status' => ['Only draft invoices can be cancelled through this endpoint.'],
+                ]);
+            }
+
             $invoice->update([
                 'status' => InvoiceStatus::CANCELLED,
             ]);
@@ -105,30 +109,33 @@ class InvoiceLifecycleService
         );
 
             return $invoice;
-        });
+        }, 3);
     }
 
     public function markOverdue(Invoice $invoice, int $userId): Invoice
     {
-        if (!in_array($invoice->status, [InvoiceStatus::ISSUED, InvoiceStatus::PARTIALLY_PAID])) {
-            throw ValidationException::withMessages([
-                'status' => ['Only issued or partially paid invoices can be marked overdue.'],
-            ]);
-        }
-
-        if (!$invoice->due_date) {
-            throw ValidationException::withMessages([
-                'due_date' => ['Cannot mark overdue without a due date.'],
-            ]);
-        }
-
-        if ($invoice->due_date->format('Y-m-d') >= now()->format('Y-m-d')) {
-            throw ValidationException::withMessages([
-                'due_date' => ['Invoice is not yet past due.'],
-            ]);
-        }
-
         return DB::transaction(function () use ($invoice, $userId) {
+            $invoice = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if (!in_array($invoice->status, [InvoiceStatus::ISSUED, InvoiceStatus::PARTIALLY_PAID], true)) {
+                throw ValidationException::withMessages([
+                    'status' => ['Only issued or partially paid invoices can be marked overdue.'],
+                ]);
+            }
+
+            if (!$invoice->due_date) {
+                throw ValidationException::withMessages([
+                    'due_date' => ['Cannot mark overdue without a due date.'],
+                ]);
+            }
+
+            if (!$invoice->due_date->lt(today())) {
+                throw ValidationException::withMessages([
+                    'due_date' => ['Invoice is not yet past due.'],
+                ]);
+            }
+
+            $oldStatus = $invoice->status->value;
             $invoice->update([
                 'status' => InvoiceStatus::OVERDUE,
             ]);
@@ -138,7 +145,7 @@ class InvoiceLifecycleService
             action: 'overdue',
             module: 'Invoice',
             entity: $invoice,
-            oldValues: ['status' => $invoice->getOriginal('status')],
+            oldValues: ['status' => $oldStatus],
             newValues: ['status' => 'overdue'],
             metadata: [
                             'invoice_reference' => $invoice->reference,
@@ -147,6 +154,6 @@ class InvoiceLifecycleService
         );
 
             return $invoice;
-        });
+        }, 3);
     }
 }

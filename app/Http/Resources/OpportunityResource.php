@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,7 +21,7 @@ class OpportunityResource extends JsonResource
             'name' => $this->name,
             'stage' => $this->stage,
             'probability' => $this->probability,
-            'estimated_value' => $this->estimated_value,
+            'estimated_value' => $this->estimated_value !== null ? Money::normalize($this->estimated_value, $this->currency ?? 'AED') : null,
             'currency' => $this->currency,
             'expected_close_date' => $this->expected_close_date ? $this->expected_close_date->format('Y-m-d') : null,
             'lost_reason' => $this->lost_reason,

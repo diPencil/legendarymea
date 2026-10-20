@@ -24,6 +24,15 @@ class UpdateInvoiceService
 
     public function execute(Invoice $invoice, array $data, int $updaterId): Invoice
     {
+        return DB::transaction(function () use ($invoice, $data, $updaterId) {
+            $invoice = Invoice::query()->whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            return $this->executeLocked($invoice, $data, $updaterId);
+        }, 3);
+    }
+
+    private function executeLocked(Invoice $invoice, array $data, int $updaterId): Invoice
+    {
         if (!in_array($invoice->status, [InvoiceStatus::DRAFT, InvoiceStatus::ISSUED], true)) {
             throw ValidationException::withMessages([
                 'status' => ['Only draft or issued invoices can be edited.'],
@@ -62,8 +71,8 @@ class UpdateInvoiceService
 
         return DB::transaction(function () use ($invoice, $data, $updaterId, $customerType, $companyId, $customerUserId, $contractId, $activeServiceId, $soldByEmployeeId) {
             $currency = strtoupper($data['currency'] ?? $invoice->currency);
-            $discount = array_key_exists('discount_amount', $data) ? (float) $data['discount_amount'] : (float) $invoice->discount_amount;
-            $tax = array_key_exists('tax_amount', $data) ? (float) $data['tax_amount'] : (float) $invoice->tax_amount;
+            $discount = array_key_exists('discount_amount', $data) ? (string) $data['discount_amount'] : (string) $invoice->discount_amount;
+            $tax = array_key_exists('tax_amount', $data) ? (string) $data['tax_amount'] : (string) $invoice->tax_amount;
 
             if (isset($data['items'])) {
                 if ($invoice->status === InvoiceStatus::ISSUED) {
@@ -83,8 +92,8 @@ class UpdateInvoiceService
                 }
             } else {
                 $lineCalculation = [
-                    'subtotal' => (float) $invoice->subtotal,
-                    'supplier_total_cost' => (float) $invoice->supplier_total_cost,
+                    'subtotal' => (string) $invoice->subtotal,
+                    'supplier_total_cost' => (string) $invoice->supplier_total_cost,
                 ];
             }
 
@@ -92,10 +101,11 @@ class UpdateInvoiceService
                 $lineCalculation['subtotal'],
                 $lineCalculation['supplier_total_cost'],
                 $discount,
-                $tax
+                $tax,
+                $currency
             );
 
-            if ((float) $totals['total_amount'] < 0) {
+            if (\App\Support\Money::compare($totals['total_amount'], 0) < 0) {
                 throw ValidationException::withMessages([
                     'discount_amount' => ['Total amount cannot be negative.'],
                 ]);

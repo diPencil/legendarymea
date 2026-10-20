@@ -20,6 +20,7 @@ use App\Models\SupplierLedgerEntry;
 use App\Models\User;
 use App\Enums\SupplierLedgerType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class InvoiceApiTest extends TestCase
@@ -498,7 +499,7 @@ class InvoiceApiTest extends TestCase
             ->assertCreated();
 
         $item = $response->json('data.items.0');
-        $this->assertEquals('300.0000', $item['line_total']);
+        $this->assertEquals('300.00', $item['line_total']);
     }
 
     public function test_multiple_items_subtotal_calculated_correctly(): void
@@ -527,7 +528,7 @@ class InvoiceApiTest extends TestCase
             ])
             ->assertCreated();
 
-        $this->assertEquals('300.0000', $response->json('data.items.0.line_total'));
+        $this->assertEquals('300.00', $response->json('data.items.0.line_total'));
     }
 
     // ===========================================================
@@ -760,8 +761,8 @@ class InvoiceApiTest extends TestCase
         $this->assertSame('Hilton Riyadh - 3 Nights', $response->json('data.items.0.service_name_snapshot'));
         $this->assertSame('Item description', $response->json('data.items.0.description'));
         $this->assertSame('1.00000000', $response->json('data.items.0.exchange_rate'));
-        $this->assertSame('100.0000', $response->json('data.items.0.converted_unit_cost'));
-        $this->assertSame('200.0000', $response->json('data.items.0.converted_line_cost'));
+        $this->assertSame('100.00', $response->json('data.items.0.converted_unit_cost'));
+        $this->assertSame('200.00', $response->json('data.items.0.converted_line_cost'));
     }
 
     public function test_invoice_item_converts_purchase_currency_to_invoice_currency(): void
@@ -784,8 +785,8 @@ class InvoiceApiTest extends TestCase
 
         $this->assertSame('USD', $response->json('data.items.0.purchase_currency'));
         $this->assertSame('3.67000000', $response->json('data.items.0.exchange_rate'));
-        $this->assertSame('367.0000', $response->json('data.items.0.converted_unit_cost'));
-        $this->assertSame('734.0000', $response->json('data.items.0.converted_line_cost'));
+        $this->assertSame('367.00', $response->json('data.items.0.converted_unit_cost'));
+        $this->assertSame('734.00', $response->json('data.items.0.converted_line_cost'));
     }
 
     public function test_invoice_item_cost_uses_full_precision_quantity_times_purchase_cost_times_fx(): void
@@ -798,19 +799,19 @@ class InvoiceApiTest extends TestCase
                     'description' => 'Precision service',
                     'quantity' => 3,
                     'unit_price' => 100,
-                    'purchase_unit_cost' => 10.1111,
+                    'purchase_unit_cost' => 10.11,
                     'purchase_currency' => 'USD',
                     'exchange_rate' => 3.3333,
                 ]],
             ])
             ->assertCreated();
 
-        $this->assertSame('300.0000', $response->json('data.items.0.line_total'));
-        $this->assertSame('33.7033', $response->json('data.items.0.converted_unit_cost'));
-        $this->assertSame('101.1100', $response->json('data.items.0.converted_line_cost'));
-        $this->assertSame('198.8900', $response->json('data.items.0.line_profit'));
-        $this->assertSame('101.11', $response->json('data.supplier_total_cost'));
-        $this->assertSame('198.89', $response->json('data.gross_profit'));
+        $this->assertSame('300.00', $response->json('data.items.0.line_total'));
+        $this->assertSame('33.70', $response->json('data.items.0.converted_unit_cost'));
+        $this->assertSame('101.10', $response->json('data.items.0.converted_line_cost'));
+        $this->assertSame('198.90', $response->json('data.items.0.line_profit'));
+        $this->assertSame('101.10', $response->json('data.supplier_total_cost'));
+        $this->assertSame('198.90', $response->json('data.gross_profit'));
     }
 
     public function test_supplier_purchase_fields_persist_and_customer_view_hides_internal_finance(): void
@@ -829,7 +830,7 @@ class InvoiceApiTest extends TestCase
                     'supplier_id' => $supplier->id,
                     'quantity' => 2,
                     'unit_price' => 500,
-                    'purchase_unit_cost' => 123.4567,
+                    'purchase_unit_cost' => 123.45,
                     'purchase_currency' => 'USD',
                     'exchange_rate' => 3.67,
                 ]],
@@ -844,7 +845,7 @@ class InvoiceApiTest extends TestCase
             ->json('data.items.0');
 
         $this->assertSame($supplier->id, $adminItem['supplier']['id']);
-        $this->assertSame('123.4567', $adminItem['purchase_unit_cost']);
+        $this->assertSame('123.45', $adminItem['purchase_unit_cost']);
         $this->assertSame('USD', $adminItem['purchase_currency']);
         $this->assertSame('3.67000000', $adminItem['exchange_rate']);
         $this->assertSame('Hilton Riyadh - 3 Nights', $adminItem['service_name_snapshot']);
@@ -1136,8 +1137,8 @@ class InvoiceApiTest extends TestCase
             ])
             ->assertOk();
 
-        $this->assertSame('500.00', SupplierBalanceAccount::where('supplier_id', $oldSupplier->id)->where('currency', 'AED')->value('current_balance'));
-        $this->assertSame('-100.00', SupplierBalanceAccount::where('supplier_id', $newSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('500.000', SupplierBalanceAccount::where('supplier_id', $oldSupplier->id)->where('currency', 'AED')->value('current_balance'));
+        $this->assertSame('-100.000', SupplierBalanceAccount::where('supplier_id', $newSupplier->id)->where('currency', 'USD')->value('current_balance'));
         $this->assertSame(1, SupplierLedgerEntry::where('invoice_id', $invoice->id)->where('type', SupplierLedgerType::REVERSAL)->count());
         $this->assertSame(2, SupplierLedgerEntry::where('invoice_id', $invoice->id)->where('type', SupplierLedgerType::INVOICE_USAGE)->count());
     }
@@ -1175,13 +1176,21 @@ class InvoiceApiTest extends TestCase
             ->where('invoice_id', $invoiceId)
             ->where('type', SupplierLedgerType::INVOICE_USAGE)
             ->count());
-        $this->assertSame('500.00', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('500.000', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+
+        DB::enableQueryLog();
 
         $this->actingAs($this->admin)
             ->postJson("/api/v1/invoices/{$invoiceId}/issue")
             ->assertOk()
             ->assertJsonPath('data.status', InvoiceStatus::ISSUED->value)
             ->assertJsonPath('data.issue_date', '2026-09-02');
+
+        $queries = collect(DB::getQueryLog())->pluck('query')->map(fn (string $query) => strtolower($query));
+        DB::disableQueryLog();
+        $this->assertTrue($queries->contains(
+            fn (string $query) => str_contains($query, 'invoices') && str_contains($query, 'for update')
+        ));
 
         $this->assertDatabaseHas('supplier_ledger_entries', [
             'invoice_id' => $invoiceId,
@@ -1195,7 +1204,7 @@ class InvoiceApiTest extends TestCase
             ->where('invoice_id', $invoiceId)
             ->where('type', SupplierLedgerType::INVOICE_USAGE)
             ->count());
-        $this->assertSame('200.00', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('200.000', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
 
         $this->actingAs($this->admin)
             ->postJson("/api/v1/invoices/{$invoiceId}/issue")
@@ -1254,8 +1263,8 @@ class InvoiceApiTest extends TestCase
             'id' => $invoiceId,
             'status' => InvoiceStatus::ISSUED->value,
         ]);
-        $this->assertSame('400.00', SupplierBalanceAccount::where('supplier_id', $fundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
-        $this->assertSame('-100.00', SupplierBalanceAccount::where('supplier_id', $unfundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('400.000', SupplierBalanceAccount::where('supplier_id', $fundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('-100.000', SupplierBalanceAccount::where('supplier_id', $unfundedSupplier->id)->where('currency', 'USD')->value('current_balance'));
         $this->assertSame(2, SupplierLedgerEntry::query()
             ->where('invoice_id', $invoiceId)
             ->where('type', SupplierLedgerType::INVOICE_USAGE)
@@ -1282,7 +1291,7 @@ class InvoiceApiTest extends TestCase
             ]],
         ])->assertOk();
 
-        $this->assertSame('700.00', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('700.000', SupplierBalanceAccount::where('supplier_id', $supplier->id)->where('currency', 'USD')->value('current_balance'));
         $this->assertSame(1, SupplierLedgerEntry::where('invoice_id', $invoice->id)->where('type', SupplierLedgerType::REVERSAL)->count());
     }
 
@@ -1305,8 +1314,8 @@ class InvoiceApiTest extends TestCase
         $invoiceId = $response->json('data.id');
         $this->actingAs($this->admin)->postJson("/api/v1/invoices/{$invoiceId}/issue")->assertOk();
 
-        $this->assertSame('-50.00', SupplierBalanceAccount::where('supplier_id', $usdSupplier->id)->where('currency', 'USD')->value('current_balance'));
-        $this->assertSame('-70.00', SupplierBalanceAccount::where('supplier_id', $aedSupplier->id)->where('currency', 'AED')->value('current_balance'));
+        $this->assertSame('-50.000', SupplierBalanceAccount::where('supplier_id', $usdSupplier->id)->where('currency', 'USD')->value('current_balance'));
+        $this->assertSame('-70.000', SupplierBalanceAccount::where('supplier_id', $aedSupplier->id)->where('currency', 'AED')->value('current_balance'));
         $this->assertDatabaseHas('supplier_ledger_entries', ['invoice_id' => $invoiceId, 'supplier_id' => $usdSupplier->id, 'currency' => 'USD', 'amount' => '150.00']);
         $this->assertDatabaseHas('supplier_ledger_entries', ['invoice_id' => $invoiceId, 'supplier_id' => $aedSupplier->id, 'currency' => 'AED', 'amount' => '120.00']);
     }

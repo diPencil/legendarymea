@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\CurrencyAmount;
 use App\Support\PermissionAccess;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,7 +22,7 @@ class UpdateRenewalRequest extends FormRequest
             'renewal_due_date' => ['sometimes', 'date'],
             'proposed_start_date' => ['nullable', 'date'],
             'proposed_end_date' => ['nullable', 'date', 'after_or_equal:proposed_start_date'],
-            'renewal_amount' => ['nullable', 'numeric', 'min:0'],
+            'renewal_amount' => ['nullable', 'numeric', 'min:0', new CurrencyAmount((string) $this->input('currency', $this->route('renewal')?->currency ?? 'AED'))],
             'currency' => ['nullable', 'string', 'size:3'],
             'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'string'],

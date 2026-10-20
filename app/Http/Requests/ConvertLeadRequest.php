@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\OpportunityStage;
 use Illuminate\Validation\Rule;
 use App\Models\Contact;
+use App\Rules\CurrencyAmount;
 
 class ConvertLeadRequest extends FormRequest
 {
@@ -46,7 +47,7 @@ class ConvertLeadRequest extends FormRequest
                 OpportunityStage::NEGOTIATION->value
             ])],
             'opportunity.probability' => 'nullable|integer|min:0|max:100',
-            'opportunity.estimated_value' => 'nullable|numeric|min:0',
+            'opportunity.estimated_value' => ['nullable', 'numeric', 'min:0', new CurrencyAmount((string) $this->input('opportunity.currency', 'AED'))],
             'opportunity.currency' => 'nullable|string|size:3',
             'opportunity.expected_close_date' => 'nullable|date',
             'opportunity.service_interest' => ['nullable', 'string', $this->serviceCatalogRule()],

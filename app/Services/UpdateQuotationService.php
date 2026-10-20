@@ -69,6 +69,7 @@ class UpdateQuotationService
 
         return DB::transaction(function () use ($quotation, $data, $updatedBy) {
             $oldValues = $this->auditValues($quotation);
+            $currency = strtoupper((string) ($data['currency'] ?? $quotation->currency));
 
             // Resolve items
             $updateItems = array_key_exists('items', $data);
@@ -82,7 +83,7 @@ class UpdateQuotationService
 
                 $calculatedItems = [];
                 foreach ($itemsData as $index => $item) {
-                    $lineTotal = $this->calculator->itemLineTotal($item['quantity'], $item['unit_price']);
+                    $lineTotal = $this->calculator->itemLineTotal($item['quantity'], $item['unit_price'], $currency);
                     QuotationItem::create([
                         'quotation_id' => $quotation->id,
                         'description'  => $item['description'],
@@ -93,7 +94,7 @@ class UpdateQuotationService
                     ]);
                     $calculatedItems[] = ['quantity' => $item['quantity'], 'unit_price' => $item['unit_price']];
                 }
-                $subtotal = $this->calculator->subtotalFromLines($calculatedItems);
+                $subtotal = $this->calculator->subtotalFromLines($calculatedItems, $currency);
                 $data['subtotal'] = $subtotal;
             } else {
                 // Items unchanged, use current subtotal
@@ -108,7 +109,7 @@ class UpdateQuotationService
                 ? (string) $data['tax_amount']
                 : (string) $quotation->tax_amount;
 
-            $data['total_amount'] = $this->calculator->total($subtotal, $discount, $tax);
+            $data['total_amount'] = $this->calculator->total($subtotal, $discount, $tax, $currency);
 
             if (array_key_exists('currency', $data)) {
                 $data['currency'] = strtoupper($data['currency']);
