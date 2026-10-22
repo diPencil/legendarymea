@@ -37,7 +37,7 @@ class CompanyStatementPdfHtmlRenderer
             ->map(fn (array $inv) => $this->activeInvoiceRow($inv, $currency, $isRtl))
             ->implode('');
 
-        $pageStyle = $autoPrint ? '@page{size:A4 portrait;margin:10mm}' : '@page{size:A4 portrait;margin:10mm}';
+        $pageStyle = '@page{margin:10mm}';
         $script = $autoPrint
             ? '<script>window.addEventListener("load",function(){window.setTimeout(function(){window.print();},250);});</script>'
             : '';

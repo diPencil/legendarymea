@@ -41,7 +41,7 @@ class SupplierStatementPdfHtmlRenderer
             ->map(fn (array $u) => $this->usageRow($u, $currency, $isRtl))
             ->implode('');
 
-        $pageStyle = '@page{size:A4 portrait;margin:10mm}';
+        $pageStyle = '@page{margin:10mm}';
         $script = $autoPrint
             ? '<script>window.addEventListener("load",function(){window.setTimeout(function(){window.print();},250);});</script>'
             : '';
