@@ -185,6 +185,10 @@ class CompanyStatementService
         // 9. Supporting Schedules (As-Of Open Invoices & Available Credits)
         $activeInvoicesBreakdown = $this->getActiveInvoicesBreakdown($company, $currency, $endDate);
         $unallocatedCreditsBreakdown = $this->getUnallocatedCreditsBreakdown($company, $currency, $endDate);
+        $supportingSchedules = [
+            'active_invoices' => $activeInvoicesBreakdown,
+            'unallocated_credits' => $unallocatedCreditsBreakdown,
+        ];
 
         // 10. Filter Transaction Lines (if requested) & Paginate
         $filteredLines = $periodLines;
@@ -265,6 +269,10 @@ class CompanyStatementService
             ],
             'transactions' => [
                 'data' => $paginatedData,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $totalLines,
+                'last_page' => $lastPage,
                 'meta' => [
                     'current_page' => $page,
                     'per_page' => $perPage,
@@ -272,6 +280,7 @@ class CompanyStatementService
                     'last_page' => $lastPage,
                 ],
             ],
+            'supporting_schedules' => $supportingSchedules,
             'active_invoices_breakdown' => $activeInvoicesBreakdown,
             'unallocated_credits_breakdown' => $unallocatedCreditsBreakdown,
             'booking_integration' => [

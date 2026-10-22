@@ -132,7 +132,12 @@ class CompanyStatementTest extends TestCase
             ->assertJsonPath('summary.closing_balance.unallocated_credit', '0.00')
             ->assertJsonPath('summary.closing_balance.net_position', '0.00')
             ->assertJsonPath('summary.reconciliation.is_reconciled', true)
-            ->assertJsonPath('transactions.data', []);
+            ->assertJsonPath('transactions.data', [])
+            ->assertJsonPath('transactions.current_page', 1)
+            ->assertJsonPath('transactions.total', 0)
+            ->assertJsonPath('transactions.last_page', 1)
+            ->assertJsonPath('supporting_schedules.active_invoices', [])
+            ->assertJsonPath('supporting_schedules.unallocated_credits', []);
     }
 
     public function test_invoices_without_payment_accumulate_receivables(): void
@@ -597,6 +602,9 @@ class CompanyStatementTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('summary.period_movements.invoiced_total', '1000.00')
             ->assertJsonPath('summary.closing_balance.net_position', '1000.00')
+            ->assertJsonPath('transactions.total', 10)
+            ->assertJsonPath('transactions.per_page', 3)
+            ->assertJsonPath('transactions.current_page', 1)
             ->assertJsonPath('transactions.meta.total', 10)
             ->assertJsonPath('transactions.meta.per_page', 3)
             ->assertJsonPath('transactions.meta.current_page', 1);
@@ -722,7 +730,7 @@ class CompanyStatementTest extends TestCase
         $res->assertHeader('Content-Type', 'text/html; charset=UTF-8');
         $content = $res->getContent();
         $this->assertStringContainsString('STATEMENT OF ACCOUNT', $content);
-        $this->assertStringContainsString($this->company->name, $content);
+        $this->assertStringContainsString(e($this->company->name), $content);
         $this->assertStringContainsString('3,500.00', $content);
     }
 
