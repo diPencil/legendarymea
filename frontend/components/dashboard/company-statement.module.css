@@ -1,5 +1,6 @@
 .statementPage {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   width: 100%;
 }
@@ -472,16 +473,38 @@
 
 /* Schedules Tab */
 .schedulesGrid {
+  max-width: 100%;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
   gap: 16px;
 }
 
 .scheduleCard {
+  min-width: 0;
   background: #fff;
   border: 1px solid rgba(8, 29, 96, 0.1);
   border-radius: 8px;
   overflow: hidden;
+}
+
+.scheduleCard .tableResponsive {
+  overflow-x: auto;
+}
+
+.scheduleCard .ledgerTable {
+  min-width: 520px;
+  font-size: 12px;
+}
+
+.scheduleCard .ledgerTable th,
+.scheduleCard .ledgerTable td {
+  padding-inline: 8px;
+}
+
+.scheduleCard .ledgerTable th {
+  font-size: 10px;
+  letter-spacing: 0.4px;
 }
 
 .emptyState {
@@ -498,7 +521,7 @@
 }
 
 /* Responsive */
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
   .statementHeader {
     grid-template-columns: 1fr;
   }
