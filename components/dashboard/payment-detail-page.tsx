@@ -216,19 +216,19 @@ export function PaymentDetailPage({ id }: { id: string }) {
             margin: '0 0 20px',
             padding: '16px 20px',
             borderRadius: '10px',
-            background: 'rgba(56, 189, 248, 0.1)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
+            background: 'rgba(56, 189, 248, 0.12)',
+            border: '1px solid rgba(2, 132, 199, 0.35)',
             display: 'flex',
             gap: '12px',
             alignItems: 'center',
           }}
         >
-          <Info size={22} style={{ color: '#38bdf8', flexShrink: 0 }} aria-hidden="true" />
+          <Info size={22} style={{ color: 'var(--legendary-navy-soft, #132e73)', flexShrink: 0 }} aria-hidden="true" />
           <div>
-            <strong style={{ color: '#e0f2fe', fontSize: '15px', display: 'block' }}>
+            <strong style={{ color: 'var(--legendary-navy, #081d60)', fontSize: '15px', display: 'block' }}>
               {copy.unallocatedCredit}: <span dir="ltr">{payment.currency} {payment.unallocated_amount}</span>
             </strong>
-            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#bae6fd' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--legendary-navy-soft, #132e73)' }}>
               {copy.companyCreditAppliedNotice}
             </p>
           </div>
@@ -253,9 +253,8 @@ export function PaymentDetailPage({ id }: { id: string }) {
                 <div><dt>{copy.allocatedAmount}</dt><dd dir="ltr" style={{ color: '#34d399', fontWeight: 600 }}>{payment.currency} {payment.allocated_amount}</dd></div>
               ) : null}
               {payment.unallocated_amount && decimalCompare(payment.unallocated_amount, 0) > 0 ? (
-                <div><dt>{copy.unallocatedAmount}</dt><dd dir="ltr" style={{ color: '#38bdf8', fontWeight: 600 }}>{payment.currency} {payment.unallocated_amount}</dd></div>
-              ) : null}
-              <div><dt>{copy.method}</dt><dd>{paymentMethodLabel(payment.method, copy)}</dd></div>
+                <div><dt>{copy.unallocatedAmount}</dt><dd dir="ltr" style={{ color: '#0284c7', fontWeight: 600 }}>{payment.currency} {payment.unallocated_amount}</dd></div>
+              ) : null}              <div><dt>{copy.method}</dt><dd>{paymentMethodLabel(payment.method, copy)}</dd></div>
               <div><dt>{copy.transactionReference}</dt><dd dir="ltr">{payment.transaction_reference ?? '—'}</dd></div>
               <div><dt>{copy.paidAt}</dt><dd dir="ltr">{formatDateTime(payment.paid_at)}</dd></div>
               <div><dt>{copy.recorder}</dt><dd>{payment.recorder?.name ?? payment.recorder?.email ?? '—'}</dd></div>
@@ -294,7 +293,7 @@ export function PaymentDetailPage({ id }: { id: string }) {
                             </Link>
                             {isReversed && (alloc.reversal_reason || alloc.reversed_at) ? (
                               <div style={{ fontSize: '11px', color: '#f87171', marginTop: '2px' }}>
-                                {copy.reversed}: {alloc.reversal_reason ?? '—'}
+                                {copy.reason}: {alloc.reversal_reason ?? '—'}
                               </div>
                             ) : null}
                           </td>
