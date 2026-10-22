@@ -242,17 +242,17 @@ export function DashboardCompanyStatementPage({ companyId }: Props) {
 
   // Search filtered transaction rows
   const displayTransactions = useMemo(() => {
-    if (!statement?.transactions.data) return []
+    if (!statement?.transactions?.data) return []
     if (!searchQuery.trim()) return statement.transactions.data
 
     const q = searchQuery.toLowerCase().trim()
     return statement.transactions.data.filter((tx) => {
       return (
-        tx.reference.toLowerCase().includes(q) ||
-        tx.description.toLowerCase().includes(q) ||
+        tx.reference?.toLowerCase().includes(q) ||
+        tx.description?.toLowerCase().includes(q) ||
         (tx.invoice_reference && tx.invoice_reference.toLowerCase().includes(q)) ||
         (tx.payment_reference && tx.payment_reference.toLowerCase().includes(q)) ||
-        tx.booking_references.some((b) => b.toLowerCase().includes(q))
+        tx.booking_references?.some((b) => b.toLowerCase().includes(q))
       )
     })
   }, [statement, searchQuery])
@@ -272,8 +272,8 @@ export function DashboardCompanyStatementPage({ companyId }: Props) {
   const comp = statement?.company
   const summary = statement?.summary
   const reconciliation = summary?.reconciliation
-  const activeInvoices = statement?.supporting_schedules.active_invoices || []
-  const unallocatedCredits = statement?.supporting_schedules.unallocated_credits || []
+  const activeInvoices = statement?.supporting_schedules?.active_invoices || []
+  const unallocatedCredits = statement?.supporting_schedules?.unallocated_credits || []
 
   // Net position analysis
   const netMinor = summary ? parseFloat(summary.closing_balance.net_position) : 0

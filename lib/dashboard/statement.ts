@@ -124,6 +124,22 @@ export interface CompanyStatement {
   }
 }
 
+type StatementPageMeta = Omit<StatementTransactionsPage, 'data'>
+
+type CompanyStatementApiResponse = Partial<Omit<CompanyStatement, 'supporting_schedules' | 'transactions'>> & {
+  supporting_schedules?: Partial<StatementSupportingSchedules> | null
+  active_invoices_breakdown?: StatementActiveInvoice[] | null
+  unallocated_credits_breakdown?: StatementUnallocatedCredit[] | null
+  transactions?: {
+    data?: StatementTransaction[] | null
+    meta?: Partial<StatementPageMeta> | null
+    current_page?: number
+    per_page?: number
+    total?: number
+    last_page?: number
+  } | null
+}
+
 export interface StatementFilters {
   currency?: string
   start_date?: string
@@ -149,12 +165,70 @@ function buildQuery(filters: StatementFilters): string {
   return qs ? `?${qs}` : ''
 }
 
+function positiveInteger(value: unknown, fallback: number): number {
+  const number = Number(value)
+  return Number.isInteger(number) && number > 0 ? number : fallback
+}
+
+export function normalizeCompanyStatement(response: CompanyStatementApiResponse): CompanyStatement {
+  if (!response.company || !response.period || !response.summary || !response.currency) {
+    throw new Error('Company statement response is incomplete. Please retry.')
+  }
+
+  const transactionResponse = response.transactions ?? {}
+  const transactionMeta = {
+    current_page: transactionResponse.current_page ?? transactionResponse.meta?.current_page,
+    per_page: transactionResponse.per_page ?? transactionResponse.meta?.per_page,
+    total: transactionResponse.total ?? transactionResponse.meta?.total,
+    last_page: transactionResponse.last_page ?? transactionResponse.meta?.last_page,
+  }
+  const transactions = Array.isArray(transactionResponse.data) ? transactionResponse.data : []
+  const activeInvoices = Array.isArray(response.supporting_schedules?.active_invoices)
+    ? response.supporting_schedules.active_invoices
+    : Array.isArray(response.active_invoices_breakdown)
+      ? response.active_invoices_breakdown
+      : []
+  const unallocatedCredits = Array.isArray(response.supporting_schedules?.unallocated_credits)
+    ? response.supporting_schedules.unallocated_credits
+    : Array.isArray(response.unallocated_credits_breakdown)
+      ? response.unallocated_credits_breakdown
+      : []
+
+  return {
+    company: response.company,
+    currency: response.currency,
+    period: response.period,
+    summary: response.summary,
+    supporting_schedules: {
+      active_invoices: activeInvoices.map((invoice) => ({
+        ...invoice,
+        booking_references: Array.isArray(invoice.booking_references) ? invoice.booking_references : [],
+      })),
+      unallocated_credits: unallocatedCredits,
+    },
+    transactions: {
+      data: transactions.map((transaction) => ({
+        ...transaction,
+        booking_references: Array.isArray(transaction.booking_references) ? transaction.booking_references : [],
+      })),
+      current_page: positiveInteger(transactionMeta.current_page, 1),
+      per_page: positiveInteger(transactionMeta.per_page, Math.max(1, transactions.length)),
+      total: Math.max(0, Number(transactionMeta.total) || 0),
+      last_page: positiveInteger(transactionMeta.last_page, 1),
+    },
+    booking_integration: response.booking_integration,
+  }
+}
+
 export async function getCompanyStatement(
   companyId: number,
   filters: StatementFilters = {}
 ): Promise<CompanyStatement> {
   const qs = buildQuery(filters)
-  return dashboardFetch<CompanyStatement>(`/api/v1/companies/${companyId}/statement${qs}`)
+  const response = await dashboardFetch<CompanyStatementApiResponse>(
+    `/api/v1/companies/${companyId}/statement${qs}`
+  )
+  return normalizeCompanyStatement(response)
 }
 
 export async function getCompanyStatementCurrencies(
