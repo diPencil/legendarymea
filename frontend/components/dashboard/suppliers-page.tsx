@@ -693,9 +693,11 @@ export function SuppliersPage() {
       <div className={styles.employeeIdentity}>
         <span aria-hidden="true"><Package2 aria-hidden="true" /></span>
         <div>
-          <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.textLink}>
-            {supplier.name}
-          </Link>
+          <strong>
+            <Link href={`/dashboard/suppliers/${supplier.id}`} className={styles.textLink}>
+              {supplier.name}
+            </Link>
+          </strong>
           <small dir="ltr">{supplier.reference}</small>
           {(supplier.balances ?? []).filter((balance) => decimalCompare(balance.available, 0) < 0).map((balance) => (
             <small key={balance.currency} className={styles.supplierNegativeInline} role="alert">

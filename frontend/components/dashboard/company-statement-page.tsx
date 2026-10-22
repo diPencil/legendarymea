@@ -287,6 +287,13 @@ export function DashboardCompanyStatementPage({ companyId }: Props) {
   const isNetOwed = netMinor > 0
   const isNetCredit = netMinor < 0
 
+  // Period collection rate
+  const periodInvoicedNum = summary ? parseFloat(summary.period_movements.invoiced_total) : 0
+  const periodPaymentsNum = summary ? parseFloat(summary.period_movements.payments_received) : 0
+  const collectPercent = periodInvoicedNum > 0
+    ? Math.max(0, Math.min(999, (periodPaymentsNum / periodInvoicedNum) * 100))
+    : null
+
   return (
     <div className={styles.statementPage}>
       {/* 1. Header Section */}
@@ -387,6 +394,23 @@ export function DashboardCompanyStatementPage({ companyId }: Props) {
             </span>
             <span className={styles.kpiSub}>
               {copy.creditApplied}: {formatMoney(summary.period_movements.credit_applied, currency)}
+            </span>
+          </article>
+
+          {/* Period Collection Rate */}
+          <article className={cn(styles.kpiCard, collectPercent !== null && collectPercent >= 100 && styles.kpiHighlightGreen)}>
+            <span className={styles.kpiLabel}>{copy.collectionRate}</span>
+            <span className={styles.kpiValue}>
+              {collectPercent !== null
+                ? `${collectPercent.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+                : '—'}
+            </span>
+            <span className={styles.kpiSub}>
+              {collectPercent !== null
+                ? copy.collectedOfInvoiced
+                    .replace('{collected}', formatMoney(summary.period_movements.payments_received, currency))
+                    .replace('{invoiced}', formatMoney(summary.period_movements.invoiced_total, currency))
+                : copy.noCollectionBase}
             </span>
           </article>
 
