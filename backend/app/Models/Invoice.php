@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
@@ -104,9 +105,14 @@ class Invoice extends Model
         return $this->hasMany(PaymentAllocation::class);
     }
 
+    public static function paymentAllocationsAvailable(): bool
+    {
+        return once(fn (): bool => Schema::hasTable('payment_allocations'));
+    }
+
     public function postedPaymentsTotal(): string
     {
-        if ($this->allocations()->exists()) {
+        if (self::paymentAllocationsAvailable() && $this->allocations()->exists()) {
             return $this->allocations()
                 ->whereNull('reversed_at')
                 ->whereHas('payment', fn ($q) => $q->where('status', 'posted'))

@@ -16,6 +16,7 @@ use App\Models\SupplierBalanceAccount;
 use App\Models\SupplierLedgerEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class FinanceReportApiTest extends TestCase
@@ -80,6 +81,37 @@ class FinanceReportApiTest extends TestCase
         $this->actingAs($this->superAdmin)
             ->getJson('/api/v1/finance-reports/overview')
             ->assertOk();
+    }
+
+    public function test_overview_uses_legacy_payments_before_payment_allocations_migration_runs(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'customer_type' => InvoiceCustomerType::COMPANY,
+            'company_id' => $this->company->id,
+            'status' => InvoiceStatus::ISSUED,
+            'currency' => 'USD',
+            'total_amount' => '100.00',
+            'created_by' => $this->admin->id,
+        ]);
+
+        Payment::factory()->create([
+            'invoice_id' => $invoice->id,
+            'company_id' => $this->company->id,
+            'customer_type' => InvoiceCustomerType::COMPANY,
+            'recorded_by' => $this->admin->id,
+            'currency' => 'USD',
+            'amount' => '40.00',
+            'status' => PaymentStatus::POSTED,
+        ]);
+
+        Schema::shouldReceive('hasTable')
+            ->with('payment_allocations')
+            ->andReturnFalse();
+
+        $this->actingAs($this->viewer)
+            ->getJson('/api/v1/finance-reports/overview')
+            ->assertOk()
+            ->assertJsonPath('receivables.outstanding.0.amount', '60.00');
     }
 
     public function test_reports_return_expected_grouped_financial_data(): void

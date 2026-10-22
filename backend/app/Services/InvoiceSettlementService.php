@@ -39,7 +39,7 @@ class InvoiceSettlementService
 
     public function postedPaymentsTotalMinorUnits(Invoice $invoice): int
     {
-        if ($invoice->allocations()->exists()) {
+        if (Invoice::paymentAllocationsAvailable() && $invoice->allocations()->exists()) {
             return $invoice->allocations()
                 ->whereNull('reversed_at')
                 ->whereHas('payment', fn ($q) => $q->where('status', 'posted'))

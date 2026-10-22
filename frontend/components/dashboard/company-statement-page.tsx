@@ -43,6 +43,13 @@ function formatDate(iso: string): string {
   return iso.split('T')[0]
 }
 
+function formatDateInput(date: Date): string {
+  const year = date.getFullYear()
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function formatMoney(amount: string | number | undefined, currency: string): string {
   if (amount === undefined || amount === null || amount === '') return '-'
   const num = typeof amount === 'number' ? amount : parseFloat(amount)
@@ -76,10 +83,10 @@ export function DashboardCompanyStatementPage({ companyId }: Props) {
   // Default dates: Start of current month to today
   const defaultDates = useMemo(() => {
     const now = new Date()
-    const firstDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
     return {
-      start: firstDay.toISOString().split('T')[0],
-      end: now.toISOString().split('T')[0],
+      start: formatDateInput(firstDay),
+      end: formatDateInput(now),
     }
   }, [])
 
@@ -155,15 +162,15 @@ export function DashboardCompanyStatementPage({ companyId }: Props) {
   const applyPreset = (preset: 'thisMonth' | 'lastMonth' | 'thisYear' | 'allTime') => {
     const now = new Date()
     let start = ''
-    let end = now.toISOString().split('T')[0]
+    let end = formatDateInput(now)
 
     if (preset === 'thisMonth') {
-      start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().split('T')[0]
+      start = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1))
     } else if (preset === 'lastMonth') {
-      start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)).toISOString().split('T')[0]
-      end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)).toISOString().split('T')[0]
+      start = formatDateInput(new Date(now.getFullYear(), now.getMonth() - 1, 1))
+      end = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 0))
     } else if (preset === 'thisYear') {
-      start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1)).toISOString().split('T')[0]
+      start = formatDateInput(new Date(now.getFullYear(), 0, 1))
     } else if (preset === 'allTime') {
       start = '2020-01-01'
     }
