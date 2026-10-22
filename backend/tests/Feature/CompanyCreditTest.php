@@ -405,6 +405,63 @@ class CompanyCreditTest extends TestCase
         ])->assertStatus(422);
     }
 
+    public function test_allocation_only_reversal_keeps_receipt_posted_and_all_read_paths_consistent(): void
+    {
+        $invoice = $this->createInvoice(['total_amount' => '10152.32']);
+
+        $otherPayment = $this->createPostedPaymentWithCredit('7319.25', '7319.25');
+        PaymentAllocation::create([
+            'payment_id' => $otherPayment->id,
+            'invoice_id' => $invoice->id,
+            'amount' => '7319.25',
+        ]);
+
+        $affectedPayment = $this->createPostedPaymentWithCredit('2500.00', '2500.00');
+        $affectedAllocation = PaymentAllocation::create([
+            'payment_id' => $affectedPayment->id,
+            'invoice_id' => $invoice->id,
+            'amount' => '2500.00',
+        ]);
+
+        $this->assertSame('9819.25', $invoice->fresh()->postedPaymentsTotal());
+        $this->assertSame('333.07', $invoice->fresh()->balanceDue());
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/v1/payment-allocations/{$affectedAllocation->id}/reverse", [
+                'reversal_reason' => 'Allocation-only incident regression',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.is_reversed', true);
+
+        $this->actingAs($this->admin)
+            ->getJson("/api/v1/payments/{$affectedPayment->id}")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'posted')
+            ->assertJsonPath('data.allocated_amount', '0.00')
+            ->assertJsonPath('data.unallocated_amount', '2500.00')
+            ->assertJsonPath('data.reversed_at', null);
+
+        $this->actingAs($this->admin)
+            ->getJson("/api/v1/payments/{$affectedPayment->id}/allocations")
+            ->assertOk()
+            ->assertJsonPath('data.0.is_reversed', true)
+            ->assertJsonPath('data.0.reversal_reason', 'Allocation-only incident regression');
+
+        $this->actingAs($this->admin)
+            ->getJson("/api/v1/invoices/{$invoice->id}")
+            ->assertOk()
+            ->assertJsonPath('data.paid_amount', '7319.25')
+            ->assertJsonPath('data.balance_due', '2833.07');
+
+        $affectedPayment->refresh();
+        $this->assertSame(PaymentStatus::POSTED, $affectedPayment->status);
+        $this->assertNull($affectedPayment->reversed_at);
+        $this->assertSame('0.000', $affectedPayment->allocated_amount);
+        $this->assertSame('2500.000', $affectedPayment->unallocated_amount);
+        $this->assertSame('7319.25', $invoice->fresh()->postedPaymentsTotal());
+        $this->assertSame('2833.07', $invoice->fresh()->balanceDue());
+    }
+
     public function test_original_payment_reversal_reverses_credit_applications_atomically(): void
     {
         $payment = $this->createPostedPaymentWithCredit('5000.00', '2000.00', 'AED'); // 3000 available

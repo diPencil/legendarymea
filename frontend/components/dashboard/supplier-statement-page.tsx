@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
+  Calendar,
   CheckCircle2,
   Download,
   FileSpreadsheet,
-  Info,
+  FileText,
   Printer,
   Receipt,
   RefreshCw,
@@ -76,37 +77,19 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
         date: 'التاريخ',
         service: 'الخدمة',
         unitCost: 'سعر الوحدة',
-        records: 'سجلات',
         bankRef: 'المرجع البنكي / الخارجي',
         searchPlaceholder: 'البحث بالرمز المرجعي، الفاتورة، الحجز، أو الملاحظات...',
         permissionDenied: 'ليس لديك صلاحية لعرض كشوف حسابات الموردين.',
         failedToLoad: 'تعذر تحميل كشف حساب المورد.',
-        phone: 'الهاتف',
-        email: 'البريد الإلكتروني',
-        address: 'العنوان',
-        thisMonth: 'الشهر الحالي',
-        lastMonth: 'الشهر الماضي',
-        allTime: 'كافة الفترات',
-        totalRecords: 'إجمالي السجلات',
-        of: 'من',
       }
     : {
         date: 'Date',
         service: 'Service',
         unitCost: 'Unit Cost',
-        records: 'records',
         bankRef: 'Bank / Ext Ref',
         searchPlaceholder: 'Search reference, invoice, booking, or notes...',
         permissionDenied: 'You do not have permission to view supplier account statements.',
         failedToLoad: 'Failed to load supplier statement.',
-        phone: 'Phone',
-        email: 'Email',
-        address: 'Address',
-        thisMonth: 'This Month',
-        lastMonth: 'Last Month',
-        allTime: 'All Time',
-        totalRecords: 'Total Records',
-        of: 'of',
       }
 
   // Staff authorization check: client users are denied
@@ -527,16 +510,13 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
         </section>
       ) : null}
 
-      {/* 3. Filter Panel */}
+      {/* 3. Filters Toolbar */}
       <section className={styles.filterPanel}>
         <div className={styles.filterControls}>
-          {/* Currency selector */}
+          {/* Currency Selector */}
           <div className={styles.filterGroup}>
-            <label htmlFor="currency-select" className={styles.filterLabel}>
-              {copy.currency}
-            </label>
+            <label className={styles.filterLabel}>{copy.currency}</label>
             <select
-              id="currency-select"
               className={styles.select}
               value={currency}
               onChange={(e) => {
@@ -558,11 +538,8 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
 
           {/* Start Date */}
           <div className={styles.filterGroup}>
-            <label htmlFor="start-date" className={styles.filterLabel}>
-              {copy.startDate}
-            </label>
+            <label className={styles.filterLabel}>{copy.startDate}</label>
             <input
-              id="start-date"
               type="date"
               className={styles.input}
               value={startDate}
@@ -575,11 +552,8 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
 
           {/* End Date */}
           <div className={styles.filterGroup}>
-            <label htmlFor="end-date" className={styles.filterLabel}>
-              {copy.endDate}
-            </label>
+            <label className={styles.filterLabel}>{copy.endDate}</label>
             <input
-              id="end-date"
               type="date"
               className={styles.input}
               value={endDate}
@@ -590,133 +564,141 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
             />
           </div>
 
-          {/* Date Presets */}
+          {/* Presets */}
           <div className={styles.filterGroup}>
-            <span className={styles.filterLabel}>{copy.dateRange}</span>
-            <div className={styles.datePresets}>
+            <label className={styles.filterLabel}>{copy.statementPeriod}</label>
+            <div className={styles.typePills}>
               <button
                 type="button"
-                className={styles.presetButton}
+                className={styles.typePill}
                 onClick={() => applyPreset('thisMonth')}
               >
-                {labels.thisMonth}
+                Month
               </button>
               <button
                 type="button"
-                className={styles.presetButton}
+                className={styles.typePill}
                 onClick={() => applyPreset('lastMonth')}
               >
-                {labels.lastMonth}
+                Last Mo
               </button>
               <button
                 type="button"
-                className={styles.presetButton}
+                className={styles.typePill}
                 onClick={() => applyPreset('thisYear')}
               >
-                YTD
+                Year
               </button>
               <button
                 type="button"
-                className={styles.presetButton}
+                className={styles.typePill}
                 onClick={() => applyPreset('allTime')}
               >
-                {labels.allTime}
+                All
               </button>
             </div>
           </div>
         </div>
 
-        {/* Note on full export */}
-        <div style={{ fontSize: '11.5px', color: '#626968', maxWidth: '300px' }}>
-          <Info size={13} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} aria-hidden="true" />
-          {copy.exportCompleteNotice}
-        </div>
-      </section>
-
-      {/* 4. Type Pills & Search Bar */}
-      <section className={styles.searchFilterRow}>
-        <div className={styles.typePills}>
-          <button
-            type="button"
-            className={cn(styles.typePill, typeFilter === 'all' && styles.typePillActive)}
-            onClick={() => {
-              setTypeFilter('all')
-              setPage(1)
-            }}
-          >
-            {copy.filterAll}
-          </button>
-          <button
-            type="button"
-            className={cn(styles.typePill, typeFilter === 'funding' && styles.typePillActive)}
-            onClick={() => {
-              setTypeFilter('funding')
-              setPage(1)
-            }}
-          >
-            {copy.filterFunding}
-          </button>
-          <button
-            type="button"
-            className={cn(styles.typePill, typeFilter === 'usage' && styles.typePillActive)}
-            onClick={() => {
-              setTypeFilter('usage')
-              setPage(1)
-            }}
-          >
-            {copy.filterUsage}
-          </button>
-          <button
-            type="button"
-            className={cn(styles.typePill, typeFilter === 'adjustments' && styles.typePillActive)}
-            onClick={() => {
-              setTypeFilter('adjustments')
-              setPage(1)
-            }}
-          >
-            {copy.filterAdjustments}
-          </button>
-          <button
-            type="button"
-            className={cn(styles.typePill, typeFilter === 'reversals' && styles.typePillActive)}
-            onClick={() => {
-              setTypeFilter('reversals')
-              setPage(1)
-            }}
-          >
-            {copy.filterReversals}
-          </button>
-        </div>
-
-        {/* Search Input */}
-        <div className={styles.searchInputWrapper}>
-          <Search size={14} className={styles.searchIcon} aria-hidden="true" />
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder={labels.searchPlaceholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </section>
-
-      {/* 5. Chronological Transaction Ledger Table */}
-      <section className={styles.tableCard}>
-        <div className={styles.tableHeaderRow}>
-          <div>
-            <h2 className={styles.tableTitle}>{copy.accountStatement}</h2>
-            <p className={styles.tableSubtitle}>
-              {statement?.period ? `${statement.period.start_date} → ${statement.period.end_date}` : ''} | {currency}
-            </p>
+        {/* Transaction Type Filter Pills */}
+        <div className={styles.filterControls}>
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>{copy.type}</label>
+            <div className={styles.typePills}>
+              <button
+                type="button"
+                className={cn(styles.typePill, typeFilter === 'all' && styles.typePillActive)}
+                onClick={() => {
+                  setTypeFilter('all')
+                  setPage(1)
+                }}
+              >
+                {copy.filterAll}
+              </button>
+              <button
+                type="button"
+                className={cn(styles.typePill, typeFilter === 'funding' && styles.typePillActive)}
+                onClick={() => {
+                  setTypeFilter('funding')
+                  setPage(1)
+                }}
+              >
+                {copy.filterFunding}
+              </button>
+              <button
+                type="button"
+                className={cn(styles.typePill, typeFilter === 'usage' && styles.typePillActive)}
+                onClick={() => {
+                  setTypeFilter('usage')
+                  setPage(1)
+                }}
+              >
+                {copy.filterUsage}
+              </button>
+              <button
+                type="button"
+                className={cn(styles.typePill, typeFilter === 'adjustments' && styles.typePillActive)}
+                onClick={() => {
+                  setTypeFilter('adjustments')
+                  setPage(1)
+                }}
+              >
+                {copy.filterAdjustments}
+              </button>
+              <button
+                type="button"
+                className={cn(styles.typePill, typeFilter === 'reversals' && styles.typePillActive)}
+                onClick={() => {
+                  setTypeFilter('reversals')
+                  setPage(1)
+                }}
+              >
+                {copy.filterReversals}
+              </button>
+            </div>
           </div>
-          <span style={{ fontSize: '12px', color: '#626968' }}>
-            {labels.totalRecords}: <strong>{statement?.transactions.total || 0}</strong>
+
+          {/* Search Box */}
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>{copy.reference}</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder={labels.searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ paddingInlineStart: '28px', width: '180px' }}
+              />
+              <Search
+                size={14}
+                style={{
+                  position: 'absolute',
+                  insetInlineStart: '8px',
+                  top: '11px',
+                  color: '#9aa0a6',
+                }}
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Chronological Transaction Ledger Table */}
+      <section className={styles.tableContainer}>
+        <div className={styles.tableHeaderBar}>
+          <h2 className={styles.tableTitle}>
+            <Calendar size={17} aria-hidden="true" />
+            {copy.supplierStatementSubtitle}
+          </h2>
+          <span style={{ fontSize: '11px', color: '#626968' }}>
+            {copy.exportCompleteNotice}
           </span>
         </div>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.statementTable}>
+        <div className={styles.tableResponsive}>
+          <table className={styles.ledgerTable}>
             <thead>
               <tr>
                 <th>{labels.date}</th>
@@ -737,9 +719,20 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                   const debitNum = parseFloat(tx.debit || '0')
                   const creditNum = parseFloat(tx.credit || '0')
 
+                  const badgeClass =
+                    tx.type === 'funding'
+                      ? styles.badgeFunding
+                      : tx.type === 'invoice_usage'
+                      ? styles.badgeUsage
+                      : tx.type === 'adjustment'
+                      ? styles.badgeAdjustment
+                      : tx.type.includes('reversal')
+                      ? styles.badgeReversalType
+                      : styles.badgeOther
+
                   return (
                     <tr key={tx.id || tx.reference}>
-                      <td style={{ whiteSpace: 'nowrap' }}>{formatDate(tx.transaction_date)}</td>
+                      <td style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{formatDate(tx.date)}</td>
                       <td>
                         <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{tx.reference}</span>
                         {tx.is_reversed ? (
@@ -754,7 +747,9 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                         ) : null}
                       </td>
                       <td>
-                        <span className={styles.metaBadge}>{tx.type_label || tx.type}</span>
+                        <span className={cn(styles.txBadge, badgeClass)}>
+                          {tx.type_label || tx.type}
+                        </span>
                         {tx.created_by_name ? (
                           <div className={styles.metaText}>{tx.created_by_name}</div>
                         ) : null}
@@ -769,30 +764,42 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                             {tx.invoice_reference || `INV #${tx.invoice_id}`}
                           </Link>
                         ) : (
-                          <span style={{ color: '#8c939f' }}>-</span>
+                          <span style={{ color: '#9aa0a6' }}>-</span>
                         )}
                       </td>
                       <td>
                         {tx.booking_reference ? (
                           <span className={styles.bookingBadge}>{tx.booking_reference}</span>
                         ) : (
-                          <span style={{ color: '#8c939f' }}>-</span>
+                          <span style={{ color: '#9aa0a6' }}>-</span>
                         )}
                       </td>
                       <td>
                         {tx.external_reference ? (
                           <span style={{ fontFamily: 'monospace', fontSize: '11.5px' }}>{tx.external_reference}</span>
                         ) : (
-                          <span style={{ color: '#8c939f' }}>-</span>
+                          <span style={{ color: '#9aa0a6' }}>-</span>
                         )}
                       </td>
-                      <td className={cn(styles.numCell, styles.debitCell)}>
-                        {debitNum > 0 ? formatMoney(tx.debit, currency) : '-'}
+                      <td className={styles.numCell}>
+                        {debitNum > 0 ? (
+                          <span className={styles.debitAmount}>
+                            {formatMoney(tx.debit, currency)}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#9aa0a6' }}>-</span>
+                        )}
                       </td>
-                      <td className={cn(styles.numCell, styles.creditCell)}>
-                        {creditNum > 0 ? formatMoney(tx.credit, currency) : '-'}
+                      <td className={styles.numCell}>
+                        {creditNum > 0 ? (
+                          <span className={styles.creditAmount}>
+                            {formatMoney(tx.credit, currency)}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#9aa0a6' }}>-</span>
+                        )}
                       </td>
-                      <td className={cn(styles.numCell, styles.balanceCell)}>
+                      <td className={cn(styles.numCell, styles.runningBalanceCell)}>
                         {formatMoney(tx.running_balance, currency)}
                       </td>
                     </tr>
@@ -800,11 +807,9 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                 })
               ) : (
                 <tr>
-                  <td colSpan={10}>
-                    <div className={styles.emptyState}>
-                      <p className={styles.emptyTitle}>{copy.noTransactions}</p>
-                      <p className={styles.emptyText}>{copy.supplierStatementSubtitle}</p>
-                    </div>
+                  <td colSpan={10} className={styles.emptyState}>
+                    <FileText className={styles.emptyIcon} aria-hidden="true" />
+                    <p style={{ margin: 0, fontWeight: 600 }}>{copy.noTransactions}</p>
                   </td>
                 </tr>
               )}
@@ -812,48 +817,64 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
           </table>
         </div>
 
-        {/* Table Footer / Pagination */}
+        {/* Pagination Bar */}
         {statement?.transactions ? (
-          <div className={styles.tableFooterRow}>
-            <span>
-              {copy.page} {statement.transactions.current_page} {labels.of} {statement.transactions.last_page} ({statement.transactions.total} {labels.records})
-            </span>
-            <div className={styles.pagination}>
+          <div className={styles.paginationBar}>
+            <div>
+              Total <strong>{statement.transactions.total}</strong> records &bull; Page{' '}
+              <strong>{statement.transactions.current_page}</strong> of{' '}
+              <strong>{statement.transactions.last_page}</strong>
+            </div>
+
+            <div className={styles.pageButtons}>
               <button
                 type="button"
                 className={styles.pageBtn}
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
-                &larr; {copy.previous}
+                Previous
               </button>
+
+              {Array.from({ length: Math.min(5, statement.transactions.last_page) }, (_, i) => {
+                const pageNum = i + 1
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={cn(styles.pageBtn, pageNum === page && styles.pageBtnActive)}
+                    onClick={() => setPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+
               <button
                 type="button"
                 className={styles.pageBtn}
                 disabled={page >= statement.transactions.last_page}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setPage((p) => Math.min(statement.transactions.last_page, p + 1))}
               >
-                {copy.next} &rarr;
+                Next
               </button>
             </div>
           </div>
         ) : null}
       </section>
 
-      {/* 6. Supporting Schedules (Funding & Service Usage) */}
+      {/* 5. Supporting Schedules (Funding & Service Usage) */}
       <section className={styles.schedulesGrid}>
         {/* Supplier Funding Deposits Schedule */}
-        <article className={styles.tableCard}>
-          <div className={styles.tableHeaderRow}>
-            <div>
-              <h2 className={styles.tableTitle}>{copy.supplierFundingSchedule}</h2>
-              <p className={styles.tableSubtitle}>
-                {copy.supplierFundingTotal}: {statement?.supporting_schedules?.funding_schedule?.length || 0} {labels.records}
-              </p>
-            </div>
+        <article className={styles.scheduleCard}>
+          <div className={styles.tableHeaderBar}>
+            <h3 className={styles.tableTitle}>
+              <Wallet size={16} aria-hidden="true" />
+              {copy.supplierFundingSchedule} ({statement?.supporting_schedules?.funding_schedule?.length || 0})
+            </h3>
           </div>
-          <div className={styles.tableWrapper}>
-            <table className={styles.statementTable}>
+          <div className={styles.tableResponsive}>
+            <table className={styles.ledgerTable}>
               <thead>
                 <tr>
                   <th>{labels.date}</th>
@@ -868,11 +889,11 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                 {(statement?.supporting_schedules?.funding_schedule?.length ?? 0) > 0 ? (
                   statement?.supporting_schedules.funding_schedule.map((item, idx) => (
                     <tr key={item.ledger_reference || idx}>
-                      <td>{formatDate(item.transaction_date)}</td>
+                      <td style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{formatDate(item.transaction_date)}</td>
                       <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{item.ledger_reference}</td>
                       <td>{item.payment_method ? item.payment_method.toUpperCase() : '-'}</td>
                       <td style={{ fontFamily: 'monospace' }}>{item.external_reference || '-'}</td>
-                      <td className={cn(styles.numCell, styles.creditCell)}>
+                      <td className={cn(styles.numCell, styles.creditAmount)}>
                         {formatMoney(item.amount, item.currency || currency)}
                       </td>
                       <td style={{ maxWidth: '300px' }}>{item.notes || '-'}</td>
@@ -880,7 +901,7 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', color: '#626968', padding: '24px' }}>
+                    <td colSpan={6} className={styles.emptyState}>
                       {copy.noTransactions}
                     </td>
                   </tr>
@@ -891,17 +912,15 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
         </article>
 
         {/* Supplier Service Usage Schedule */}
-        <article className={styles.tableCard}>
-          <div className={styles.tableHeaderRow}>
-            <div>
-              <h2 className={styles.tableTitle}>{copy.supplierUsageSchedule}</h2>
-              <p className={styles.tableSubtitle}>
-                {copy.supplierUsageTotal}: {statement?.supporting_schedules?.invoice_usage_schedule?.length || 0} {labels.records}
-              </p>
-            </div>
+        <article className={styles.scheduleCard}>
+          <div className={styles.tableHeaderBar}>
+            <h3 className={styles.tableTitle}>
+              <Receipt size={16} aria-hidden="true" />
+              {copy.supplierUsageSchedule} ({statement?.supporting_schedules?.invoice_usage_schedule?.length || 0})
+            </h3>
           </div>
-          <div className={styles.tableWrapper}>
-            <table className={styles.statementTable}>
+          <div className={styles.tableResponsive}>
+            <table className={styles.ledgerTable}>
               <thead>
                 <tr>
                   <th>{labels.date}</th>
@@ -919,7 +938,7 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                 {(statement?.supporting_schedules?.invoice_usage_schedule?.length ?? 0) > 0 ? (
                   statement?.supporting_schedules.invoice_usage_schedule.map((item, idx) => (
                     <tr key={item.ledger_reference || idx}>
-                      <td>{formatDate(item.transaction_date)}</td>
+                      <td style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{formatDate(item.transaction_date)}</td>
                       <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{item.ledger_reference}</td>
                       <td>
                         {item.invoice_id ? (
@@ -935,14 +954,14 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                         {item.booking_reference ? (
                           <span className={styles.bookingBadge}>{item.booking_reference}</span>
                         ) : (
-                          <span style={{ color: '#8c939f' }}>-</span>
+                          <span style={{ color: '#9aa0a6' }}>-</span>
                         )}
                       </td>
                       <td className={styles.numCell}>{item.quantity || '1'}</td>
                       <td className={styles.numCell}>
                         {item.unit_cost ? formatMoney(item.unit_cost, item.currency || currency) : '-'}
                       </td>
-                      <td className={cn(styles.numCell, styles.debitCell)}>
+                      <td className={cn(styles.numCell, styles.debitAmount)}>
                         {formatMoney(item.total_cost, item.currency || currency)}
                       </td>
                       <td>
@@ -956,7 +975,7 @@ export function DashboardSupplierStatementPage({ supplierId }: Props) {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: 'center', color: '#626968', padding: '24px' }}>
+                    <td colSpan={9} className={styles.emptyState}>
                       {copy.noTransactions}
                     </td>
                   </tr>

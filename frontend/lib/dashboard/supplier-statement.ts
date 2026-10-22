@@ -65,7 +65,7 @@ export interface SupplierStatementTransaction {
   direction: 'credit' | 'debit'
   type: 'funding' | 'invoice_usage' | 'adjustment' | 'reversal' | string
   type_label: string
-  transaction_date: string
+  date: string
   debit: string
   credit: string
   amount: string

@@ -229,7 +229,7 @@ export function SupplierStatementPrintPage({ supplierId }: { supplierId: number 
         <tbody>
           {statement.transactions.data.map((tx) => (
             <tr key={tx.id || tx.reference} style={{ borderBottom: '1px solid #e5e6ea' }}>
-              <td style={{ padding: '6px' }}>{formatDate(tx.transaction_date)}</td>
+              <td style={{ padding: '6px' }}>{formatDate(tx.date)}</td>
               <td style={{ padding: '6px', fontFamily: 'monospace', fontWeight: 'bold' }}>{tx.reference}</td>
               <td style={{ padding: '6px' }}>{tx.type_label || tx.type}</td>
               <td style={{ padding: '6px' }}>{tx.description}</td>
