@@ -129,6 +129,59 @@ function AccountMenu({ isAr }: { isAr: boolean }) {
     </div>
   )
 }
+
+export function ContactTopBar() {
+  const { locale } = useLocale()
+  const isAr = locale === 'ar'
+  const [settings, setSettings] = useState<PublicSettings | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    void fetchPublicSettings()
+      .then((data) => {
+        if (mounted) setSettings(data)
+      })
+      .catch(() => {
+        if (mounted) setSettings(null)
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const publicEmail = settings?.contact?.public_email?.trim() || publicSettingsFallback.publicEmail
+  const salesEmail = settings?.contact?.sales_email?.trim() || publicSettingsFallback.salesEmail
+  const phone = settings?.contact?.phone?.trim() || settings?.contact?.whatsapp?.trim() || publicSettingsFallback.phone
+  const address = (isAr ? settings?.contact?.address_ar : settings?.contact?.address_en)?.trim()
+    || (isAr ? publicSettingsFallback.addressAr : publicSettingsFallback.addressEn)
+  const labels = isAr
+    ? { general: 'الاستفسارات العامة', sales: 'المبيعات والشراكات', phone: 'الهاتف', address: 'العنوان' }
+    : { general: 'General enquiries', sales: 'Sales & partnerships', phone: 'Phone', address: 'Address' }
+
+  return (
+    <div className="contact-topbar" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="contact-topbar-inner">
+        <div className="contact-topbar-group contact-topbar-emails">
+          <a className="contact-topbar-item contact-topbar-general" href={`mailto:${publicEmail}`}>
+            <span>{labels.general}</span><strong dir="ltr">{publicEmail}</strong>
+          </a>
+          <a className="contact-topbar-item contact-topbar-sales" href={`mailto:${salesEmail}`}>
+            <span>{labels.sales}</span><strong dir="ltr">{salesEmail}</strong>
+          </a>
+        </div>
+        <div className="contact-topbar-group contact-topbar-location">
+          <a className="contact-topbar-item contact-topbar-phone" href={`tel:${phone.replace(/[^\d+]/g, '')}`}>
+            <span>{labels.phone}</span><strong dir="ltr">{phone}</strong>
+          </a>
+          <Link className="contact-topbar-item contact-topbar-address" href="/contact">
+            <span>{labels.address}</span><strong>{address}</strong>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Header() { const [open, setOpen] = useState(false); const [solutionsOpen, setSolutionsOpen] = useState(false); const [scrolled, setScrolled] = useState(false); const c = useContent(); const { locale } = useLocale(); const isAr = locale === 'ar'; const pathname = usePathname(); const drawerRef = useRef<HTMLElement>(null); const links = [
     [c.nav.about, '/about'],
     [c.nav.services, '/solutions'],
@@ -165,7 +218,7 @@ export function Footer() {
     </footer>
   ) 
 }
-export function PageShell({ children, className = '' }: { children: React.ReactNode; className?: string }) { return <main className={`page-shell ${className}`.trim()}><Header />{children}<Footer /><ScrollTop /></main> }
+export function PageShell({ children, className = '' }: { children: React.ReactNode; className?: string }) { return <main className={`page-shell ${className}`.trim()}><ContactTopBar/><Header />{children}<Footer /><ScrollTop /></main> }
 export function ContactForm({ variant = 'travel' }: { variant?: 'travel' | 'business' } = {}) {
   const c = useContent();
   const { locale } = useLocale();

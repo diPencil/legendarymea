@@ -8735,3 +8735,96 @@ html.legendary-intro-pending::before {
     background: #fff !important;
   }
 }
+
+/* Public contact strip: values are sourced from Dashboard > Contact Settings. */
+:root {
+  --contact-topbar-height: 40px;
+}
+.contact-topbar {
+  position: fixed;
+  z-index: 101;
+  inset: 0 0 auto;
+  height: var(--contact-topbar-height);
+  color: rgba(255,255,255,.9);
+  background: #242629;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.contact-topbar-inner {
+  display: flex;
+  width: calc(100% - 64px);
+  max-width: 1800px;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-inline: auto;
+}
+.contact-topbar-group {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: clamp(24px,3vw,58px);
+}
+.contact-topbar-item {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 9px;
+  white-space: nowrap;
+  transition: color .2s ease;
+}
+.contact-topbar-item span {
+  color: #d8c383;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.contact-topbar-item strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+}
+.contact-topbar-item:hover,.contact-topbar-item:focus-visible {
+  color: #d8c383;
+  outline: none;
+}
+.header {
+  top: var(--contact-topbar-height);
+}
+.page-shell {
+  padding-top: calc(92px + var(--contact-topbar-height));
+}
+
+@media (max-width: 1050px) {
+  .contact-topbar-inner { width: calc(100% - 36px); gap: 18px; }
+  .contact-topbar-group { gap: 18px; }
+  .contact-topbar-item { gap: 6px; }
+  .contact-topbar-item span { font-size: 7px; }
+  .contact-topbar-item strong { max-width: 180px; font-size: 9px; }
+}
+
+@media (max-width: 720px) {
+  :root { --contact-topbar-height: 34px; }
+  .contact-topbar-inner { width: calc(100% - 24px); gap: 14px; }
+  .contact-topbar-group { display: contents; }
+  .contact-topbar-sales,.contact-topbar-address { display: none; }
+  .contact-topbar-general { min-width: 0; flex: 1; }
+  .contact-topbar-phone { flex: none; }
+  .contact-topbar-item span { display: none; }
+  .contact-topbar-item strong { max-width: 55vw; font-size: 9px; }
+  .page-shell,.help-center-page-shell { padding-top: calc(80px + var(--contact-topbar-height)); }
+  .mobile-header-controls .account-dropdown { top: calc(var(--contact-topbar-height) + 64px); }
+  .mobile-nav-backdrop { inset-block-start: calc(var(--contact-topbar-height) + 72px); }
+  .nav {
+    top: calc(var(--contact-topbar-height) + 72px);
+    height: calc(100dvh - var(--contact-topbar-height) - 72px);
+  }
+}
+
+@media print {
+  .contact-topbar { display: none !important; }
+}
