@@ -410,8 +410,8 @@ export function PaymentForm({
   return (
     <div className={styles.modalLayer} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section
-        className={cn(styles.employeeDialog, styles.companyDialog)}
-        style={{ maxWidth: '880px', width: '95vw' }}
+        className={cn(styles.employeeDialog, styles.companyDialog, styles.financeDialog)}
+        style={{ maxWidth: '880px', width: '100%' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="payment-dialog-title"
@@ -426,35 +426,35 @@ export function PaymentForm({
           </button>
         </div>
 
-        {/* Mode Selector: Multi-Invoice (Company) vs Single Invoice */}
-        <div style={{ display: 'flex', gap: '8px', padding: '16px 24px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        {/* Payment type selector sits in its own row above the form sections. */}
+        <div className={styles.financeModeSwitch} role="group" aria-label={copy.paymentType}>
           <button
             type="button"
-            className={cn(styles.secondaryButton, paymentMode === 'multi' && styles.primaryButton)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '13px' }}
+            className={cn(styles.financeModeTab, paymentMode === 'multi' && styles.financeModeTabActive)}
+            aria-pressed={paymentMode === 'multi'}
             onClick={() => { setPaymentMode('multi'); setErrors({}) }}
           >
-            <Layers size={16} aria-hidden="true" />
+            <Layers aria-hidden="true" />
             {copy.multiInvoiceMode}
           </button>
           <button
             type="button"
-            className={cn(styles.secondaryButton, paymentMode === 'single' && styles.primaryButton)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '13px' }}
+            className={cn(styles.financeModeTab, paymentMode === 'single' && styles.financeModeTabActive)}
+            aria-pressed={paymentMode === 'single'}
             onClick={() => { setPaymentMode('single'); setErrors({}) }}
           >
-            <FileText size={16} aria-hidden="true" />
+            <FileText aria-hidden="true" />
             {copy.singleInvoiceMode}
           </button>
         </div>
 
-        <form className={styles.companyForm} onSubmit={handleSubmit} style={{ maxHeight: '78vh', overflowY: 'auto' }}>
+        <form className={cn(styles.companyForm, styles.financeScrollForm)} onSubmit={handleSubmit}>
           {errors.general ? <p className={styles.inlineAlert}>{errors.general[0]}</p> : null}
 
           {paymentMode === 'multi' ? (
             <>
               {/* Step 1 & 2: Company & Currency */}
-              <fieldset className={styles.formSection}>
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
                 <legend>{copy.company} &amp; {copy.currency}</legend>
                 <div className={styles.formGrid}>
                   <label className={styles.formField}>
@@ -494,7 +494,7 @@ export function PaymentForm({
               </fieldset>
 
               {/* Step 3: Payment Amount & Allocation Mode */}
-              <fieldset className={styles.formSection}>
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
                 <legend>{copy.totalReceived} &amp; {copy.allocationMethod}</legend>
                 <div className={styles.formGrid}>
                   <label className={styles.formField}>
@@ -525,49 +525,48 @@ export function PaymentForm({
                 </div>
 
                 {allocationStrategy === 'auto' ? (
-                  <div className={styles.readOnlyField} style={{ marginTop: '8px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                    <Info size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#38bdf8' }} aria-hidden="true" />
+                  <div className={styles.financeNotice}>
+                    <Info aria-hidden="true" />
                     <div>
                       <strong className={styles.readOnlyValue}>{copy.automaticAllocation}</strong>
-                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                        {copy.automaticAllocationHint}
-                      </p>
+                      <p className={styles.fieldHint}>{copy.automaticAllocationHint}</p>
                     </div>
                   </div>
                 ) : null}
               </fieldset>
 
               {/* Step 4: Invoice Allocation Selection Table */}
-              <fieldset className={styles.formSection}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <legend style={{ margin: 0 }}>
-                    {copy.outstandingInvoices} ({outstandingInvoices.length})
-                  </legend>
-                  {allocationStrategy === 'manual' && outstandingInvoices.length > 0 ? (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" className={styles.secondaryButton} style={{ padding: '4px 10px', fontSize: '12px' }} onClick={handleSelectAll}>
-                        {copy.selectAll}
-                      </button>
-                      <button type="button" className={styles.secondaryButton} style={{ padding: '4px 10px', fontSize: '12px' }} onClick={handleClearAll}>
-                        {copy.clearAll}
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
+                <legend>{copy.outstandingInvoices} ({outstandingInvoices.length})</legend>
+                {allocationStrategy === 'manual' && outstandingInvoices.length > 0 ? (
+                  <div className={styles.financeSectionActions}>
+                    <button type="button" className={styles.secondaryButton} onClick={handleSelectAll}>
+                      {copy.selectAll}
+                    </button>
+                    <button type="button" className={styles.secondaryButton} onClick={handleClearAll}>
+                      {copy.clearAll}
+                    </button>
+                  </div>
+                ) : null}
 
                 {isLoadingOutstanding ? (
                   <div className={styles.loadingState} style={{ padding: '24px' }}>
                     <Loader2 className={styles.spinner} aria-hidden="true" />
                   </div>
                 ) : outstandingInvoices.length === 0 ? (
-                  <div className={styles.readOnlyField} style={{ textAlign: 'center', padding: '20px' }}>
-                    <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)' }}>
-                      {copy.noOutstandingInvoicesForCompany}
-                    </p>
+                  <div className={styles.financeEmptyState}>
+                    <FileText aria-hidden="true" />
+                    <strong>{copy.outstandingInvoices}</strong>
+                    <p>{copy.noOutstandingInvoicesForCompany}</p>
                   </div>
                 ) : (
-                  <div className={styles.employeeTableWrap} style={{ maxHeight: '280px', overflowY: 'auto' }}>
-                    <table className={styles.employeeTable} style={{ fontSize: '13px' }}>
+                  <div
+                    className={cn(styles.employeeTableWrap, styles.financeInvoiceTableWrap)}
+                    role="region"
+                    aria-label={copy.outstandingInvoices}
+                    tabIndex={0}
+                  >
+                    <table className={cn(styles.employeeTable, styles.financeInvoiceTable)}>
                       <thead>
                         <tr>
                           {allocationStrategy === 'manual' ? <th style={{ width: '40px' }}></th> : null}
@@ -589,9 +588,10 @@ export function PaymentForm({
                           return (
                             <tr
                               key={inv.id}
-                              style={{
-                                background: isSelected || isAutoAllocated ? 'rgba(212, 175, 55, 0.08)' : undefined,
-                              }}
+                              className={cn(
+                                (isSelected || isAutoAllocated) && styles.financeInvoiceRowSelected,
+                                isAutoAllocated && styles.financeInvoiceRowAllocated,
+                              )}
                             >
                               {allocationStrategy === 'manual' ? (
                                 <td>
@@ -608,7 +608,7 @@ export function PaymentForm({
                               </td>
                               <td dir="ltr">{inv.issue_date ?? '—'}</td>
                               <td dir="ltr">
-                                <span style={{ color: inv.status === 'overdue' ? '#f87171' : undefined }}>
+                                <span className={inv.status === 'overdue' ? styles.statusMuted : undefined}>
                                   {inv.due_date ?? '—'}
                                 </span>
                               </td>
@@ -625,17 +625,25 @@ export function PaymentForm({
                                       value={manualAllocations[inv.id] ?? ''}
                                       onChange={(e) => handleAllocationAmountChange(inv.id, e.target.value)}
                                       placeholder="0.00"
-                                      style={{ width: '130px', padding: '4px 8px', fontSize: '13px' }}
+                                      className={styles.financeAllocationInput}
+                                      aria-label={`${copy.allocatedAmount} ${inv.reference}`}
                                       dir="ltr"
                                     />
                                     {errors[`allocations_${inv.id}`] ? (
-                                      <small style={{ color: '#f87171', display: 'block', fontSize: '11px', marginTop: '2px' }}>
+                                      <small style={{ color: '#8d2020', display: 'block', fontSize: '11px', marginTop: '2px' }}>
                                         {errors[`allocations_${inv.id}`][0]}
                                       </small>
                                     ) : null}
                                   </div>
                                 ) : (
-                                  <span dir="ltr" style={{ fontWeight: decimalCompare(allocatedAmt, 0) > 0 ? 600 : 400, color: decimalCompare(allocatedAmt, 0) > 0 ? '#34d399' : 'rgba(255,255,255,0.5)' }}>
+                                  <span
+                                    dir="ltr"
+                                    className={styles.financeAmount}
+                                    style={{
+                                      fontWeight: decimalCompare(allocatedAmt, 0) > 0 ? 700 : 400,
+                                      color: decimalCompare(allocatedAmt, 0) > 0 ? '#0f7a45' : '#626968',
+                                    }}
+                                  >
                                     {selectedCurrency} {allocatedAmt}
                                   </span>
                                 )}
@@ -645,7 +653,7 @@ export function PaymentForm({
                                   <button
                                     type="button"
                                     className={styles.secondaryButton}
-                                    style={{ padding: '2px 8px', fontSize: '11px' }}
+                                    style={{ padding: '4px 8px', fontSize: '11px' }}
                                     onClick={() => handleAllocateFullBalance(inv)}
                                   >
                                     {copy.allocateFull}
@@ -661,66 +669,48 @@ export function PaymentForm({
                 )}
               </fieldset>
 
-              {/* Step 5: Accurate Live Financial Summary (Calculated via decimal.ts) */}
-              <fieldset className={styles.formSection}>
+              {/* Step 5: Live financial summary (calculations remain unchanged) */}
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
                 <legend>{copy.overview ?? 'Financial Summary'}</legend>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                    gap: '12px',
-                    padding: '16px',
-                    background: 'rgba(0, 0, 0, 0.25)',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <div>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', display: 'block', letterSpacing: '0.05em' }}>
-                      {copy.totalReceived}
-                    </span>
-                    <strong style={{ fontSize: '18px', color: '#f1f5f9', display: 'block', marginTop: '4px' }} dir="ltr">
+                <div className={styles.financeSummaryGrid}>
+                  <div className={styles.financeSummaryCard}>
+                    <span className={styles.financeSummaryLabel}>{copy.totalReceived}</span>
+                    <strong className={styles.financeSummaryAmount} dir="ltr">
                       {selectedCurrency} {financialSummary.received}
                     </strong>
                   </div>
 
-                  <div>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', display: 'block', letterSpacing: '0.05em' }}>
-                      {copy.totalAllocated}
-                    </span>
-                    <strong style={{ fontSize: '18px', color: '#34d399', display: 'block', marginTop: '4px' }} dir="ltr">
+                  <div className={styles.financeSummaryCard}>
+                    <span className={styles.financeSummaryLabel}>{copy.totalAllocated}</span>
+                    <strong className={styles.financeSummaryAmount} dir="ltr">
                       {selectedCurrency} {financialSummary.allocatedTotal}
                     </strong>
                   </div>
 
-                  <div>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', display: 'block', letterSpacing: '0.05em' }}>
-                      {copy.unallocatedAmount}
-                    </span>
+                  <div className={styles.financeSummaryCard}>
+                    <span className={styles.financeSummaryLabel}>{copy.unallocatedCredit}</span>
                     <strong
-                      style={{
-                        fontSize: '18px',
-                        color: decimalCompare(financialSummary.unallocatedCredit, 0) > 0 ? '#38bdf8' : '#94a3b8',
-                        display: 'block',
-                        marginTop: '4px',
-                      }}
+                      className={cn(
+                        styles.financeSummaryAmount,
+                        decimalCompare(financialSummary.unallocatedCredit, 0) > 0
+                          ? styles.financeSummaryAmountWarning
+                          : styles.financeSummaryAmountMuted,
+                      )}
                       dir="ltr"
                     >
                       {selectedCurrency} {financialSummary.unallocatedCredit}
                     </strong>
                   </div>
 
-                  <div>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', display: 'block', letterSpacing: '0.05em' }}>
-                      {copy.remainingDebt}
-                    </span>
+                  <div className={styles.financeSummaryCard}>
+                    <span className={styles.financeSummaryLabel}>{copy.remainingDebt}</span>
                     <strong
-                      style={{
-                        fontSize: '18px',
-                        color: decimalCompare(financialSummary.remainingCompanyDebt, 0) > 0 ? '#fbbf24' : '#34d399',
-                        display: 'block',
-                        marginTop: '4px',
-                      }}
+                      className={cn(
+                        styles.financeSummaryAmount,
+                        decimalCompare(financialSummary.remainingCompanyDebt, 0) > 0
+                          ? styles.financeSummaryAmountNegative
+                          : styles.financeSummaryAmountPositive,
+                      )}
                       dir="ltr"
                     >
                       {selectedCurrency} {financialSummary.remainingCompanyDebt}
@@ -729,28 +719,15 @@ export function PaymentForm({
                 </div>
 
                 {decimalCompare(financialSummary.unallocatedCredit, 0) > 0 ? (
-                  <div
-                    style={{
-                      marginTop: '10px',
-                      padding: '10px 14px',
-                      borderRadius: '6px',
-                      background: 'rgba(56, 189, 248, 0.1)',
-                      border: '1px solid rgba(56, 189, 248, 0.25)',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      fontSize: '13px',
-                      color: '#bae6fd',
-                    }}
-                  >
-                    <Info size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
-                    <span>{copy.unallocatedCreditNotice}</span>
+                  <div className={styles.financeNotice}>
+                    <Info aria-hidden="true" />
+                    <p>{copy.unallocatedCreditNotice}</p>
                   </div>
                 ) : null}
               </fieldset>
 
               {/* Step 6: Payment Details */}
-              <fieldset className={styles.formSection}>
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
                 <legend>{copy.paymentDetails}</legend>
                 <div className={styles.formGrid}>
                   <label className={styles.formField}>
@@ -785,7 +762,7 @@ export function PaymentForm({
             </>
           ) : (
             /* Legacy Single-Invoice Payment Mode */
-            <fieldset className={styles.formSection}>
+            <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
               <legend>{copy.singleInvoicePayment}</legend>
               <div className={styles.formSectionStack}>
                 <label className={styles.formField}>

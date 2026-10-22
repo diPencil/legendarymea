@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { AlertCircle, CheckCircle2, Coins, Info, Loader2, X } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Coins, FileText, Info, Loader2, X } from 'lucide-react'
 
 import { useLocale } from '@/components/i18n'
 import { dashboardCopy } from '@/components/dashboard/copy'
@@ -244,6 +244,28 @@ export function ApplyCreditModal({
     }
   }, [selectedSourcePayment, manualAllocations, selectedInvoiceIds, precision])
 
+  const disabledReason = useMemo(() => {
+    if (!selectedCompanyId) return copy.selectCompany
+    if (isLoadingCredits || isLoadingInvoices) return copy.loadingData
+    if (!selectedSourcePayment) return copy.applyCreditRequiresCredit
+    if (outstandingInvoices.length === 0) return copy.applyCreditRequiresInvoice
+    if (calculations.isOverAllocated) return copy.insufficientCredit
+    if (!calculations.hasValidApplication) return copy.enterCreditAmount
+    return ''
+  }, [
+    selectedCompanyId,
+    isLoadingCredits,
+    isLoadingInvoices,
+    selectedSourcePayment,
+    outstandingInvoices.length,
+    calculations.isOverAllocated,
+    calculations.hasValidApplication,
+    copy,
+  ])
+
+  const isCompanySelectorLocked = Boolean(initialCompanyId)
+  const noCreditBody = isCompanySelectorLocked ? copy.noCreditEmptyBodyLockedCompany : copy.noCreditEmptyBody
+
   // Handle allocation change for an invoice
   const handleAmountChange = (invoiceId: number, rawValue: string) => {
     setManualAllocations((prev) => ({
@@ -368,27 +390,16 @@ export function ApplyCreditModal({
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <section
-        className={cn(styles.employeeDialog, styles.companyDialog)}
-        style={{ maxWidth: '860px', width: '95vw' }}
+        className={cn(styles.employeeDialog, styles.companyDialog, styles.financeDialog)}
+        style={{ maxWidth: '860px', width: '100%' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="apply-credit-title"
       >
         <div className={styles.dialogHeader}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
-                background: 'rgba(56, 189, 248, 0.15)',
-                color: '#38bdf8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Coins size={20} aria-hidden="true" />
+          <div className={styles.financeDialogTitle}>
+            <div className={styles.financeModalIcon}>
+              <Coins aria-hidden="true" />
             </div>
             <div>
               <span>{copy.finance}</span>
@@ -400,26 +411,13 @@ export function ApplyCreditModal({
           </button>
         </div>
 
-        {/* Informational Callout: Distinguishes existing credit from new cash */}
-        <div
-          style={{
-            margin: '16px 24px 0',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            background: 'rgba(56, 189, 248, 0.08)',
-            border: '1px solid rgba(56, 189, 248, 0.2)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '12px',
-          }}
-        >
-          <Info size={18} style={{ color: '#38bdf8', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-          <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.5 }}>
-            {copy.creditAppliedNotice}
-          </p>
-        </div>
+        <form onSubmit={handleSubmit} className={cn(styles.employeeForm, styles.financeScrollForm)}>
+          {/* Informational callout: distinguishes existing credit from new cash. */}
+          <div className={styles.financeInfoBanner}>
+            <Info aria-hidden="true" />
+            <p>{copy.creditAppliedNotice}</p>
+          </div>
 
-        <form onSubmit={handleSubmit} className={styles.employeeForm} style={{ padding: '20px 24px' }}>
           {errors.general ? (
             <div className={styles.inlineAlert} role="alert">
               <AlertCircle size={16} aria-hidden="true" />
@@ -428,18 +426,14 @@ export function ApplyCreditModal({
           ) : null}
 
           {successMessage ? (
-            <div
-              className={styles.inlineAlert}
-              role="status"
-              style={{ background: 'rgba(52, 211, 153, 0.15)', borderColor: '#34d399', color: '#34d399' }}
-            >
-              <CheckCircle2 size={16} aria-hidden="true" />
+            <div className={cn(styles.inlineAlert, styles.financeSuccessAlert)} role="status">
+              <CheckCircle2 aria-hidden="true" />
               <span>{successMessage}</span>
             </div>
           ) : null}
 
           {/* Section 1: Company Selection & Credit Summary */}
-          <fieldset className={styles.formSection}>
+          <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
             <legend>{copy.company}</legend>
             <div className={styles.formGrid}>
               <label className={styles.formField}>
@@ -480,7 +474,7 @@ export function ApplyCreditModal({
                   ) : (
                     creditSummaries.map((s) => (
                       <option key={s.currency} value={s.currency}>
-                        {s.currency} — {copy.availableCredit}: {s.currency} {s.total_unallocated} ({s.payment_count})
+                        {s.currency} — {copy.availableCredit}: {s.currency} {s.available_credit}
                       </option>
                     ))
                   )}
@@ -503,270 +497,258 @@ export function ApplyCreditModal({
                     style={{ padding: '6px 12px', fontSize: '12px' }}
                   >
                     <span>{s.currency}</span>
-                    <strong style={{ marginInlineStart: '6px' }}>{s.total_unallocated}</strong>
+                    <strong style={{ marginInlineStart: '6px' }}>{s.available_credit}</strong>
                   </button>
                 ))}
               </div>
             ) : !isLoadingCredits && selectedCompanyId ? (
-              <p style={{ margin: '8px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                {copy.noAvailableCredit}
-              </p>
-            ) : null}
-          </fieldset>
-
-          {/* Section 2: Source Payment Selection */}
-          <fieldset className={styles.formSection}>
-            <legend>{copy.creditSourcePayment}</legend>
-            {isLoadingCredits ? (
-              <div className={styles.loadingState} style={{ padding: '16px' }}>
-                <Loader2 className={styles.spinner} aria-hidden="true" />
-              </div>
-            ) : availablePaymentsForCurrency.length === 0 ? (
-              <div className={styles.readOnlyField} style={{ padding: '16px', textAlign: 'center' }}>
-                <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)' }}>
-                  {copy.noAvailableCreditForCurrency}
-                </p>
-              </div>
-            ) : (
-              <label className={styles.formField}>
-                <span>{copy.selectCreditSource} <em>{copy.required}</em></span>
-                <select
-                  value={selectedPaymentId}
-                  onChange={(e) => setSelectedPaymentId(e.target.value)}
-                  required
-                >
-                  {availablePaymentsForCurrency.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.reference} — {copy.availableCredit}: {p.currency} {p.unallocated_amount} (Original: {p.currency} {p.amount})
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-
-            {selectedSourcePayment ? (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-                  gap: '12px',
-                  marginTop: '12px',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}
-              >
-                <div>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
-                    {copy.reference}
-                  </span>
-                  <div dir="ltr" style={{ fontWeight: 600, color: '#f8fafc', marginTop: '2px' }}>
-                    {selectedSourcePayment.reference}
-                  </div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
-                    {copy.totalReceived}
-                  </span>
-                  <div dir="ltr" style={{ color: '#cbd5e1', marginTop: '2px' }}>
-                    {selectedSourcePayment.currency} {selectedSourcePayment.amount}
-                  </div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
-                    {copy.totalAllocated}
-                  </span>
-                  <div dir="ltr" style={{ color: '#cbd5e1', marginTop: '2px' }}>
-                    {selectedSourcePayment.currency} {selectedSourcePayment.allocated_amount}
-                  </div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#38bdf8' }}>
-                    {copy.availableCredit}
-                  </span>
-                  <div dir="ltr" style={{ fontWeight: 700, color: '#38bdf8', fontSize: '15px', marginTop: '2px' }}>
-                    {selectedSourcePayment.currency} {selectedSourcePayment.unallocated_amount}
-                  </div>
-                </div>
+              <div className={styles.financeEmptyState}>
+                <Coins aria-hidden="true" />
+                <strong>{copy.noCreditEmptyTitle}</strong>
+                <p>{noCreditBody}</p>
               </div>
             ) : null}
           </fieldset>
 
-          {/* Section 3: Target Outstanding Invoices */}
-          <fieldset className={styles.formSection}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <legend style={{ margin: 0 }}>
-                {copy.outstandingInvoices} ({outstandingInvoices.length})
-              </legend>
-            </div>
-
-            {isLoadingInvoices ? (
-              <div className={styles.loadingState} style={{ padding: '24px' }}>
-                <Loader2 className={styles.spinner} aria-hidden="true" />
-              </div>
-            ) : outstandingInvoices.length === 0 ? (
-              <div className={styles.readOnlyField} style={{ textAlign: 'center', padding: '20px' }}>
-                <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)' }}>
-                  {copy.noOutstandingInvoicesForCompany}
-                </p>
-              </div>
-            ) : (
-              <div className={styles.employeeTableWrap} style={{ maxHeight: '280px', overflowY: 'auto' }}>
-                <table className={styles.employeeTable} style={{ fontSize: '13px' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: '40px' }}></th>
-                      <th>{copy.invoiceReference}</th>
-                      <th>{copy.dueDate ?? 'Due Date'}</th>
-                      <th>{copy.total}</th>
-                      <th>{copy.balanceDue}</th>
-                      <th style={{ minWidth: '150px' }}>{copy.allocatedAmount}</th>
-                      <th style={{ width: '80px' }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {outstandingInvoices.map((inv) => {
-                      const isChecked = selectedInvoiceIds.has(inv.id)
-                      const currentAmount = manualAllocations[inv.id] ?? ''
-                      const isRowOverAllocated = decimalCompare(currentAmount || '0', inv.balance_due) > 0
-
-                      return (
-                        <tr key={inv.id} style={{ background: isChecked ? 'rgba(56, 189, 248, 0.05)' : undefined }}>
-                          <td>
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => handleToggleInvoice(inv)}
-                              aria-label={`Select ${inv.reference}`}
-                            />
-                          </td>
-                          <td>
-                            <strong dir="ltr">{inv.reference}</strong>
-                          </td>
-                          <td dir="ltr">{inv.due_date ?? '—'}</td>
-                          <td dir="ltr">{inv.currency} {inv.total_amount}</td>
-                          <td dir="ltr" style={{ fontWeight: 600 }}>
-                            {inv.currency} {inv.balance_due}
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              min={step}
-                              step={step}
-                              value={currentAmount}
-                              onChange={(e) => handleAmountChange(inv.id, e.target.value)}
-                              placeholder={`0.${'0'.repeat(precision)}`}
-                              disabled={!isChecked}
-                              dir="ltr"
-                              style={{
-                                width: '100%',
-                                padding: '6px 10px',
-                                fontSize: '13px',
-                                borderColor: isRowOverAllocated ? '#f87171' : undefined,
-                              }}
-                            />
-                            {isRowOverAllocated ? (
-                              <div style={{ color: '#f87171', fontSize: '11px', marginTop: '2px' }}>
-                                {copy.allocationExceedsBalance}
-                              </div>
-                            ) : null}
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className={styles.secondaryButton}
-                              style={{ padding: '4px 8px', fontSize: '11px', whiteSpace: 'nowrap' }}
-                              onClick={() => handleAllocateMax(inv)}
-                            >
-                              {copy.allocateFull}
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </fieldset>
-
-          {/* Section 4: Live Remaining Credit Calculation Card */}
-          {selectedSourcePayment ? (
-            <div
-              style={{
-                marginTop: '16px',
-                padding: '16px',
-                borderRadius: '8px',
-                background: calculations.isOverAllocated
-                  ? 'rgba(239, 68, 68, 0.1)'
-                  : 'rgba(56, 189, 248, 0.05)',
-                border: `1px solid ${calculations.isOverAllocated ? 'rgba(239, 68, 68, 0.3)' : 'rgba(56, 189, 248, 0.2)'}`,
-              }}
-            >
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-                <div>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
-                    {copy.totalCreditAvailable}
-                  </span>
-                  <div dir="ltr" style={{ fontWeight: 600, fontSize: '16px', color: '#f8fafc', marginTop: '4px' }}>
-                    {selectedSourcePayment.currency} {calculations.availableCredit}
+          {creditSummaries.length > 0 || isLoadingCredits ? (
+            <>
+              {/* Section 2: Source Payment Selection */}
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
+                <legend>{copy.creditSourcePayment}</legend>
+                {isLoadingCredits ? (
+                  <div className={styles.loadingState} style={{ padding: '16px' }}>
+                    <Loader2 className={styles.spinner} aria-hidden="true" />
                   </div>
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
-                    {copy.totalAllocated}
-                  </span>
-                  <div dir="ltr" style={{ fontWeight: 600, fontSize: '16px', color: '#38bdf8', marginTop: '4px' }}>
-                    {selectedSourcePayment.currency} {calculations.totalApplied}
+                ) : availablePaymentsForCurrency.length === 0 ? (
+                  <div className={styles.financeEmptyState}>
+                    <Coins aria-hidden="true" />
+                    <strong>{copy.noCreditEmptyTitle}</strong>
+                    <p>{copy.noAvailableCreditForCurrency}</p>
+                    <small>{noCreditBody}</small>
                   </div>
-                </div>
+                ) : (
+                  <label className={styles.formField}>
+                    <span>{copy.selectCreditSource} <em>{copy.required}</em></span>
+                    <select
+                      value={selectedPaymentId}
+                      onChange={(e) => setSelectedPaymentId(e.target.value)}
+                      required
+                    >
+                      {availablePaymentsForCurrency.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.reference} — {copy.availableCredit}: {p.currency} {p.unallocated_amount} (Original: {p.currency} {p.amount})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
 
-                <div>
-                  <span style={{ fontSize: '12px', color: calculations.isOverAllocated ? '#f87171' : 'rgba(255,255,255,0.6)' }}>
-                    {copy.remainingCreditAfterApplication}
-                  </span>
+                {selectedSourcePayment ? (
+                  <div className={styles.financeSourceGrid}>
+                    <div className={styles.financeSourceCard}>
+                      <span className={styles.financeSourceLabel}>{copy.reference}</span>
+                      <div className={cn(styles.financeSourceValue, styles.financeAmount)} dir="ltr">
+                        {selectedSourcePayment.reference}
+                      </div>
+                    </div>
+                    <div className={styles.financeSourceCard}>
+                      <span className={styles.financeSourceLabel}>{copy.totalReceived}</span>
+                      <div className={cn(styles.financeSourceValue, styles.financeAmount)} dir="ltr">
+                        {selectedSourcePayment.currency} {selectedSourcePayment.amount}
+                      </div>
+                    </div>
+                    <div className={styles.financeSourceCard}>
+                      <span className={styles.financeSourceLabel}>{copy.totalAllocated}</span>
+                      <div className={cn(styles.financeSourceValue, styles.financeAmount)} dir="ltr">
+                        {selectedSourcePayment.currency} {selectedSourcePayment.allocated_amount}
+                      </div>
+                    </div>
+                    <div className={cn(styles.financeSourceCard, styles.financeSourceCardAvailable)}>
+                      <span className={styles.financeSourceLabel}>{copy.availableCredit}</span>
+                      <div className={cn(styles.financeSourceValue, styles.financeSourceValueAvailable, styles.financeAmount)} dir="ltr">
+                        {selectedSourcePayment.currency} {selectedSourcePayment.unallocated_amount}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </fieldset>
+
+              {/* Section 3: Target Outstanding Invoices */}
+              <fieldset className={cn(styles.formSection, styles.financeFormSection)}>
+                <legend>{copy.outstandingInvoices} ({outstandingInvoices.length})</legend>
+
+                {isLoadingInvoices ? (
+                  <div className={styles.loadingState} style={{ padding: '24px' }}>
+                    <Loader2 className={styles.spinner} aria-hidden="true" />
+                  </div>
+                ) : outstandingInvoices.length === 0 ? (
+                  <div className={styles.financeEmptyState}>
+                    <FileText aria-hidden="true" />
+                    <strong>{copy.noInvoicesEmptyTitle}</strong>
+                    <p>{copy.noInvoicesEmptyBody}</p>
+                  </div>
+                ) : (
                   <div
-                    dir="ltr"
-                    style={{
-                      fontWeight: 700,
-                      fontSize: '16px',
-                      color: calculations.isOverAllocated ? '#f87171' : '#34d399',
-                      marginTop: '4px',
-                    }}
+                    className={cn(styles.employeeTableWrap, styles.financeInvoiceTableWrap)}
+                    role="region"
+                    aria-label={copy.outstandingInvoices}
+                    tabIndex={0}
                   >
-                    {selectedSourcePayment.currency} {calculations.remainingCredit}
-                  </div>
-                </div>
-              </div>
+                    <table className={cn(styles.employeeTable, styles.financeInvoiceTable)}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '40px' }}></th>
+                          <th>{copy.invoiceReference}</th>
+                          <th>{copy.dueDate ?? 'Due Date'}</th>
+                          <th>{copy.total}</th>
+                          <th>{copy.balanceDue}</th>
+                          <th style={{ minWidth: '150px' }}>{copy.allocatedAmount}</th>
+                          <th style={{ width: '80px' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {outstandingInvoices.map((inv) => {
+                          const isChecked = selectedInvoiceIds.has(inv.id)
+                          const currentAmount = manualAllocations[inv.id] ?? ''
+                          const isRowOverAllocated = decimalCompare(currentAmount || '0', inv.balance_due) > 0
 
-              {calculations.isOverAllocated ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', fontSize: '13px', marginTop: '12px' }}>
-                  <AlertCircle size={16} aria-hidden="true" />
-                  <span>{copy.insufficientCredit}</span>
+                          return (
+                            <tr key={inv.id} className={isChecked ? styles.financeInvoiceRowSelected : undefined}>
+                              <td>
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => handleToggleInvoice(inv)}
+                                  aria-label={`Select ${inv.reference}`}
+                                />
+                              </td>
+                              <td>
+                                <strong dir="ltr">{inv.reference}</strong>
+                              </td>
+                              <td dir="ltr">{inv.due_date ?? '—'}</td>
+                              <td dir="ltr">{inv.currency} {inv.total_amount}</td>
+                              <td dir="ltr" style={{ fontWeight: 600 }}>
+                                {inv.currency} {inv.balance_due}
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  min={step}
+                                  step={step}
+                                  value={currentAmount}
+                                  onChange={(e) => handleAmountChange(inv.id, e.target.value)}
+                                  placeholder={`0.${'0'.repeat(precision)}`}
+                                  disabled={!isChecked}
+                                  dir="ltr"
+                                  aria-label={`${copy.allocatedAmount} ${inv.reference}`}
+                                  className={styles.financeAllocationInput}
+                                  style={{
+                                    borderColor: isRowOverAllocated ? '#8d2020' : undefined,
+                                  }}
+                                />
+                                {isRowOverAllocated ? (
+                                  <div className={styles.fieldError} style={{ marginTop: '2px' }}>
+                                    {copy.allocationExceedsBalance}
+                                  </div>
+                                ) : null}
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className={styles.secondaryButton}
+                                  style={{ padding: '4px 8px', fontSize: '11px', whiteSpace: 'nowrap' }}
+                                  onClick={() => handleAllocateMax(inv)}
+                                >
+                                  {copy.allocateFull}
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </fieldset>
+
+              {/* Section 4: Live remaining credit calculation */}
+              {selectedSourcePayment ? (
+                <div className={cn(styles.financeCalculationCard, calculations.isOverAllocated && styles.financeCalculationCardOver)}>
+                  <div className={styles.financeCalculationGrid}>
+                    <div className={styles.financeCalculationItem}>
+                      <span>{copy.totalCreditAvailable}</span>
+                      <strong className={styles.financeAmount} dir="ltr">
+                        {selectedSourcePayment.currency} {calculations.availableCredit}
+                      </strong>
+                    </div>
+
+                    <div className={styles.financeCalculationItem}>
+                      <span>{copy.totalAllocated}</span>
+                      <strong className={styles.financeAmount} dir="ltr">
+                        {selectedSourcePayment.currency} {calculations.totalApplied}
+                      </strong>
+                    </div>
+
+                    <div className={styles.financeCalculationItem}>
+                      <span className={calculations.isOverAllocated ? styles.financeSummaryAmountNegative : undefined}>
+                        {copy.remainingCreditAfterApplication}
+                      </span>
+                      <strong
+                        className={cn(
+                          styles.financeAmount,
+                          calculations.isOverAllocated
+                            ? styles.financeCalculationOver
+                            : styles.financeCalculationPositive,
+                        )}
+                        dir="ltr"
+                      >
+                        {selectedSourcePayment.currency} {calculations.remainingCredit}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {calculations.isOverAllocated ? (
+                    <p className={styles.financeInlineError}>
+                      <AlertCircle aria-hidden="true" />
+                      <span>{copy.insufficientCredit}</span>
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
-            </div>
+            </>
           ) : null}
 
           {/* Action buttons */}
-          <div className={styles.dialogActions} style={{ marginTop: '24px' }}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              {copy.cancel}
-            </button>
-            <button
-              type="submit"
-              className={styles.primaryButton}
-              disabled={isSubmitting || !calculations.hasValidApplication}
-            >
-              {isSubmitting ? copy.saving : copy.applyCredit}
-            </button>
+          <div className={styles.financeActionFooter}>
+            {disabledReason && !isSubmitting ? (
+              <p
+                className={cn(
+                  styles.financeActionHint,
+                  calculations.isOverAllocated && styles.financeActionHintError,
+                )}
+                aria-live="polite"
+              >
+                {disabledReason}
+              </p>
+            ) : null}
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                {copy.cancel}
+              </button>
+              <button
+                type="submit"
+                className={styles.primaryButton}
+                disabled={isSubmitting || !calculations.hasValidApplication}
+                title={disabledReason || undefined}
+              >
+                {isSubmitting ? copy.saving : copy.applyCredit}
+              </button>
+            </div>
           </div>
         </form>
       </section>

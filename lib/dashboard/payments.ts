@@ -227,8 +227,7 @@ export async function listPaymentAllocations(paymentId: number): Promise<Payment
 
 export interface CompanyCreditSummaryItem {
   currency: string
-  total_unallocated: string
-  payment_count: number
+  available_credit: string
 }
 
 export interface AvailableCreditPayment {
