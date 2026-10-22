@@ -3,6 +3,10 @@ const isStaticExport = process.env.STATIC_EXPORT === 'true';
 
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  experimental: {
+    cpus: 2,
+    staticGenerationMaxConcurrency: 2,
+  },
   ...(isStaticExport ? {
     output: 'export',
     trailingSlash: true,
