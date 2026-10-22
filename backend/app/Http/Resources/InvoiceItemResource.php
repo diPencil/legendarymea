@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Decimal;
 use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,7 +24,6 @@ class InvoiceItemResource extends JsonResource
         $canViewProfit = $user?->hasRole('super_admin')
             || $user?->hasAnyPermission(['view_profit', 'manage_invoices', 'view_finance_reports', 'manage_finance_reports']);
         $invoiceCurrency = $this->invoice?->currency ?? 'AED';
-        $purchaseCurrency = $this->purchase_currency ?? $invoiceCurrency;
 
         return [
             'id' => $this->id,
@@ -55,7 +55,7 @@ class InvoiceItemResource extends JsonResource
             ),
             'purchase_unit_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => Money::normalize($this->purchase_unit_cost, $purchaseCurrency)
+                fn () => Decimal::normalize($this->purchase_unit_cost, 4)
             ),
             'purchase_currency' => $this->when(
                 $canViewPurchaseCost,
@@ -67,15 +67,15 @@ class InvoiceItemResource extends JsonResource
             ),
             'converted_unit_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => Money::normalize($this->converted_unit_cost, $invoiceCurrency)
+                fn () => Decimal::normalize($this->converted_unit_cost, 4)
             ),
             'converted_line_cost' => $this->when(
                 $canViewPurchaseCost,
-                fn () => Money::normalize($this->converted_line_cost, $invoiceCurrency)
+                fn () => Decimal::normalize($this->converted_line_cost, 4)
             ),
             'line_profit' => $this->when(
                 $canViewProfit,
-                fn () => Money::normalize($this->line_profit, $invoiceCurrency)
+                fn () => Decimal::normalize($this->line_profit, 4)
             ),
             'line_margin' => $this->when(
                 $canViewProfit,

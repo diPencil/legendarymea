@@ -11,29 +11,30 @@ class InvoiceFinanceCalculator
     {
         $itemsToCreate = [];
         $subtotal = Money::normalize(0, $invoiceCurrency);
-        $supplierTotalCost = Money::normalize(0, $invoiceCurrency);
+        $supplierTotalCost = Decimal::normalize(0, 4);
 
         foreach ($items as $item) {
             $quantity = Decimal::normalize($item['quantity'], 3);
             $unitPrice = Money::normalize($item['unit_price'], $invoiceCurrency);
             $purchaseCurrency = strtoupper($item['purchase_currency'] ?? $invoiceCurrency);
-            $purchaseUnitCost = Money::normalize($item['purchase_unit_cost'] ?? 0, $purchaseCurrency);
+            $purchaseUnitCost = Decimal::normalize($item['purchase_unit_cost'] ?? 0, 4);
             $exchangeRate = $purchaseCurrency === $invoiceCurrency
                 ? Decimal::normalize(1, 8)
                 : Decimal::normalize($item['exchange_rate'] ?? 1, 8);
             $lineTotal = Money::multiply($quantity, $unitPrice, $invoiceCurrency);
-            $convertedUnitCost = Money::normalize(Decimal::multiply($purchaseUnitCost, $exchangeRate, 8), $invoiceCurrency);
-            $convertedLineCost = Money::normalize(
-                Decimal::multiply(Decimal::multiply($quantity, $purchaseUnitCost, 8), $exchangeRate, 8),
-                $invoiceCurrency
+            $convertedUnitCost = Decimal::multiply($purchaseUnitCost, $exchangeRate, 4);
+            $convertedLineCost = Decimal::multiply(
+                Decimal::multiply($quantity, $purchaseUnitCost, 8),
+                $exchangeRate,
+                4
             );
-            $lineProfit = Money::subtract($lineTotal, $convertedLineCost, $invoiceCurrency);
+            $lineProfit = Decimal::subtract($lineTotal, $convertedLineCost, 4);
             $lineMargin = Money::compare($lineTotal, 0) > 0
                 ? Decimal::divide($lineProfit, $lineTotal, 4)
                 : null;
 
             $subtotal = Money::add($subtotal, $lineTotal, $invoiceCurrency);
-            $supplierTotalCost = Money::add($supplierTotalCost, $convertedLineCost, $invoiceCurrency);
+            $supplierTotalCost = Decimal::add($supplierTotalCost, $convertedLineCost, 4);
 
             $itemsToCreate[] = [
                 'description' => $item['description'],

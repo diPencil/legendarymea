@@ -46,6 +46,40 @@ class FinancialMigrationSafetyTest extends TestCase
         $this->assertTrue(Decimal::compare($rawAmount, '100.500') === 0);
     }
 
+    public function test_invoice_item_four_decimal_values_and_capacity_survive_migration_up_and_down(): void
+    {
+        $invoice = Invoice::factory()->create();
+        $item = $invoice->items()->create([
+            'item_type' => 'service',
+            'description' => 'Historical precision item',
+            'quantity' => '2.000',
+            'unit_price' => '300.0000',
+            'purchase_unit_cost' => '123.4567',
+            'converted_unit_cost' => '123.4567',
+            'line_total' => '600.0000',
+            'converted_line_cost' => '246.9134',
+            'line_profit' => '353.0866',
+        ]);
+
+        $migration = require database_path('migrations/2026_10_19_000003_expand_financial_amounts_for_currency_precision.php');
+
+        $migration->down();
+
+        $this->assertInvoiceItemColumnType('unit_price', 'decimal(15,4)');
+        foreach (['line_total', 'purchase_unit_cost', 'converted_unit_cost', 'converted_line_cost', 'line_profit'] as $column) {
+            $this->assertInvoiceItemColumnType($column, 'decimal(18,4)');
+        }
+        $this->assertStoredFourDecimalValues($item->id);
+
+        $migration->up();
+
+        $this->assertInvoiceItemColumnType('unit_price', 'decimal(16,4)');
+        foreach (['line_total', 'purchase_unit_cost', 'converted_unit_cost', 'converted_line_cost', 'line_profit'] as $column) {
+            $this->assertInvoiceItemColumnType($column, 'decimal(19,4)');
+        }
+        $this->assertStoredFourDecimalValues($item->id);
+    }
+
     public function test_unsafe_rollback_is_blocked_when_third_decimal_data_exists(): void
     {
         $user = User::factory()->create();
@@ -276,5 +310,20 @@ class FinancialMigrationSafetyTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    private function assertInvoiceItemColumnType(string $column, string $expected): void
+    {
+        $definition = DB::selectOne("SHOW COLUMNS FROM invoice_items WHERE Field = ?", [$column]);
+        $this->assertSame($expected, strtolower($definition->Type));
+    }
+
+    private function assertStoredFourDecimalValues(int $itemId): void
+    {
+        $raw = DB::table('invoice_items')->where('id', $itemId)->first();
+        $this->assertSame('123.4567', $raw->purchase_unit_cost);
+        $this->assertSame('123.4567', $raw->converted_unit_cost);
+        $this->assertSame('246.9134', $raw->converted_line_cost);
+        $this->assertSame('353.0866', $raw->line_profit);
     }
 }
