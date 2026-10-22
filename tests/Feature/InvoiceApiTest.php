@@ -761,8 +761,8 @@ class InvoiceApiTest extends TestCase
         $this->assertSame('Hilton Riyadh - 3 Nights', $response->json('data.items.0.service_name_snapshot'));
         $this->assertSame('Item description', $response->json('data.items.0.description'));
         $this->assertSame('1.00000000', $response->json('data.items.0.exchange_rate'));
-        $this->assertSame('100.00', $response->json('data.items.0.converted_unit_cost'));
-        $this->assertSame('200.00', $response->json('data.items.0.converted_line_cost'));
+        $this->assertSame('100.0000', $response->json('data.items.0.converted_unit_cost'));
+        $this->assertSame('200.0000', $response->json('data.items.0.converted_line_cost'));
     }
 
     public function test_invoice_item_converts_purchase_currency_to_invoice_currency(): void
@@ -785,8 +785,8 @@ class InvoiceApiTest extends TestCase
 
         $this->assertSame('USD', $response->json('data.items.0.purchase_currency'));
         $this->assertSame('3.67000000', $response->json('data.items.0.exchange_rate'));
-        $this->assertSame('367.00', $response->json('data.items.0.converted_unit_cost'));
-        $this->assertSame('734.00', $response->json('data.items.0.converted_line_cost'));
+        $this->assertSame('367.0000', $response->json('data.items.0.converted_unit_cost'));
+        $this->assertSame('734.0000', $response->json('data.items.0.converted_line_cost'));
     }
 
     public function test_invoice_item_cost_uses_full_precision_quantity_times_purchase_cost_times_fx(): void
@@ -807,9 +807,9 @@ class InvoiceApiTest extends TestCase
             ->assertCreated();
 
         $this->assertSame('300.00', $response->json('data.items.0.line_total'));
-        $this->assertSame('33.70', $response->json('data.items.0.converted_unit_cost'));
-        $this->assertSame('101.10', $response->json('data.items.0.converted_line_cost'));
-        $this->assertSame('198.90', $response->json('data.items.0.line_profit'));
+        $this->assertSame('33.6997', $response->json('data.items.0.converted_unit_cost'));
+        $this->assertSame('101.0990', $response->json('data.items.0.converted_line_cost'));
+        $this->assertSame('198.9010', $response->json('data.items.0.line_profit'));
         $this->assertSame('101.10', $response->json('data.supplier_total_cost'));
         $this->assertSame('198.90', $response->json('data.gross_profit'));
     }
@@ -845,7 +845,7 @@ class InvoiceApiTest extends TestCase
             ->json('data.items.0');
 
         $this->assertSame($supplier->id, $adminItem['supplier']['id']);
-        $this->assertSame('123.45', $adminItem['purchase_unit_cost']);
+        $this->assertSame('123.4500', $adminItem['purchase_unit_cost']);
         $this->assertSame('USD', $adminItem['purchase_currency']);
         $this->assertSame('3.67000000', $adminItem['exchange_rate']);
         $this->assertSame('Hilton Riyadh - 3 Nights', $adminItem['service_name_snapshot']);

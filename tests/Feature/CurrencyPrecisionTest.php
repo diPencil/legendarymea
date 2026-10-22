@@ -18,6 +18,7 @@ use App\Services\SupplierLedgerService;
 use App\Support\Money;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CurrencyPrecisionTest extends TestCase
@@ -107,6 +108,48 @@ class CurrencyPrecisionTest extends TestCase
             ->assertJsonPath('data.items.0.unit_price', '125.125')
             ->assertJsonPath('data.items.0.line_total', '250.250')
             ->assertJsonPath('data.total_amount', '250.250');
+    }
+
+    public function test_internal_invoice_costs_preserve_four_decimals_while_settlement_uses_currency_precision(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/v1/invoices', [
+            'company_id' => $this->company->id,
+            'currency' => 'AED',
+            'items' => [[
+                'description' => 'Four-decimal internal cost',
+                'quantity' => '2.000',
+                'unit_price' => '300.00',
+                'purchase_unit_cost' => '123.4567',
+                'purchase_currency' => 'AED',
+            ]],
+        ])->assertCreated();
+
+        $response
+            ->assertJsonPath('data.items.0.line_total', '600.00')
+            ->assertJsonPath('data.items.0.purchase_unit_cost', '123.4567')
+            ->assertJsonPath('data.items.0.converted_unit_cost', '123.4567')
+            ->assertJsonPath('data.items.0.converted_line_cost', '246.9134')
+            ->assertJsonPath('data.items.0.line_profit', '353.0866')
+            ->assertJsonPath('data.supplier_total_cost', '246.91')
+            ->assertJsonPath('data.gross_profit', '353.09');
+
+        $itemId = $response->json('data.items.0.id');
+        $raw = DB::table('invoice_items')->where('id', $itemId)->first();
+        $this->assertSame('123.4567', $raw->purchase_unit_cost);
+        $this->assertSame('246.9134', $raw->converted_line_cost);
+        $this->assertSame('353.0866', $raw->line_profit);
+
+        $this->actingAs($this->admin)->postJson('/api/v1/invoices', [
+            'company_id' => $this->company->id,
+            'currency' => 'AED',
+            'items' => [[
+                'description' => 'Too precise internal cost',
+                'quantity' => 1,
+                'unit_price' => '300.00',
+                'purchase_unit_cost' => '123.45678',
+                'purchase_currency' => 'AED',
+            ]],
+        ])->assertStatus(422)->assertJsonValidationErrors(['items.0.purchase_unit_cost']);
     }
 
     public function test_three_decimal_invoice_and_payment_settlement(): void

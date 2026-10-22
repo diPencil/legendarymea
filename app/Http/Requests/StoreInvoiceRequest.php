@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\CurrencyAmount;
+use App\Rules\DecimalScale;
 use App\Enums\InvoiceCustomerType;
 use App\Support\PermissionAccess;
 use Illuminate\Validation\Rule;
@@ -20,11 +21,6 @@ class StoreInvoiceRequest extends FormRequest
     public function rules(): array
     {
         $currency = strtoupper((string) $this->input('currency', 'AED'));
-        $purchaseCurrency = fn (string $attribute) => strtoupper((string) $this->input(
-            'items.' . explode('.', $attribute)[1] . '.purchase_currency',
-            $currency
-        ));
-
         return [
             'customer_type'      => ['required', Rule::in(InvoiceCustomerType::values())],
             'company_id'         => ['nullable', 'integer', 'exists:companies,id'],
@@ -59,7 +55,7 @@ class StoreInvoiceRequest extends FormRequest
             'items.*.supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'items.*.quantity'   => ['required', 'numeric', 'gt:0'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0', new CurrencyAmount($currency)],
-            'items.*.purchase_unit_cost' => ['nullable', 'numeric', 'min:0', new CurrencyAmount($purchaseCurrency)],
+            'items.*.purchase_unit_cost' => ['nullable', 'numeric', 'min:0', new DecimalScale(4)],
             'items.*.purchase_currency' => ['nullable', 'string', Rule::in(config('finance.supported_currencies', []))],
             'items.*.exchange_rate' => ['nullable', 'numeric', 'gt:0'],
             'items.*.sort_order' => ['nullable', 'integer'],
