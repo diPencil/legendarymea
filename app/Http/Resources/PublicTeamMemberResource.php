@@ -83,7 +83,7 @@ class PublicTeamMemberResource extends JsonResource
 
         $prefix = str_starts_with($dialCode, '+') ? $dialCode : '+' . ltrim($dialCode, '+');
 
-        return $prefix . $local;
+        return $prefix . ' ' . $local;
     }
 
     private function initials(string $name): string
