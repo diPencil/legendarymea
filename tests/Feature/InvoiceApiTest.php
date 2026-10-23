@@ -8,6 +8,7 @@ use App\Enums\InvoiceStatus;
 use App\Models\ActiveService;
 
 use App\Models\Company;
+use App\Models\CompanyRelationship;
 use App\Models\Contract;
 use App\Models\AuditLog;
 use App\Models\Employee;
@@ -45,7 +46,8 @@ class InvoiceApiTest extends TestCase
 
         $this->noAccess = User::factory()->create();
 
-        $this->company = Company::factory()->create();
+        $this->company = Company::factory()->create(['status' => 'active']);
+        CompanyRelationship::create(['company_id' => $this->company->id, 'type' => 'client']);
     }
 
     private function validItems(): array
@@ -150,6 +152,87 @@ class InvoiceApiTest extends TestCase
         $this->actingAs($this->noAccess)
             ->getJson('/api/v1/invoices')
             ->assertForbidden();
+    }
+
+    public function test_invoice_customer_options_only_return_eligible_crm_customers(): void
+    {
+        $clientCompanyWithoutPortalUser = Company::factory()->create([
+            'name' => 'Standalone CRM Client',
+            'status' => 'active',
+        ]);
+        CompanyRelationship::create(['company_id' => $clientCompanyWithoutPortalUser->id, 'type' => 'client']);
+
+        $supplierOnlyCompany = Company::factory()->create(['name' => 'Supplier Only', 'status' => 'active']);
+        CompanyRelationship::create(['company_id' => $supplierOnlyCompany->id, 'type' => 'supplier']);
+
+        $client = User::factory()->create(['name' => 'Eligible Individual', 'status' => 'active']);
+        $client->assignRole('client');
+
+        $internalUser = User::factory()->create(['name' => 'Internal Client Role', 'status' => 'active']);
+        $internalUser->assignRole(['client', 'admin']);
+        $inactiveClient = User::factory()->create(['name' => 'Inactive Individual', 'status' => 'inactive']);
+        $inactiveClient->assignRole('client');
+
+        $companyResponse = $this->actingAs($this->admin)
+            ->getJson('/api/v1/invoice-customer-options?customer_type=company&search=Standalone&per_page=1')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $clientCompanyWithoutPortalUser->id)
+            ->assertJsonPath('total', 1);
+
+        $this->assertSame(1, $companyResponse->json('last_page'));
+        $companyResponse->assertJsonMissing(['id' => $supplierOnlyCompany->id]);
+
+        $this->actingAs($this->admin)
+            ->getJson('/api/v1/invoice-customer-options?customer_type=user&search=Eligible')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $client->id)
+            ->assertJsonMissing(['id' => $internalUser->id])
+            ->assertJsonMissing(['id' => $inactiveClient->id]);
+    }
+
+    public function test_invoice_customer_options_use_invoice_create_permission_not_user_management_permission(): void
+    {
+        $invoiceCreator = User::factory()->create();
+        $invoiceCreator->givePermissionTo('manage_invoices');
+
+        $this->assertFalse($invoiceCreator->can('viewAny', User::class));
+
+        $this->actingAs($invoiceCreator)
+            ->getJson('/api/v1/invoice-customer-options?customer_type=company')
+            ->assertOk();
+
+        $this->actingAs($this->noAccess)
+            ->getJson('/api/v1/invoice-customer-options?customer_type=company')
+            ->assertForbidden();
+    }
+
+    public function test_supplier_only_company_and_internal_user_cannot_be_selected_for_new_invoice(): void
+    {
+        $supplierOnlyCompany = Company::factory()->create(['status' => 'active']);
+        CompanyRelationship::create(['company_id' => $supplierOnlyCompany->id, 'type' => 'supplier']);
+
+        $this->actingAs($this->admin)
+            ->postJson('/api/v1/invoices', [
+                'customer_type' => 'company',
+                'company_id' => $supplierOnlyCompany->id,
+                'currency' => 'AED',
+                'items' => $this->validItems(),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['company_id']);
+
+        $internalUser = User::factory()->create(['status' => 'active']);
+        $internalUser->assignRole(['client', 'employee']);
+
+        $this->actingAs($this->admin)
+            ->postJson('/api/v1/invoices', [
+                'customer_type' => 'user',
+                'customer_user_id' => $internalUser->id,
+                'currency' => 'AED',
+                'items' => $this->validItems(),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['customer_user_id']);
     }
 
     // ===========================================================
@@ -271,6 +354,7 @@ class InvoiceApiTest extends TestCase
         $client = User::factory()->create([
             'name' => 'Client User',
             'email' => 'client@example.test',
+            'status' => 'active',
         ]);
         $client->assignRole('client');
         $contract = Contract::factory()->create(['company_id' => $this->company->id, 'status' => ContractStatus::ACTIVE]);

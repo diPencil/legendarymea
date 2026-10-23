@@ -182,6 +182,7 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('active-services', \App\Http\Controllers\Api\V1\ActiveServiceController::class);
 
         // Invoices
+        Route::get('invoice-customer-options', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'customerOptions']);
         Route::apiResource('invoices', \App\Http\Controllers\Api\V1\InvoiceController::class);
         Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'print']);
         Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\Api\V1\InvoiceController::class, 'downloadPdf']);

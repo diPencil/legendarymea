@@ -7,6 +7,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\SupplierLedgerType;
 use App\Models\Company;
+use App\Models\CompanyRelationship;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Supplier;
@@ -41,7 +42,8 @@ class SupplierApiTest extends TestCase
         $this->viewer->givePermissionTo('view_suppliers');
 
         $this->noAccess = User::factory()->create();
-        $this->company = Company::factory()->create();
+        $this->company = Company::factory()->create(['status' => 'active']);
+        CompanyRelationship::create(['company_id' => $this->company->id, 'type' => 'client']);
         $this->clientUser = User::factory()->create();
         $this->salesEmployee = Employee::factory()->create([
             'user_id' => User::factory()->create()->id,

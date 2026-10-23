@@ -11,7 +11,6 @@ use App\Models\Contract;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,6 +19,7 @@ class CreateInvoiceService
     public function __construct(
         private ReferenceGeneratorService $referenceGenerator,
         private InvoiceFinanceCalculator $calculator,
+        private InvoiceCustomerEligibilityService $customerEligibility,
     ) {}
 
     public function execute(array $data, int $creatorId): Invoice
@@ -129,7 +129,10 @@ class CreateInvoiceService
                 ]);
             }
 
-            return (int) $data['company_id'];
+            $companyId = (int) $data['company_id'];
+            $this->customerEligibility->assertCompanyEligible($companyId);
+
+            return $companyId;
         }
 
         if (empty($data['customer_user_id']) || !empty($data['company_id'])) {
@@ -138,12 +141,7 @@ class CreateInvoiceService
             ]);
         }
 
-        $customerUser = User::findOrFail($data['customer_user_id']);
-        if (!$customerUser->hasRole('client')) {
-            throw ValidationException::withMessages([
-                'customer_user_id' => ['The selected user is not an eligible client customer.'],
-            ]);
-        }
+        $this->customerEligibility->assertUserEligible((int) $data['customer_user_id']);
 
         if (!empty($data['contract_id']) || !empty($data['active_service_id'])) {
             throw ValidationException::withMessages([

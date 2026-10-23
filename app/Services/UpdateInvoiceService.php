@@ -11,7 +11,6 @@ use App\Models\Contract;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,6 +19,7 @@ class UpdateInvoiceService
     public function __construct(
         private InvoiceFinanceCalculator $calculator,
         private SupplierLedgerService $supplierLedgerService,
+        private InvoiceCustomerEligibilityService $customerEligibility,
     ) {}
 
     public function execute(Invoice $invoice, array $data, int $updaterId): Invoice
@@ -60,7 +60,7 @@ class UpdateInvoiceService
 
         $soldByEmployeeId = array_key_exists('sold_by_employee_id', $data) ? (int) $data['sold_by_employee_id'] : (int) $invoice->sold_by_employee_id;
 
-        $this->validateCustomer($customerType, $companyId, $customerUserId, $contractId, $activeServiceId);
+        $this->validateCustomer($invoice, $customerType, $companyId, $customerUserId, $contractId, $activeServiceId);
         $this->validateRelationships($companyId, $contractId, $activeServiceId);
         if (array_key_exists('sold_by_employee_id', $data) && $soldByEmployeeId > 0) {
             $this->validateSalesEmployee($soldByEmployeeId);
@@ -156,11 +156,17 @@ class UpdateInvoiceService
         });
     }
 
-    private function validateCustomer(string $customerType, int $companyId, int $customerUserId, ?int $contractId, ?int $activeServiceId): void
+    private function validateCustomer(Invoice $invoice, string $customerType, int $companyId, int $customerUserId, ?int $contractId, ?int $activeServiceId): void
     {
         if ($customerType === 'company') {
             if ($companyId <= 0 || $customerUserId > 0) {
                 throw ValidationException::withMessages(['company_id' => ['Company invoices require exactly one company customer.']]);
+            }
+
+            $isExistingCustomer = $invoice->customer_type->value === 'company'
+                && (int) $invoice->company_id === $companyId;
+            if (! $isExistingCustomer) {
+                $this->customerEligibility->assertCompanyEligible($companyId);
             }
 
             return;
@@ -170,9 +176,10 @@ class UpdateInvoiceService
             throw ValidationException::withMessages(['customer_user_id' => ['User invoices require exactly one user customer.']]);
         }
 
-        $user = User::findOrFail($customerUserId);
-        if (!$user->hasRole('client')) {
-            throw ValidationException::withMessages(['customer_user_id' => ['The selected user is not an eligible client customer.']]);
+        $isExistingCustomer = $invoice->customer_type->value === 'user'
+            && (int) $invoice->customer_user_id === $customerUserId;
+        if (! $isExistingCustomer) {
+            $this->customerEligibility->assertUserEligible($customerUserId);
         }
 
         if ($contractId || $activeServiceId) {
