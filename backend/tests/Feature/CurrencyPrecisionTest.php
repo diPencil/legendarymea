@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SupplierLedgerDirection;
 use App\Models\Company;
+use App\Models\CompanyRelationship;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Supplier;
@@ -35,7 +36,8 @@ class CurrencyPrecisionTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->admin = User::factory()->create();
         $this->admin->assignRole('super_admin');
-        $this->company = Company::factory()->create();
+        $this->company = Company::factory()->create(['status' => 'active']);
+        CompanyRelationship::create(['company_id' => $this->company->id, 'type' => 'client']);
     }
 
     public function test_currency_metadata_identifies_three_and_two_decimal_currencies(): void

@@ -12,6 +12,7 @@ use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Services\CreateInvoiceService;
 use App\Services\InvoiceLifecycleService;
+use App\Services\InvoiceCustomerEligibilityService;
 use App\Services\InvoicePdfGenerator;
 use App\Services\InvoicePdfHtmlRenderer;
 use App\Services\UpdateInvoiceService;
@@ -21,6 +22,42 @@ use Illuminate\Support\Facades\Gate;
 
 class InvoiceController extends Controller
 {
+    public function customerOptions(Request $request, InvoiceCustomerEligibilityService $eligibility)
+    {
+        Gate::authorize('create', Invoice::class);
+
+        $validated = $request->validate([
+            'customer_type' => ['required', 'in:company,user'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+        $search = trim((string) ($validated['search'] ?? ''));
+        $perPage = (int) ($validated['per_page'] ?? 50);
+
+        if ($validated['customer_type'] === 'company') {
+            $query = $eligibility->companies()
+                ->select(['id', 'reference', 'name'])
+                ->when($search !== '', fn ($builder) => $builder->where(function ($nested) use ($search) {
+                    $nested->where('name', 'like', "%{$search}%")
+                        ->orWhere('reference', 'like', "%{$search}%");
+                }))
+                ->orderBy('name')
+                ->orderBy('id');
+        } else {
+            $query = $eligibility->users()
+                ->select(['id', 'name', 'email', 'company_id'])
+                ->when($search !== '', fn ($builder) => $builder->where(function ($nested) use ($search) {
+                    $nested->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                }))
+                ->orderBy('name')
+                ->orderBy('id');
+        }
+
+        return response()->json($query->paginate($perPage));
+    }
+
     public function index(Request $request)
     {
         Gate::authorize('viewAny', Invoice::class);
