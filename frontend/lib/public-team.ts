@@ -4,6 +4,7 @@ export type PublicTeamMember = {
   initials: string
   employee_code: string | null
   email: string | null
+  phone: string | null
   job_title: string | null
   department: string | null
   photo_url: string | null
@@ -29,6 +30,7 @@ function normalizeMember(input: Partial<PublicTeamMember>): PublicTeamMember | n
     initials: input.initials || 'LM',
     employee_code: input.employee_code ?? null,
     email: input.email ?? null,
+    phone: input.phone ?? null,
     job_title: input.job_title ?? null,
     department: input.department ?? null,
     photo_url: input.photo_url ?? null,

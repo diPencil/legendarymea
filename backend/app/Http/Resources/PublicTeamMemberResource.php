@@ -23,6 +23,7 @@ class PublicTeamMemberResource extends JsonResource
             'initials' => $this->initials($displayName),
             'employee_code' => $this->employee_code,
             'email' => $this->user?->email,
+            'phone' => $this->phone,
             'job_title' => $this->job_title,
             'department' => $this->department,
             'photo_url' => $this->photoUrl(),
