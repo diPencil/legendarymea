@@ -89,9 +89,13 @@ class CompanyCreditService
     public function applyCredit(Payment $payment, array $data, int $userId): array
     {
         // 1. Check idempotency before entering transaction
+        // Only consider non-reversed allocations for idempotency; reversed allocations
+        // should not block new credit applications with the same key.
         $idempotencyKey = $data['idempotency_key'] ?? null;
         if ($idempotencyKey) {
-            $existingAllocations = PaymentAllocation::where('idempotency_key', $idempotencyKey)->get();
+            $existingAllocations = PaymentAllocation::where('idempotency_key', $idempotencyKey)
+                ->whereNull('reversed_at')
+                ->get();
             if ($existingAllocations->isNotEmpty()) {
                 return $this->resolveIdempotentCreditApplication($existingAllocations, $payment, $data);
             }
@@ -123,7 +127,9 @@ class CompanyCreditService
                     }
                 }
 
-                $lockedExisting = PaymentAllocation::where('idempotency_key', $idempotencyKey)->get();
+                $lockedExisting = PaymentAllocation::where('idempotency_key', $idempotencyKey)
+                    ->whereNull('reversed_at')
+                    ->get();
                 if ($lockedExisting->isNotEmpty()) {
                     return $this->resolveIdempotentCreditApplication($lockedExisting, $payment, $data);
                 }
