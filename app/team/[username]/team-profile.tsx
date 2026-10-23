@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, Hash, Mail, MapPin, RefreshCw, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, Phone, Mail, MapPin, RefreshCw, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { PageShell } from '@/components/site'
 import { useLocale } from '@/components/i18n'
@@ -17,7 +17,7 @@ const copy = {
     role: 'Role',
     department: 'Focus',
     profile: 'Public profile',
-    employeeCode: 'Employee no.',
+    employeeCode: 'Phone',
     email: 'Email',
     fallbackRole: 'Legendary team member',
     fallbackDepartment: 'Legendary Management MEA',
@@ -33,7 +33,7 @@ const copy = {
     role: 'الدور',
     department: 'التخصص',
     profile: 'ملف عام',
-    employeeCode: 'رقم الموظف',
+    employeeCode: 'رقم الجوال',
     email: 'البريد الإلكتروني',
     fallbackRole: 'عضو في فريق ليجندري',
     fallbackDepartment: 'ليجندري مانجمنت الشرق الأوسط وأفريقيا',
@@ -107,7 +107,7 @@ export default function TeamProfile({ username }: { username: string }) {
                 <div><dt><BriefcaseBusiness size={17} />{c.role}</dt><dd>{member.job_title || c.fallbackRole}</dd></div>
                 <div><dt><MapPin size={17} />{c.department}</dt><dd>{member.department || c.fallbackDepartment}</dd></div>
                 <div><dt><ShieldCheck size={17} />{c.profile}</dt><dd>{member.slug}</dd></div>
-                <div><dt><Hash size={17} />{c.employeeCode}</dt><dd>{member.employee_code || c.fallbackValue}</dd></div>
+                <div><dt><Phone size={17} />{c.employeeCode}</dt><dd>{member.phone || c.fallbackValue}</dd></div>
                 <div><dt><Mail size={17} />{c.email}</dt><dd>{member.email || c.fallbackValue}</dd></div>
               </dl>
             </div>
