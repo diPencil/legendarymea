@@ -44,7 +44,7 @@ class PublicTeamApiTest extends TestCase
 
         $payload = $response->json('data.0');
         $this->assertSame(
-            ['slug', 'display_name', 'initials', 'employee_code', 'email', 'job_title', 'department', 'photo_url', 'profile_url'],
+            ['slug', 'display_name', 'initials', 'employee_code', 'email', 'phone', 'job_title', 'department', 'photo_url', 'profile_url'],
             array_keys($payload)
         );
 
@@ -164,7 +164,6 @@ class PublicTeamApiTest extends TestCase
         return [
             'username',
             'personal_email',
-            'phone',
             'bank_account_number',
             'bank_account_number_masked',
             'national_address',
