@@ -107,7 +107,7 @@ export default function TeamProfile({ username }: { username: string }) {
                 <div><dt><BriefcaseBusiness size={17} />{c.role}</dt><dd>{member.job_title || c.fallbackRole}</dd></div>
                 <div><dt><MapPin size={17} />{c.department}</dt><dd>{member.department || c.fallbackDepartment}</dd></div>
                 <div><dt><ShieldCheck size={17} />{c.profile}</dt><dd>{member.slug}</dd></div>
-                <div><dt><Phone size={17} />{c.employeeCode}</dt><dd>{member.phone || c.fallbackValue}</dd></div>
+                <div><dt><Phone size={17} />{c.employeeCode}</dt><dd dir="ltr">{member.phone || c.fallbackValue}</dd></div>
                 <div><dt><Mail size={17} />{c.email}</dt><dd>{member.email || c.fallbackValue}</dd></div>
               </dl>
             </div>
