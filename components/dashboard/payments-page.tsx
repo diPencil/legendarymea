@@ -266,13 +266,7 @@ export function PaymentsPage() {
                       <td><PaymentCustomerIdentity payment={payment} /></td>
                       <td><Link href={`/dashboard/payments/${payment.id}`} className={styles.textLink} dir="ltr">{payment.reference}</Link></td>
                       <td>
-                        {payment.invoice ? (
-                          <span dir="ltr">{payment.invoice.reference}</span>
-                        ) : payment.company_id ? (
-                          <span className={styles.categoryBadge}>{copy.multiInvoiceBadge}</span>
-                        ) : (
-                          '—'
-                        )}
+                        <PaymentInvoiceLink payment={payment} copy={copy} />
                       </td>
                       <td><span className={cn(styles.statusBadge, payment.status === 'reversed' ? styles.status_lost : styles.status_active)}>{paymentStatusLabel(payment.status, copy)}</span></td>
                       <td dir="ltr">
@@ -324,15 +318,7 @@ export function PaymentsPage() {
                     <div><dt>{copy.paymentReference}</dt><dd dir="ltr">{payment.reference}</dd></div>
                     <div>
                       <dt>{copy.invoice}</dt>
-                      <dd dir="ltr">
-                        {payment.invoice ? (
-                          payment.invoice.reference
-                        ) : payment.company_id ? (
-                          copy.multiInvoiceBadge
-                        ) : (
-                          '—'
-                        )}
-                      </dd>
+                      <dd><PaymentInvoiceLink payment={payment} copy={copy} /></dd>
                     </div>
                     <div>
                       <dt>{copy.amount}</dt>
@@ -483,6 +469,62 @@ function paymentMethodLabel(method: PaymentRecord['method'], copy: DashboardCopy
 
 function paymentStatusLabel(status: PaymentStatus, copy: DashboardCopy) {
   return status === 'reversed' ? copy.reversed : copy.posted
+}
+
+function PaymentInvoiceLink({ payment, copy }: { payment: PaymentRecord; copy: DashboardCopy }) {
+  const summary = payment.allocation_summary
+
+  if (summary?.active_count === 1 && summary.single_invoice) {
+    return (
+      <Link
+        href={`/dashboard/invoices/${summary.single_invoice.id}`}
+        className={styles.textLink}
+        aria-label={`${copy.view}: ${summary.single_invoice.reference}`}
+        dir="ltr"
+      >
+        {summary.single_invoice.reference}
+      </Link>
+    )
+  }
+
+  if (summary && summary.active_count > 1) {
+    const count = String(summary.active_count)
+    return (
+      <Link
+        href={`/dashboard/payments/${payment.id}#payment-allocations`}
+        className={styles.textLink}
+        aria-label={copy.viewAllocatedInvoices.replace('{count}', count)}
+      >
+        {copy.allocatedInvoices.replace('{count}', count)}
+      </Link>
+    )
+  }
+
+  if (payment.status === 'reversed') {
+    return <span className={styles.categoryBadge}>{copy.reversed}</span>
+  }
+
+  if (summary?.has_reversed_allocations) {
+    return <span className={styles.categoryBadge}>{copy.reversedAllocations}</span>
+  }
+
+  if (
+    payment.status === 'posted'
+    && payment.unallocated_amount
+    && decimalCompare(payment.unallocated_amount, '0') > 0
+  ) {
+    return <span className={styles.categoryBadge}>{copy.unallocatedCredit}</span>
+  }
+
+  if (!summary && payment.invoice) {
+    return (
+      <Link href={`/dashboard/invoices/${payment.invoice.id}`} className={styles.textLink} dir="ltr">
+        {payment.invoice.reference}
+      </Link>
+    )
+  }
+
+  return '—'
 }
 
 function initials(value: string) {
