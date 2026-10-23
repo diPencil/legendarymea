@@ -65,6 +65,14 @@ export interface PaymentRecord {
   transaction_reference: string | null
   paid_at: string | null
   notes: string | null
+  allocation_summary?: {
+    active_count: number
+    has_reversed_allocations: boolean
+    single_invoice: {
+      id: number
+      reference: string
+    } | null
+  }
   invoice: PaymentSummaryInvoice | null
   company: {
     id: number

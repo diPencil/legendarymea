@@ -94,6 +94,16 @@ export function PaymentDetailPage({ id }: { id: string }) {
     void fetchRecord()
   }, [fetchRecord])
 
+  useEffect(() => {
+    if (isLoading || allocations.length === 0 || window.location.hash !== '#payment-allocations') return
+
+    const section = document.getElementById('payment-allocations')
+    if (!section) return
+
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    section.focus({ preventScroll: true })
+  }, [allocations.length, isLoading])
+
   async function handleReverse() {
     if (!payment) return
 
@@ -264,10 +274,16 @@ export function PaymentDetailPage({ id }: { id: string }) {
 
           {/* Payment Allocations Table Section */}
           {allocations.length > 0 ? (
-            <section className={styles.detailPanel}>
+            <section
+              id="payment-allocations"
+              className={styles.detailPanel}
+              aria-labelledby="payment-allocations-title"
+              tabIndex={-1}
+              style={{ scrollMarginTop: '96px' }}
+            >
               <div className={styles.cardTitle}>
                 <Layers aria-hidden="true" />
-                <h2>{copy.paymentAllocations} ({allocations.length})</h2>
+                <h2 id="payment-allocations-title">{copy.paymentAllocations} ({allocations.length})</h2>
               </div>
               <div className={styles.employeeTableWrap} style={{ margin: '8px 0 0' }}>
                 <table className={styles.employeeTable} style={{ fontSize: '13px' }}>

@@ -5,11 +5,11 @@ namespace Tests\Feature;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-
-use App\Models\Company;
 use App\Models\AuditLog;
+use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PaymentAllocation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -397,6 +397,133 @@ class PaymentApiTest extends TestCase
 
         $response->assertJsonCount(1, 'data');
         $response->assertJsonPath('data.0.reference', 'LM-PAY-2026-000101');
+    }
+
+    public function test_list_returns_smart_allocation_summaries_without_double_counting_legacy_invoice(): void
+    {
+        $invoiceA = $this->createInvoice(['reference' => 'LM-INV-2026-000041']);
+        $invoiceB = $this->createInvoice(['reference' => 'LM-INV-2026-000042']);
+        $invoiceC = $this->createInvoice(['reference' => 'LM-INV-2026-000043']);
+
+        $makePayment = function (string $reference, array $overrides = []): Payment {
+            return Payment::factory()->create(array_merge([
+                'reference' => $reference,
+                'invoice_id' => null,
+                'company_id' => $this->company->id,
+                'recorded_by' => $this->admin->id,
+                'status' => PaymentStatus::POSTED,
+                'currency' => 'AED',
+                'amount' => '500.000',
+                'allocated_amount' => '500.000',
+                'unallocated_amount' => '0.000',
+            ], $overrides));
+        };
+
+        $single = $makePayment('LM-PAY-SMART-001');
+        PaymentAllocation::create([
+            'payment_id' => $single->id,
+            'invoice_id' => $invoiceA->id,
+            'amount' => '500.000',
+        ]);
+
+        $multiple = $makePayment('LM-PAY-SMART-002');
+        foreach ([$invoiceA, $invoiceB] as $invoice) {
+            PaymentAllocation::create([
+                'payment_id' => $multiple->id,
+                'invoice_id' => $invoice->id,
+                'amount' => '250.000',
+            ]);
+        }
+
+        $credit = $makePayment('LM-PAY-SMART-003', [
+            'allocated_amount' => '0.000',
+            'unallocated_amount' => '500.000',
+        ]);
+
+        $allReversed = $makePayment('LM-PAY-SMART-004', [
+            'allocated_amount' => '0.000',
+            'unallocated_amount' => '500.000',
+        ]);
+        PaymentAllocation::create([
+            'payment_id' => $allReversed->id,
+            'invoice_id' => $invoiceA->id,
+            'amount' => '500.000',
+            'reversed_at' => now(),
+        ]);
+
+        $legacy = $makePayment('LM-PAY-SMART-005', [
+            'invoice_id' => $invoiceC->id,
+        ]);
+
+        $mixed = $makePayment('LM-PAY-SMART-006');
+        PaymentAllocation::create([
+            'payment_id' => $mixed->id,
+            'invoice_id' => $invoiceB->id,
+            'amount' => '250.000',
+        ]);
+        PaymentAllocation::create([
+            'payment_id' => $mixed->id,
+            'invoice_id' => $invoiceC->id,
+            'amount' => '250.000',
+            'reversed_at' => now(),
+        ]);
+
+        $reversedParent = $makePayment('LM-PAY-SMART-007', [
+            'status' => PaymentStatus::REVERSED,
+            'reversed_at' => now(),
+        ]);
+        PaymentAllocation::create([
+            'payment_id' => $reversedParent->id,
+            'invoice_id' => $invoiceA->id,
+            'amount' => '500.000',
+        ]);
+
+        $rows = collect($this->actingAs($this->employee)
+            ->getJson('/api/v1/payments?per_page=50')
+            ->assertOk()
+            ->json('data'))
+            ->keyBy('reference');
+
+        $this->assertSame(1, $rows['LM-PAY-SMART-001']['allocation_summary']['active_count']);
+        $this->assertSame($invoiceA->reference, $rows['LM-PAY-SMART-001']['allocation_summary']['single_invoice']['reference']);
+        $this->assertFalse($rows['LM-PAY-SMART-001']['allocation_summary']['has_reversed_allocations']);
+
+        $this->assertSame(2, $rows['LM-PAY-SMART-002']['allocation_summary']['active_count']);
+        $this->assertNull($rows['LM-PAY-SMART-002']['allocation_summary']['single_invoice']);
+
+        $this->assertSame(0, $rows['LM-PAY-SMART-003']['allocation_summary']['active_count']);
+        $this->assertSame('500.00', $rows['LM-PAY-SMART-003']['unallocated_amount']);
+
+        $this->assertSame(0, $rows['LM-PAY-SMART-004']['allocation_summary']['active_count']);
+        $this->assertTrue($rows['LM-PAY-SMART-004']['allocation_summary']['has_reversed_allocations']);
+
+        $this->assertSame(1, $rows['LM-PAY-SMART-005']['allocation_summary']['active_count']);
+        $this->assertSame($invoiceC->reference, $rows['LM-PAY-SMART-005']['allocation_summary']['single_invoice']['reference']);
+
+        $this->assertSame(1, $rows['LM-PAY-SMART-006']['allocation_summary']['active_count']);
+        $this->assertSame($invoiceB->reference, $rows['LM-PAY-SMART-006']['allocation_summary']['single_invoice']['reference']);
+        $this->assertTrue($rows['LM-PAY-SMART-006']['allocation_summary']['has_reversed_allocations']);
+
+        $this->assertSame(0, $rows['LM-PAY-SMART-007']['allocation_summary']['active_count']);
+        $this->assertTrue($rows['LM-PAY-SMART-007']['allocation_summary']['has_reversed_allocations']);
+
+        $this->assertSame($credit->id, $rows['LM-PAY-SMART-003']['id']);
+
+        $invoiceBMatches = collect($this->actingAs($this->employee)
+            ->getJson('/api/v1/payments?search=000042&per_page=50')
+            ->assertOk()
+            ->json('data'))
+            ->pluck('reference');
+        $this->assertTrue($invoiceBMatches->contains('LM-PAY-SMART-002'));
+        $this->assertTrue($invoiceBMatches->contains('LM-PAY-SMART-006'));
+
+        $invoiceCMatches = collect($this->actingAs($this->employee)
+            ->getJson('/api/v1/payments?search=000043&per_page=50')
+            ->assertOk()
+            ->json('data'))
+            ->pluck('reference');
+        $this->assertTrue($invoiceCMatches->contains('LM-PAY-SMART-005'));
+        $this->assertFalse($invoiceCMatches->contains('LM-PAY-SMART-006'));
     }
 
     public function test_payment_audit_and_activity_are_recorded(): void
