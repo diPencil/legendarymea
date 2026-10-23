@@ -7,16 +7,17 @@ import { useLocale } from '@/components/i18n'
 import { dashboardCopy } from '@/components/dashboard/copy'
 import {
   createInvoice,
+  listAllInvoiceCustomerOptions,
   updateInvoice,
   type CreateInvoiceInput,
   type Invoice,
+  type InvoiceCompanyCustomerOption,
   type InvoiceItemInput,
+  type InvoiceUserCustomerOption,
   type UpdateInvoiceInput,
 } from '@/lib/dashboard/invoices'
-import { listCompanies, type CompanyRecord } from '@/lib/dashboard/companies'
 import { listContracts, type ContractRecord } from '@/lib/dashboard/contracts'
 import { listActiveServices, type ActiveService } from '@/lib/dashboard/active-services'
-import { listUsers, type User } from '@/lib/dashboard/users'
 import { listEmployees, type EmployeeRecord } from '@/lib/dashboard/employees'
 import { listSuppliers, type SupplierRecord } from '@/lib/dashboard/suppliers'
 import { listServiceCatalog, type ServiceCatalog } from '@/lib/dashboard/service-catalog'
@@ -81,6 +82,22 @@ function formatCustomerLabel(invoice: Invoice) {
   return invoice.customer.name ?? invoice.customer_user?.name ?? invoice.company?.name ?? '—'
 }
 
+function ensureCurrentCompanyOption(options: InvoiceCompanyCustomerOption[], invoice?: Invoice) {
+  if (!invoice?.company || options.some((option) => option.id === invoice.company?.id)) return options
+  return [...options, invoice.company].sort((left, right) => left.name.localeCompare(right.name))
+}
+
+function ensureCurrentUserOption(options: InvoiceUserCustomerOption[], invoice?: Invoice) {
+  if (!invoice?.customer_user || options.some((option) => option.id === invoice.customer_user?.id)) return options
+  return [...options, {
+    id: invoice.customer_user.id,
+    name: invoice.customer_user.name,
+    email: invoice.customer_user.email,
+    company_id: null,
+    company: null,
+  }].sort((left, right) => left.name.localeCompare(right.name))
+}
+
 function formatServiceCatalogName(service: ServiceCatalog, locale: 'en' | 'ar') {
   return locale === 'ar' ? service.name_ar : service.name_en
 }
@@ -107,7 +124,13 @@ export function InvoiceForm({
         customerType: 'نوع العميل',
         companyCustomer: 'شركة',
         userCustomer: 'مستخدم',
-        clientUser: 'مستخدم عميل',
+        clientCompany: 'شركة عميلة في CRM',
+        clientUser: 'عميل فردي / مستخدم بوابة',
+        searchCompanies: 'ابحث في الشركات العميلة',
+        searchUsers: 'ابحث بالاسم أو البريد الإلكتروني',
+        noClientCompanies: 'لا توجد شركات نشطة بعلاقة عميل في CRM.',
+        noClientUsers: 'لا توجد حسابات عملاء أفراد مؤهلة. إضافة شركة عميلة لا تنشئ مستخدمًا فرديًا تلقائيًا.',
+        customerOptionsLoadError: 'تعذر تحميل العملاء المؤهلين. حاول مرة أخرى.',
         salesOwner: 'مسؤول المبيعات',
         internalNotes: 'ملاحظات داخلية',
         serviceName: 'اسم الخدمة',
@@ -132,7 +155,13 @@ export function InvoiceForm({
         customerType: 'Customer type',
         companyCustomer: 'Company',
         userCustomer: 'User',
-        clientUser: 'Client user',
+        clientCompany: 'CRM client company',
+        clientUser: 'Individual / portal client',
+        searchCompanies: 'Search CRM client companies',
+        searchUsers: 'Search by name or email',
+        noClientCompanies: 'No active CRM client companies are available.',
+        noClientUsers: 'No eligible individual client accounts are available. A client company does not automatically create an individual user.',
+        customerOptionsLoadError: 'Eligible customers could not be loaded. Please try again.',
         salesOwner: 'Sales owner',
         internalNotes: 'Internal notes',
         serviceName: 'Service name',
@@ -153,18 +182,20 @@ export function InvoiceForm({
         customer: 'Customer',
         terms: 'Terms',
       }
+  const customerOptionsLoadError = labels.customerOptionsLoadError
 
   const [isLoadingRelated, setIsLoadingRelated] = useState(true)
-  const [companies, setCompanies] = useState<CompanyRecord[]>([])
+  const [companies, setCompanies] = useState<InvoiceCompanyCustomerOption[]>([])
   const [contracts, setContracts] = useState<ContractRecord[]>([])
   const [activeServices, setActiveServices] = useState<ActiveService[]>([])
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<InvoiceUserCustomerOption[]>([])
   const [employees, setEmployees] = useState<EmployeeRecord[]>([])
   const [suppliers, setSuppliers] = useState<SupplierRecord[]>([])
   const [catalogServices, setCatalogServices] = useState<ServiceCatalog[]>([])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [customerSearch, setCustomerSearch] = useState('')
 
   const [customerType, setCustomerType] = useState<'company' | 'user'>(invoice?.customer_type ?? 'company')
   const [companyId, setCompanyId] = useState(invoice?.company?.id ? String(invoice.company.id) : '')
@@ -205,19 +236,9 @@ export function InvoiceForm({
 
     async function load() {
       try {
-        const [companyResponse, userResponse, employeeResponse, supplierResponse, catalogResponse] = await Promise.all([
-          listCompanies({
-            page: 1,
-            perPage: 100,
-            search: '',
-            status: '',
-            relationship: '',
-            countryCode: '',
-            accountManagerId: '',
-            sortBy: 'name',
-            sortOrder: 'asc',
-          }),
-          listUsers({ page: 1, per_page: 100, sort: 'name', direction: 'asc' }),
+        const [companyOptions, userOptions, employeeResponse, supplierResponse, catalogResponse] = await Promise.all([
+          listAllInvoiceCustomerOptions<InvoiceCompanyCustomerOption>('company'),
+          listAllInvoiceCustomerOptions<InvoiceUserCustomerOption>('user'),
           listEmployees({ page: 1, perPage: 100, search: '', status: 'active', department: 'Sales', managerId: '', sortBy: 'employee_code', sortOrder: 'asc' }),
           listSuppliers({ page: 1, per_page: 100 }),
           listServiceCatalog({ available_for_invoice: 1, active: 1 }),
@@ -225,11 +246,13 @@ export function InvoiceForm({
 
         if (!mounted) return
 
-        setCompanies(companyResponse.data)
-        setUsers(userResponse.data.filter((user) => user.roles.some((role) => (typeof role === 'string' ? role : role.name) === 'client')))
+        setCompanies(ensureCurrentCompanyOption(companyOptions, invoice))
+        setUsers(ensureCurrentUserOption(userOptions, invoice))
         setEmployees(employeeResponse.data.filter((employee) => employee.status === 'active' && employee.department === 'Sales'))
         setSuppliers(supplierResponse.data.filter((supplier) => supplier.status === 'active'))
         setCatalogServices(Array.isArray(catalogResponse.data) ? catalogResponse.data : [])
+      } catch {
+        if (mounted) setErrors({ general: [customerOptionsLoadError] })
       } finally {
         if (mounted) setIsLoadingRelated(false)
       }
@@ -240,7 +263,7 @@ export function InvoiceForm({
     return () => {
       mounted = false
     }
-  }, [])
+  }, [customerOptionsLoadError, invoice])
 
   useEffect(() => {
     let mounted = true
@@ -275,6 +298,7 @@ export function InvoiceForm({
   }, [customerType, companyId, contractId])
 
   useEffect(() => {
+    setCustomerSearch('')
     if (customerType === 'company') {
       setCustomerUserId('')
     } else {
@@ -283,6 +307,14 @@ export function InvoiceForm({
       setActiveServiceId('')
     }
   }, [customerType])
+
+  const normalisedCustomerSearch = customerSearch.trim().toLocaleLowerCase(locale)
+  const visibleCompanies = companies.filter((company) => !normalisedCustomerSearch
+    || company.name.toLocaleLowerCase(locale).includes(normalisedCustomerSearch)
+    || company.reference.toLocaleLowerCase(locale).includes(normalisedCustomerSearch))
+  const visibleUsers = users.filter((user) => !normalisedCustomerSearch
+    || user.name.toLocaleLowerCase(locale).includes(normalisedCustomerSearch)
+    || user.email.toLocaleLowerCase(locale).includes(normalisedCustomerSearch))
 
   useEffect(() => {
     if (!companyId) return
@@ -445,31 +477,35 @@ export function InvoiceForm({
                   </label>
 
                   {customerType === 'company' ? (
-                    <label className={styles.formField}>
-                      <span>{copy.company} <em>{copy.required}</em></span>
-                      <select value={companyId} onChange={(event) => setCompanyId(event.target.value)} required aria-invalid={Boolean(errors.company_id)}>
+                    <div className={styles.formField}>
+                      <span id="invoice-company-label">{labels.clientCompany} <em>{copy.required}</em></span>
+                      <input type="search" value={customerSearch} onChange={(event) => setCustomerSearch(event.target.value)} placeholder={labels.searchCompanies} aria-label={labels.searchCompanies} />
+                      <select value={companyId} onChange={(event) => setCompanyId(event.target.value)} required aria-labelledby="invoice-company-label" aria-invalid={Boolean(errors.company_id)}>
                         <option value="">{copy.none}</option>
-                        {companies.map((company) => (
+                        {visibleCompanies.map((company) => (
                           <option key={company.id} value={company.id}>
                             {company.name} ({company.reference})
                           </option>
                         ))}
                       </select>
+                      {companies.length === 0 ? <small className={styles.fieldHint}>{labels.noClientCompanies}</small> : null}
                       <FieldError name="company_id" errors={errors} />
-                    </label>
+                    </div>
                   ) : (
-                    <label className={styles.formField}>
-                      <span>{labels.clientUser} <em>{copy.required}</em></span>
-                      <select value={customerUserId} onChange={(event) => setCustomerUserId(event.target.value)} required aria-invalid={Boolean(errors.customer_user_id)}>
+                    <div className={styles.formField}>
+                      <span id="invoice-user-label">{labels.clientUser} <em>{copy.required}</em></span>
+                      <input type="search" value={customerSearch} onChange={(event) => setCustomerSearch(event.target.value)} placeholder={labels.searchUsers} aria-label={labels.searchUsers} />
+                      <select value={customerUserId} onChange={(event) => setCustomerUserId(event.target.value)} required aria-labelledby="invoice-user-label" aria-invalid={Boolean(errors.customer_user_id)}>
                         <option value="">{copy.none}</option>
-                        {users.map((user) => (
+                        {visibleUsers.map((user) => (
                           <option key={user.id} value={user.id}>
-                            {user.name} ({user.email})
+                            {user.name} ({user.email}){user.company?.name ? ` · ${user.company.name}` : ''}
                           </option>
                         ))}
                       </select>
+                      {users.length === 0 ? <small className={styles.fieldHint}>{labels.noClientUsers}</small> : null}
                       <FieldError name="customer_user_id" errors={errors} />
-                    </label>
+                    </div>
                   )}
 
                   <label className={styles.formField}>

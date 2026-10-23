@@ -180,6 +180,28 @@ export interface InvoiceListParams {
   sort_order?: 'asc' | 'desc'
 }
 
+export type InvoiceCompanyCustomerOption = {
+  id: number
+  reference: string
+  name: string
+}
+
+export type InvoiceUserCustomerOption = {
+  id: number
+  name: string
+  email: string
+  company_id: number | null
+  company?: { id: number; name: string } | null
+}
+
+export type InvoiceCustomerOption = InvoiceCompanyCustomerOption | InvoiceUserCustomerOption
+
+type InvoiceCustomerOptionsPage<T extends InvoiceCustomerOption> = {
+  data: T[]
+  current_page: number
+  last_page: number
+}
+
 export type InvoicePaginationMeta = PaginationMeta
 
 export interface CreateInvoiceInput {
@@ -250,6 +272,28 @@ export async function listInvoices(params: InvoiceListParams = {}): Promise<{ da
       to: null,
     },
   }
+}
+
+export async function listAllInvoiceCustomerOptions<T extends InvoiceCustomerOption>(customerType: 'company' | 'user'): Promise<T[]> {
+  const records: T[] = []
+  let page = 1
+  let lastPage = 1
+
+  do {
+    const query = new URLSearchParams({
+      customer_type: customerType,
+      page: String(page),
+      per_page: '100',
+    })
+    const payload = await dashboardFetchEnvelope<T[]>(`/api/v1/invoice-customer-options?${query.toString()}`)
+    const paginator = payload as (InvoiceCustomerOptionsPage<T> & { data?: T[] }) | null
+
+    records.push(...(paginator?.data ?? []))
+    lastPage = paginator?.last_page ?? page
+    page += 1
+  } while (page <= lastPage)
+
+  return records
 }
 
 export async function getInvoice(id: number): Promise<Invoice> {
