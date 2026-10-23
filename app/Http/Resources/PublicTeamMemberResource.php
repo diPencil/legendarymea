@@ -23,7 +23,7 @@ class PublicTeamMemberResource extends JsonResource
             'initials' => $this->initials($displayName),
             'employee_code' => $this->employee_code,
             'email' => $this->user?->email,
-            'phone' => $this->phone,
+            'phone' => $this->fullPhone(),
             'job_title' => $this->job_title,
             'department' => $this->department,
             'photo_url' => $this->photoUrl(),
@@ -56,6 +56,34 @@ class PublicTeamMemberResource extends JsonResource
         }
 
         return $user->avatar_path ? Storage::disk('public')->url($user->avatar_path) : null;
+    }
+
+    private function fullPhone(): ?string
+    {
+        if (!$this->phone) {
+            return null;
+        }
+
+        $dialCode = trim((string) $this->country_code);
+
+        if ($dialCode === '') {
+            return $this->phone;
+        }
+
+        $dialCode = preg_replace('/^[^\d+]*/', '', $dialCode) ?: '';
+        $local = preg_replace('/\D+/', '', (string) $this->phone) ?: '';
+
+        if ($local === '') {
+            return $this->phone;
+        }
+
+        if (str_starts_with($local, ltrim($dialCode, '+'))) {
+            return $this->phone;
+        }
+
+        $prefix = str_starts_with($dialCode, '+') ? $dialCode : '+' . ltrim($dialCode, '+');
+
+        return $prefix . $local;
     }
 
     private function initials(string $name): string
