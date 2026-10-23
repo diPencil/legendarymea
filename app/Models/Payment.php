@@ -58,6 +58,11 @@ class Payment extends Model
         return $this->hasMany(PaymentAllocation::class);
     }
 
+    public function activeAllocations(): HasMany
+    {
+        return $this->allocations()->whereNull('reversed_at');
+    }
+
     public function invoices(): BelongsToMany
     {
         return $this->belongsToMany(Invoice::class, 'payment_allocations')

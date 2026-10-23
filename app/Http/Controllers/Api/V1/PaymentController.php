@@ -21,7 +21,20 @@ class PaymentController extends Controller
     {
         Gate::authorize('viewAny', Payment::class);
 
-        $query = Payment::query()->with(['invoice', 'company', 'customerUser', 'recorder', 'reverser']);
+        $query = Payment::query()
+            ->with([
+                'invoice',
+                'company',
+                'customerUser',
+                'recorder',
+                'reverser',
+                'activeAllocations:id,payment_id,invoice_id',
+                'activeAllocations.invoice:id,reference',
+            ])
+            ->withCount([
+                'allocations',
+                'activeAllocations as active_allocations_count',
+            ]);
 
         if ($request->filled('search')) {
             $search = $request->string('search')->toString();
@@ -29,6 +42,7 @@ class PaymentController extends Controller
                 $builder->where('reference', 'like', '%' . $search . '%')
                     ->orWhere('transaction_reference', 'like', '%' . $search . '%')
                     ->orWhereHas('invoice', fn ($invoiceQuery) => $invoiceQuery->where('reference', 'like', '%' . $search . '%'))
+                    ->orWhereHas('activeAllocations.invoice', fn ($invoiceQuery) => $invoiceQuery->where('reference', 'like', '%' . $search . '%'))
                     ->orWhereHas('company', fn ($companyQuery) => $companyQuery->where('name', 'like', '%' . $search . '%'));
             });
         }

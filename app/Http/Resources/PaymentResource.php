@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\PaymentStatus;
 use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,6 +24,10 @@ class PaymentResource extends JsonResource
             'transaction_reference' => $this->transaction_reference,
             'paid_at' => $this->paid_at?->toIso8601String(),
             'notes' => $this->notes,
+            'allocation_summary' => $this->when(
+                array_key_exists('allocations_count', $this->resource->getAttributes()),
+                fn () => $this->allocationSummary()
+            ),
             'allocations' => PaymentAllocationResource::collection($this->whenLoaded('allocations')),
             'invoice' => $this->whenLoaded('invoice', function () {
                 return $this->invoice ? [
@@ -69,6 +74,45 @@ class PaymentResource extends JsonResource
             'reversal_reason' => $this->reversal_reason,
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
+        ];
+    }
+
+    private function allocationSummary(): array
+    {
+        $allocationCount = (int) ($this->allocations_count ?? 0);
+        $activeCount = $this->status === PaymentStatus::REVERSED
+            ? 0
+            : (int) ($this->active_allocations_count ?? 0);
+        $singleInvoice = null;
+
+        if ($activeCount === 1 && $this->relationLoaded('activeAllocations')) {
+            $invoice = $this->activeAllocations->first()?->invoice;
+            if ($invoice) {
+                $singleInvoice = [
+                    'id' => $invoice->id,
+                    'reference' => $invoice->reference,
+                ];
+            }
+        }
+
+        // Historical single-invoice payments may predate payment_allocations.
+        if (
+            $activeCount === 0
+            && $allocationCount === 0
+            && $this->status !== PaymentStatus::REVERSED
+            && $this->invoice
+        ) {
+            $activeCount = 1;
+            $singleInvoice = [
+                'id' => $this->invoice->id,
+                'reference' => $this->invoice->reference,
+            ];
+        }
+
+        return [
+            'active_count' => $activeCount,
+            'has_reversed_allocations' => $allocationCount > $activeCount,
+            'single_invoice' => $activeCount === 1 ? $singleInvoice : null,
         ];
     }
 }
