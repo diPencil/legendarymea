@@ -2574,7 +2574,13 @@ dialog.dialogOverlay {
 .invoiceThreeColumnGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 14px;
+}
+
+.invoiceThreeColumnGrid > .formField {
+  align-content: start;
+  align-self: start;
 }
 
 .invoiceWideField {
