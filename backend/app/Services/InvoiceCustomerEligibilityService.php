@@ -26,8 +26,14 @@ class InvoiceCustomerEligibilityService
             ->with('company:id,name')
             ->whereIn('status', [UserStatus::ACTIVE->value, UserStatus::INVITED->value])
             ->whereNull('portal_disabled_at')
+            ->whereNull('company_id')
             ->whereDoesntHave('employee')
-            ->whereHas('roles', fn (Builder $query) => $query->whereRaw('LOWER(name) = ?', ['client']))
+            ->where(function (Builder $query) {
+                $query
+                    ->whereDoesntHave('roles')
+                    ->orWhereHas('roles', fn (Builder $roleQuery) => $roleQuery
+                        ->whereRaw('LOWER(name) = ?', ['client']));
+            })
             ->whereDoesntHave('roles', fn (Builder $query) => $query
                 ->whereIn(DB::raw('LOWER(name)'), self::INTERNAL_ROLES));
     }
