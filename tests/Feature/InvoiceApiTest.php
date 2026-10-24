@@ -168,6 +168,19 @@ class InvoiceApiTest extends TestCase
         $client = User::factory()->create(['name' => 'Eligible Individual', 'status' => 'active']);
         $client->assignRole('client');
 
+        $rolelessCustomer = User::factory()->create([
+            'name' => 'Roleless Individual',
+            'status' => 'active',
+            'company_id' => null,
+        ]);
+
+        $companyPortalUser = User::factory()->create([
+            'name' => 'Company Portal User',
+            'status' => 'active',
+            'company_id' => $clientCompanyWithoutPortalUser->id,
+        ]);
+        $companyPortalUser->assignRole('client');
+
         $internalUser = User::factory()->create(['name' => 'Internal Client Role', 'status' => 'active']);
         $internalUser->assignRole(['client', 'admin']);
         $inactiveClient = User::factory()->create(['name' => 'Inactive Individual', 'status' => 'inactive']);
@@ -187,7 +200,13 @@ class InvoiceApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.0.id', $client->id)
             ->assertJsonMissing(['id' => $internalUser->id])
-            ->assertJsonMissing(['id' => $inactiveClient->id]);
+            ->assertJsonMissing(['id' => $inactiveClient->id])
+            ->assertJsonMissing(['id' => $companyPortalUser->id]);
+
+        $this->actingAs($this->admin)
+            ->getJson('/api/v1/invoice-customer-options?customer_type=user&search=Roleless')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $rolelessCustomer->id);
     }
 
     public function test_invoice_customer_options_use_invoice_create_permission_not_user_management_permission(): void
@@ -233,6 +252,25 @@ class InvoiceApiTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['customer_user_id']);
+    }
+
+    public function test_active_roleless_external_user_can_be_selected_for_new_invoice(): void
+    {
+        $customer = User::factory()->create([
+            'status' => 'active',
+            'company_id' => null,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->postJson('/api/v1/invoices', [
+                'customer_type' => 'user',
+                'customer_user_id' => $customer->id,
+                'currency' => 'AED',
+                'items' => $this->validItems(),
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.customer_type', 'user')
+            ->assertJsonPath('data.customer.id', $customer->id);
     }
 
     // ===========================================================
