@@ -216,6 +216,69 @@
   overflow-wrap: anywhere;
 }
 
+.saveContactRow {
+  margin-top: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.saveContactButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background-color: #071f66;
+  color: #ffffff;
+  border: 1px solid #071f66;
+  border-bottom: 3px solid #c5a253;
+  border-radius: 6px;
+  padding: 14px 28px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(7, 31, 102, 0.12);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.saveContactButton:hover:not(:disabled) {
+  background-color: #0d2c88;
+  border-color: #0d2c88;
+  border-bottom-color: #dfba63;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(7, 31, 102, 0.18);
+}
+
+.saveContactButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(7, 31, 102, 0.12);
+}
+
+.saveContactButton:focus-visible {
+  outline: 2px solid #c5a253;
+  outline-offset: 3px;
+}
+
+.saveContactButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-bottom-color: #ded8cc;
+  box-shadow: none;
+}
+
+.saveContactIcon {
+  color: #c5a253;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.saveContactButton:hover:not(:disabled) .saveContactIcon {
+  transform: scale(1.08);
+}
+
 @media (max-width: 920px) {
   .profileLayout {
     grid-template-columns: 1fr;
@@ -237,5 +300,15 @@
 
   .card {
     min-height: auto;
+  }
+
+  .saveContactRow {
+    width: 100%;
+  }
+
+  .saveContactButton {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 16px;
   }
 }

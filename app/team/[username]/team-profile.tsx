@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, Phone, Mail, MapPin, RefreshCw, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, Check, Mail, MapPin, Phone, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { PageShell } from '@/components/site'
 import { useLocale } from '@/components/i18n'
 import { fetchPublicTeamMember, type PublicTeamMember } from '@/lib/public-team'
+import { downloadVCard, hasPublicContactMethod } from '@/lib/vcard'
 import styles from '../team.module.css'
 
 const copy = {
@@ -26,6 +27,8 @@ const copy = {
     unavailable: 'This public team profile could not be loaded.',
     retry: 'Retry',
     intro: 'Part of the team supporting dependable travel, hospitality and partnership work across the region.',
+    saveContact: 'Save Contact',
+    noContactDetails: 'No public contact details available',
   },
   ar: {
     back: 'العودة للفريق',
@@ -42,6 +45,8 @@ const copy = {
     unavailable: 'تعذر تحميل ملف عضو الفريق.',
     retry: 'إعادة المحاولة',
     intro: 'جزء من الفريق الذي يدعم أعمال السفر والضيافة والشراكات في المنطقة.',
+    saveContact: 'حفظ جهة الاتصال',
+    noContactDetails: 'لا توجد بيانات اتصال عامة متاحة',
   },
 } as const
 
@@ -52,6 +57,18 @@ export default function TeamProfile({ username }: { username: string }) {
   const [member, setMember] = useState<PublicTeamMember | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [downloaded, setDownloaded] = useState(false)
+
+  const hasContact = hasPublicContactMethod(member)
+
+  const handleSaveContact = () => {
+    if (!member || !hasContact) return
+    const success = downloadVCard(member)
+    if (success) {
+      setDownloaded(true)
+      window.setTimeout(() => setDownloaded(false), 2000)
+    }
+  }
 
   const loadProfile = useCallback(() => {
     const controller = new AbortController()
@@ -110,6 +127,23 @@ export default function TeamProfile({ username }: { username: string }) {
                 <div><dt><Phone size={17} />{c.employeeCode}</dt><dd><span dir="ltr">{member.phone || c.fallbackValue}</span></dd></div>
                 <div><dt><Mail size={17} />{c.email}</dt><dd>{member.email || c.fallbackValue}</dd></div>
               </dl>
+              <div className={styles.saveContactRow}>
+                <button
+                  type="button"
+                  className={styles.saveContactButton}
+                  onClick={handleSaveContact}
+                  disabled={!hasContact}
+                  aria-disabled={!hasContact}
+                  title={!hasContact ? c.noContactDetails : undefined}
+                >
+                  {downloaded ? (
+                    <Check size={19} className={styles.saveContactIcon} aria-hidden="true" />
+                  ) : (
+                    <UserPlus size={19} className={styles.saveContactIcon} aria-hidden="true" />
+                  )}
+                  <span>{c.saveContact}</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
