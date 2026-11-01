@@ -70,17 +70,17 @@ class MediaFileResource extends JsonResource
         return [
             ...$this->emailTemplates->map(fn ($template) => [
                 'type' => 'email_template',
-                'label' => 'Email Template — ' . $template->name,
+                'label' => 'Email Template - ' . $template->name,
                 'reference' => $template->key,
             ])->values()->all(),
             ...$this->websiteMediaSlots->map(fn ($slot) => [
                 'type' => 'website',
-                'label' => 'Website — ' . $slot->label,
+                'label' => 'Website - ' . $slot->label,
                 'reference' => $slot->key,
             ])->values()->all(),
             ...$this->avatarUsers->map(fn ($user) => [
                 'type' => 'user_avatar',
-                'label' => 'User Avatar — ' . $user->name,
+                'label' => 'User Avatar - ' . $user->name,
                 'reference' => $user->username,
             ])->values()->all(),
         ];

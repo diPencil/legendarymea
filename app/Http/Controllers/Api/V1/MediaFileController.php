@@ -341,17 +341,17 @@ class MediaFileController extends Controller
         return [
             ...$mediaFile->emailTemplates->map(fn ($template) => [
                 'type' => 'email_template',
-                'label' => 'Email Template — ' . $template->name,
+                'label' => 'Email Template - ' . $template->name,
                 'reference' => $template->key,
             ])->values()->all(),
             ...$mediaFile->websiteMediaSlots->map(fn (WebsiteMediaSlot $slot) => [
                 'type' => 'website',
-                'label' => 'Website — ' . $slot->label,
+                'label' => 'Website - ' . $slot->label,
                 'reference' => $slot->key,
             ])->values()->all(),
             ...$mediaFile->avatarUsers->map(fn ($user) => [
                 'type' => 'user_avatar',
-                'label' => 'User Avatar — ' . $user->name,
+                'label' => 'User Avatar - ' . $user->name,
                 'reference' => $user->username,
             ])->values()->all(),
         ];

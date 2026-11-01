@@ -54,7 +54,7 @@ class ApprovalDecisionService
                     ]
         );
 
-        // Notify the assignee that the approval was withdrawn — avoid self-notification
+        // Notify the assignee that the approval was withdrawn - avoid self-notification
         if ($assigneeId && $assigneeId !== $actor->id) {
             $assignee = User::find($assigneeId);
             if ($assignee) {
@@ -108,7 +108,7 @@ class ApprovalDecisionService
                         ]
         );
 
-            // Notify the requester of the decision — avoid self-notification
+            // Notify the requester of the decision - avoid self-notification
             $requesterId = $approval->requested_by;
             if ($requesterId && $requesterId !== $actor->id) {
                 $requester = User::find($requesterId);

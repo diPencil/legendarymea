@@ -345,8 +345,8 @@ class MediaApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.is_in_use', true)
             ->assertJsonPath('data.usage_count', 2)
-            ->assertJsonFragment(['label' => 'Email Template — Corporate Travel'])
-            ->assertJsonFragment(['label' => 'Website — Home Hero Hotel']);
+            ->assertJsonFragment(['label' => 'Email Template - Corporate Travel'])
+            ->assertJsonFragment(['label' => 'Website - Home Hero Hotel']);
 
         $this->deleteJson("/api/v1/media-files/{$mediaId}")
             ->assertStatus(409)

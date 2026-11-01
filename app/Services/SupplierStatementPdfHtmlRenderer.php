@@ -120,7 +120,7 @@ html,body{margin:0;padding:0;background:#fff;color:#081d60;font-family:montserra
             . '<table class="header"><tr><td width="55%">' . $logoHtml
             . '<div class="issuer-name">' . $this->e($issuer['name']) . '</div>'
             . '<div class="issuer-copy">' . $this->e($issuer['address']) . '<br>' . $this->e($issuer['phone']) . ' | ' . $this->e($issuer['email']) . '</div></td>'
-            . '<td width="45%" class="document-mark"><div class="eyebrow">' . ($isRtl ? 'الإدارة المالية — حسابات الموردين' : 'FINANCIAL MANAGEMENT — SUPPLIER ACCOUNTS') . '</div>'
+            . '<td width="45%" class="document-mark"><div class="eyebrow">' . ($isRtl ? 'الإدارة المالية - حسابات الموردين' : 'FINANCIAL MANAGEMENT - SUPPLIER ACCOUNTS') . '</div>'
             . '<h1>' . $this->e($title) . '</h1>'
             . '<div><span class="badge ' . $reconBadgeClass . '">' . $reconText . '</span> ' . $statusBadge . '</div></td></tr></table>'
 
