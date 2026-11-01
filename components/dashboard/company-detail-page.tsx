@@ -327,7 +327,7 @@ export function DashboardCompanyDetailPage({ companyId }: { companyId: number })
             <div style={{ padding: '26px 28px', display: 'grid', gap: 14 }}>
               <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#ecfdf5', display: 'grid', placeItems: 'center', color: '#065f46', fontSize: '1.2rem' }}>✓</div>
               <h3 style={{ margin: 0, color: '#081D60', fontSize: '1.08rem', fontWeight: 800, lineHeight: 1.3 }}>
-                {locale === 'ar' ? 'مرحباً — حساب الشركة جاهز' : 'Welcome — company account is ready'}
+                {locale === 'ar' ? 'مرحباً - حساب الشركة جاهز' : 'Welcome - company account is ready'}
               </h3>
               <p style={{ margin: 0, color: '#6d716f', fontSize: '0.9rem', lineHeight: 1.7 }}>
                 {locale === 'ar'

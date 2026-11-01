@@ -1695,7 +1695,7 @@
   min-width: 980px;
 }
 
-/* Compact person cell for table use — name + truncated email on second line */
+/* Compact person cell for table use - name + truncated email on second line */
 .personCell {
   display: grid;
   gap: 2px;

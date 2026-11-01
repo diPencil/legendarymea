@@ -234,9 +234,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                           className={cn(styles.navLink, styles.navLinkDormant)}
                           disabled
                           aria-disabled="true"
-                          onMouseEnter={(e) => handleTooltipOpen(e, `${item.label[locale]} — ${status}`)}
+                          onMouseEnter={(e) => handleTooltipOpen(e, `${item.label[locale]} - ${status}`)}
                           onMouseLeave={handleTooltipClose}
-                          onFocus={(e) => handleTooltipOpen(e, `${item.label[locale]} — ${status}`)}
+                          onFocus={(e) => handleTooltipOpen(e, `${item.label[locale]} - ${status}`)}
                           onBlur={handleTooltipClose}
                         >
                           <Icon aria-hidden="true" />

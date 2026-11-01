@@ -474,7 +474,7 @@ export function ApplyCreditModal({
                   ) : (
                     creditSummaries.map((s) => (
                       <option key={s.currency} value={s.currency}>
-                        {s.currency} — {copy.availableCredit}: {s.currency} {s.available_credit}
+                        {s.currency} - {copy.availableCredit}: {s.currency} {s.available_credit}
                       </option>
                     ))
                   )}
@@ -536,7 +536,7 @@ export function ApplyCreditModal({
                     >
                       {availablePaymentsForCurrency.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.reference} — {copy.availableCredit}: {p.currency} {p.unallocated_amount} (Original: {p.currency} {p.amount})
+                          {p.reference} - {copy.availableCredit}: {p.currency} {p.unallocated_amount} (Original: {p.currency} {p.amount})
                         </option>
                       ))}
                     </select>

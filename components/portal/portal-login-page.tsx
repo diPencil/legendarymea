@@ -116,7 +116,7 @@ export function PortalLoginPage() {
               <p className={styles.loginBrandDesc}>
                 {isAr
                   ? 'تابع عقودك وعروض الأسعار والفواتير والخدمات من مساحة آمنة مخصصة لشركتك، بكل وضوح ومتابعة يومية.'
-                  : 'Access your contracts, quotations, invoices and services from a secure, dedicated company workspace — calm, organized and always current.'}
+                  : 'Access your contracts, quotations, invoices and services from a secure, dedicated company workspace - calm, organized and always current.'}
               </p>
             </div>
             <div className={styles.loginFeatures} aria-hidden="true">

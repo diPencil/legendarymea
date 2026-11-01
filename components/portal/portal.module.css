@@ -859,7 +859,7 @@
   }
 }
 
-/* ================= RTL / Arabic polish — isolates Arabic styling ================= */
+/* ================= RTL / Arabic polish - isolates Arabic styling ================= */
 html[lang="ar"] .portalPage,
 .portalPage[dir="rtl"],
 html[lang="ar"] .loginPage,
