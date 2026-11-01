@@ -133,7 +133,7 @@
 }
 
 .profile {
-  padding-top: 140px;
+  padding-top: clamp(48px, 6vw, 96px);
   padding-bottom: 96px;
 }
 
@@ -141,7 +141,7 @@
   display: inline-flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
   color: #071f66;
   text-decoration: none;
   font-weight: 700;
@@ -280,6 +280,15 @@
 }
 
 @media (max-width: 920px) {
+  .profile {
+    padding-top: 24px;
+    padding-bottom: 64px;
+  }
+
+  .back {
+    margin-bottom: 20px;
+  }
+
   .profileLayout {
     grid-template-columns: 1fr;
   }

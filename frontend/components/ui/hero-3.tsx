@@ -253,23 +253,23 @@ export function Hero3({
   return (
     <section className={cn(
       "relative w-full flex flex-col items-center overflow-hidden",
-      "min-h-[760px] lg:min-h-[820px] pb-10",
+      "min-h-[580px] md:min-h-[760px] lg:min-h-[820px] pb-8 md:pb-10",
       className
     )}>
       <KineticGrid />
-      <div className="relative z-10 w-full max-w-[1500px] mx-auto px-6 md:px-12 flex flex-col items-center text-center pt-[80px] lg:pt-[95px]">
+      <div className="relative z-10 w-full max-w-[1500px] mx-auto px-6 md:px-12 flex flex-col items-center text-center pt-7 md:pt-[70px] lg:pt-[95px]">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="flex flex-col items-center"
         >
-          {kicker && <p className="eyebrow mb-[18px]">{kicker}</p>}
+          {kicker && <p className="eyebrow mb-3 md:mb-[18px]">{kicker}</p>}
           <h1 
             className="max-w-[900px] text-balance font-bold text-navy"
             style={{ 
-              fontSize: 'clamp(40px, 4.5vw, 68px)', 
-              lineHeight: '1.05',
+              fontSize: 'clamp(28px, 4.5vw, 68px)', 
+              lineHeight: isRtl ? '1.2' : '1.1',
               letterSpacing: isRtl ? 'normal' : '-0.04em'
             }}
           >
@@ -277,13 +277,13 @@ export function Hero3({
             {accent && <><br /><em className="text-gold not-italic">{accent}</em></>}
           </h1>
           <p 
-            className="text-muted mt-[24px] max-w-[600px] text-balance"
+            className="text-muted mt-5 md:mt-[24px] max-w-[600px] text-balance"
             style={{ fontSize: 'clamp(15px, 1.5vw, 18px)', lineHeight: '1.6' }}
           >
             {body}
           </p>
           
-          <div className="mt-[35px] lg:mt-[45px] flex flex-col sm:flex-row items-center gap-6 justify-center">
+          <div className="mt-6 md:mt-[35px] lg:mt-[45px] flex flex-col sm:flex-row items-center gap-6 justify-center">
             <a className="button button-dark" href={primaryCta.href}>
               {primaryCta.label} <ArrowUpRight size={17} />
             </a>
@@ -297,7 +297,7 @@ export function Hero3({
         </motion.div>
       </div>
 
-      <div className="relative mt-[50px] lg:mt-[60px] w-full flex-1 min-h-[220px] lg:min-h-[300px] flex items-center overflow-hidden">
+      <div className="relative mt-8 md:mt-[50px] lg:mt-[60px] w-full flex-1 min-h-[220px] lg:min-h-[300px] flex items-center overflow-hidden">
         <div 
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
