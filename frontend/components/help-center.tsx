@@ -57,7 +57,7 @@ export function HelpCenterHome() {
         <div className="help-directory-list">{helpCategories.map(item => {
           const count = helpArticles.filter(article => article.category === item.id).length
           const first = helpArticles.find(article => article.category === item.id)
-          return <article key={item.id}><span>{item.number}</span><div><h2>{item.title[locale]}</h2><p>{isAr ? `${count} أدلة عملية` : `${count} practical ${count === 1 ? 'guide' : 'guides'}`}</p></div>{first && <Link href={`/help-center/${first.slug}`} aria-label={`${item.title[locale]} — ${isAr ? 'فتح أول دليل' : 'Open first guide'}`}><Arrow size={19}/></Link>}</article>
+          return <article key={item.id}><span>{item.number}</span><div><h2>{item.title[locale]}</h2><p>{isAr ? `${count} أدلة عملية` : `${count} practical ${count === 1 ? 'guide' : 'guides'}`}</p></div>{first && <Link href={`/help-center/${first.slug}`} aria-label={`${item.title[locale]} - ${isAr ? 'فتح أول دليل' : 'Open first guide'}`}><Arrow size={19}/></Link>}</article>
         })}</div>
       </section>
     </>}

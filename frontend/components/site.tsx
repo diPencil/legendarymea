@@ -260,7 +260,7 @@ export function ContactForm({ variant = 'travel' }: { variant?: 'travel' | 'busi
     setError('');
     
     if (process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true') {
-      alert(isAr ? "نسخة تجريبية — تم التحقق من بيانات الطلب، ولم يتم إرساله فعلياً." : "Demo mode — your request has been validated but was not submitted.");
+      alert(isAr ? "نسخة تجريبية - تم التحقق من بيانات الطلب، ولم يتم إرساله فعلياً." : "Demo mode - your request has been validated but was not submitted.");
       return;
     }
 

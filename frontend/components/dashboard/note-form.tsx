@@ -59,7 +59,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
   const [globalError, setGlobalError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Relationship selector datasets — loaded lazily when form mounts
+  // Relationship selector datasets - loaded lazily when form mounts
   const [companies, setCompanies] = useState<CompanyRecord[]>([])
   const [contacts, setContacts] = useState<CompanyContact[]>([])
   const [leads, setLeads] = useState<LeadRecord[]>([])
@@ -73,7 +73,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
   useEffect(() => {
     async function loadData() {
       try {
-        // Companies — always loaded so the selector is available
+        // Companies - always loaded so the selector is available
         const compRes = await listCompanies({
           page: 1,
           perPage: 200,
@@ -95,7 +95,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
           setContacts([])
         }
 
-        // Leads — filter by company_id when selected (string field per LeadListQuery)
+        // Leads - filter by company_id when selected (string field per LeadListQuery)
         const leadRes = await listLeads({
           perPage: 200,
           ...(companyId ? { company_id: String(companyId) } : {}),
@@ -104,7 +104,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
         })
         setLeads(leadRes.data)
 
-        // Opportunities — OpportunityListQuery has all required fields
+        // Opportunities - OpportunityListQuery has all required fields
         const oppRes = await listOpportunities({
           page: 1,
           perPage: 200,
@@ -125,7 +125,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
         })
         setOpportunities(oppRes.data)
 
-        // Requests — filter by company_id when selected
+        // Requests - filter by company_id when selected
         const reqRes = await listRequests({
           perPage: 200,
           ...(companyId ? { company_id: String(companyId) } : {}),
@@ -134,7 +134,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
         })
         setRequests(reqRes.data)
 
-        // Tasks — filter by company_id when selected
+        // Tasks - filter by company_id when selected
         const taskRes = await listTasks({
           perPage: 200,
           ...(companyId ? { company_id: String(companyId) } : {}),
@@ -143,7 +143,7 @@ export function NoteForm({ mode, note, onSuccess, onClose }: NoteFormProps) {
         })
         setTasks(taskRes.data)
 
-        // Follow-ups — filter by company_id when selected (number field per ListFollowUpsParams)
+        // Follow-ups - filter by company_id when selected (number field per ListFollowUpsParams)
         const fuRes = await listFollowUps({
           perPage: 200,
           ...(companyId ? { company_id: companyId } : {}),

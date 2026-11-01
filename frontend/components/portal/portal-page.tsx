@@ -946,7 +946,7 @@ Add your name in EN + AR and date - appears instantly for admin in the same cont
       </div>
       <form onSubmit={handleSave} className={dashStyles.companyForm} style={{ gap: 16 }}>
         <fieldset className={dashStyles.formSection}>
-          <legend>{isAr ? 'الطرف الثاني — شركتك' : 'Second Party — your company'}</legend>
+          <legend>{isAr ? 'الطرف الثاني - شركتك' : 'Second Party - your company'}</legend>
           <div className={dashStyles.formGrid}>
             <label className={dashStyles.formField}>
               <span>{isAr ? 'الاسم (إنجليزي)' : 'Name (EN)'} <em style={{ color: '#dc2626' }}>*</em></span>
@@ -1377,7 +1377,7 @@ function formatMoney(num: number | string): string {
 }
 function formatPeriod(start: string | null, end: string | null): string {
   if (!start && !end) return '-'
-  return `${start ? formatDate(start) : '-'} — ${end ? formatDate(end) : '-'}`
+  return `${start ? formatDate(start) : '-'} - ${end ? formatDate(end) : '-'}`
 }
 function formatDate(iso: string) {
   if (!iso) return ''
