@@ -257,14 +257,14 @@ export function Hero3({
       className
     )}>
       <KineticGrid />
-      <div className="relative z-10 w-full max-w-[1500px] mx-auto px-6 md:px-12 flex flex-col items-center text-center pt-7 md:pt-[70px] lg:pt-[95px]">
+      <div className="relative z-10 w-full max-w-[1500px] mx-auto px-6 md:px-12 flex flex-col items-center text-center pt-[50px] md:pt-[70px] lg:pt-[95px]">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="flex flex-col items-center"
         >
-          {kicker && <p className="eyebrow mb-3 md:mb-[18px]">{kicker}</p>}
+          {kicker && <p className="eyebrow mb-4 md:mb-[18px]">{kicker}</p>}
           <h1 
             className="max-w-[900px] text-balance font-bold text-navy"
             style={{ 
