@@ -16,6 +16,7 @@ jobs:
   sync:
     name: Regenerate backend and frontend branches
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout monorepo
@@ -29,22 +30,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch derived branches
+      - name: Generate and safely synchronize subtree branches
+        shell: bash
         run: |
+          set -euo pipefail
           git fetch origin backend frontend
+          backend="$(git subtree split --prefix=backend HEAD)"
+          frontend="$(git subtree split --prefix=frontend HEAD)"
 
-      - name: Generate backend subtree
-        run: |
-          git subtree split --prefix=backend HEAD -b sync-backend-${{ github.run_id }}
+          # Preserve any independent branch history; never replace it.
+          for branch in backend frontend; do
+            candidate="${!branch}"
+            if ! git merge-base --is-ancestor "origin/$branch" "$candidate"; then
+              echo "::error::$branch has diverged; refusing to overwrite its history."
+              exit 1
+            fi
+          done
 
-      - name: Push backend branch
-        run: |
-          git push --force-with-lease origin sync-backend-${{ github.run_id }}:backend
-
-      - name: Generate frontend subtree
-        run: |
-          git subtree split --prefix=frontend HEAD -b sync-frontend-${{ github.run_id }}
-
-      - name: Push frontend branch
-        run: |
-          git push --force-with-lease origin sync-frontend-${{ github.run_id }}:frontend
+          # Both refs update together, using only ordinary fast-forward pushes.
+          git push --atomic origin "$backend:refs/heads/backend" "$frontend:refs/heads/frontend"
+          git fetch origin backend frontend
+          for branch in backend frontend; do
+            expected="$(git rev-parse "HEAD:$branch")"
+            actual="$(git rev-parse "origin/$branch^{tree}")"
+            test "$expected" = "$actual"
+            echo "$branch tree verified: $actual"
+          done
