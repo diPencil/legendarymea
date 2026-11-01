@@ -1139,7 +1139,7 @@ class InvoiceApiTest extends TestCase
             ])
             ->assertOk();
 
-        // Status should remain draft — field is ignored
+        // Status should remain draft - field is ignored
         $this->assertEquals('draft', $response->json('data.status'));
     }
 

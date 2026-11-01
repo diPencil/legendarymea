@@ -79,7 +79,7 @@ class CreateApprovalService
             metadata: []
         );
 
-                // Notify the assignee — requester !== assignee is already enforced above
+                // Notify the assignee - requester !== assignee is already enforced above
                 $assignee = User::find($approval->assigned_to);
                 if ($assignee) {
                     $assignee->notify(new ApprovalAssignedNotification($approval));

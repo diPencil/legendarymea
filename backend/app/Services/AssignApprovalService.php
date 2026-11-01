@@ -46,7 +46,7 @@ class AssignApprovalService
             // Notify the new assignee only when the assignee actually changed
             if ($newAssigneeId !== $prevAssigneeId) {
                 $assignee = User::find($newAssigneeId);
-                // Avoid self-notification (actor assigned themselves — blocked by business rule but guard here too)
+                // Avoid self-notification (actor assigned themselves - blocked by business rule but guard here too)
                 if ($assignee && $assignee->id !== $actor->id) {
                     $assignee->notify(new ApprovalAssignedNotification($approval));
                 }

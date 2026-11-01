@@ -55,7 +55,7 @@ class QuotationCalculationService
     /**
      * Calculate the final total.
      * total = subtotal - discount_amount + tax_amount
-     * Minimum total is 0.00 — discount cannot produce a negative total.
+     * Minimum total is 0.00 - discount cannot produce a negative total.
      */
     public function total(
         string|float $subtotal,
