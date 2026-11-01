@@ -34,7 +34,7 @@ function extractColorsFromMarkdown(content) {
   // ("| Primary Blue | #2563EB |") and bolded variants.
   const rowRe = /\|\s*\*{0,2}([^*|]+?)\*{0,2}\s*\|\s*#([A-Fa-f0-9]{6})\b/g;
 
-  // 1) Quick Reference table — hex only, no parenthesized name required.
+  // 1) Quick Reference table - hex only, no parenthesized name required.
   const quickRef = {
     primary: /Primary Color\s*\|\s*#([A-Fa-f0-9]{6})/i,
     secondary: /Secondary Color\s*\|\s*#([A-Fa-f0-9]{6})/i,
@@ -45,7 +45,7 @@ function extractColorsFromMarkdown(content) {
     if (m) colors[key].base = `#${m[1]}`;
   }
 
-  // 2) Dedicated "### <Role> Colors" tables — assign base/dark/light by the
+  // 2) Dedicated "### <Role> Colors" tables - assign base/dark/light by the
   //    row label keyword.
   const assignFromSection = (heading, target) => {
     const section = content.match(new RegExp(`### ${heading}[\\s\\S]*?(?=\\n###|$)`, 'i'));
@@ -129,7 +129,7 @@ function updateDesignTokens(tokens, colors) {
   for (const role of ['primary', 'secondary', 'accent']) {
     const c = colors[role];
     if (!c.base) {
-      console.warn(`⚠️  No base hex found for ${role} color — skipping its token scale.`);
+      console.warn(`⚠️  No base hex found for ${role} color - skipping its token scale.`);
       continue;
     }
     primitiveColors[c.name] = generateColorScale(c.base, c.dark, c.light);

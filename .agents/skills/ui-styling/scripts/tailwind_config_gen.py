@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 
 # Valid npm package name pattern: optional @scope/, then package name with
 # optional subpath. Only allows alphanumeric, hyphens, dots, underscores,
-# and forward slashes — no quotes, parens, or semicolons.
+# and forward slashes - no quotes, parens, or semicolons.
 _VALID_PLUGIN_NAME = re.compile(r'^(@[a-zA-Z0-9_-]+/)?[a-zA-Z0-9_-]+(/[a-zA-Z0-9_.-]+)*$')
 
 
