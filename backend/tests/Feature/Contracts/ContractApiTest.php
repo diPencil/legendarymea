@@ -113,6 +113,7 @@ class ContractApiTest extends TestCase
         $this->assertStringContainsString('Legendary', $templateJson);
         $this->assertStringContainsString('ONLINE.TAXIDIA.NET', $templateJson);
         $this->assertStringContainsString('SA5605000068207462416001', $templateJson);
+        $this->assertStringContainsString('7052000663', $templateJson);
     }
 
     public function test_contract_pdf_download_is_protected_and_returns_pdf()
